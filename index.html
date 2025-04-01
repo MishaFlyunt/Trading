@@ -3,29 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Stock Monitor</title>
+  <title>Yahoo Finance Stock Monitor</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Live Stock Monitor</h1>
+  <h1>Live Stock Monitor (Yahoo Finance)</h1>
   <table id="stock-table">
     <thead>
       <tr>
         <th>Time</th>
         <th>Symbol</th>
         <th>Price</th>
-        <th>Change %</th>
-        <th>Volume</th>
+        <th>Change</th>
+        <th>% Change</th>
       </tr>
     </thead>
     <tbody id="table-body">
       <tr><td colspan="5">Loading...</td></tr>
     </tbody>
   </table>
-  <script>
-    const tickers = ['AAPL', 'MSFT', 'GOOGL'];
-    const apiKey = 'TGV1HSYMU113MUCR';
-  </script>
   <script src="script.js"></script>
 </body>
 </html>
