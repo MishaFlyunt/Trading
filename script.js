@@ -1,4 +1,17 @@
 
+let sortColumn = localStorage.getItem("sortColumn") || 0;
+let sortDirection = localStorage.getItem("sortDirection") || "asc";
+
+function applyTheme() {
+  const theme = localStorage.getItem("theme") || "light";
+  document.body.classList.toggle("dark", theme === "dark");
+}
+
+function toggleTheme() {
+  const isDark = document.body.classList.toggle("dark");
+  localStorage.setItem("theme", isDark ? "dark" : "light");
+}
+
 async function fetchADV(symbol) {
   const toDate = new Date().toISOString().split('T')[0];
   const fromDate = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -38,6 +51,7 @@ async function updateTable() {
   tbody.innerHTML = "";
   const now = new Date().toLocaleTimeString();
 
+  let rows = [];
   for (const symbol of tickers) {
     const [adv, snapshot] = await Promise.all([
       fetchADV(symbol),
@@ -46,57 +60,62 @@ async function updateTable() {
 
     if (!adv || !snapshot) continue;
 
-    const row = document.createElement("tr");
     const colorClass = snapshot.change > 0 ? "green" : snapshot.change < 0 ? "red" : "";
-
-    row.innerHTML = `
-      <td>${symbol}</td>
-      <td>${adv.toLocaleString()}</td>
-      <td>${snapshot.volume.toLocaleString()}</td>
-      <td class="${colorClass}">${snapshot.change.toFixed(2)}%</td>
-      <td>${snapshot.bid}</td>
-      <td>${snapshot.ask}</td>
-      <td>${now}</td>
-    `;
-    tbody.appendChild(row);
+    rows.push([
+      symbol,
+      adv,
+      snapshot.volume,
+      `<span class="${colorClass}">${snapshot.change.toFixed(2)}%</span>`,
+      snapshot.bid,
+      snapshot.ask,
+      now
+    ]);
   }
+
+  sortAndRender(rows);
+}
+
+function sortAndRender(data) {
+  data.sort((a, b) => {
+    const valA = isNaN(a[sortColumn]) ? a[sortColumn] : parseFloat(a[sortColumn]);
+    const valB = isNaN(b[sortColumn]) ? b[sortColumn] : parseFloat(b[sortColumn]);
+    return sortDirection === "asc" ? valA - valB : valB - valA;
+  });
+
+  const tbody = document.getElementById("table-body");
+  tbody.innerHTML = "";
+  data.forEach(row => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = row.map(cell => `<td>${cell}</td>`).join("");
+    tbody.appendChild(tr);
+  });
 }
 
 function sortTable(n) {
+  if (sortColumn == n) {
+    sortDirection = sortDirection === "asc" ? "desc" : "asc";
+  } else {
+    sortColumn = n;
+    sortDirection = "asc";
+  }
+  localStorage.setItem("sortColumn", sortColumn);
+  localStorage.setItem("sortDirection", sortDirection);
+  updateTable();
+}
+
+applyTheme();
+updateTable();
+setInterval(updateTable, 100000);
+
+function filterTable() {
+  const input = document.getElementById("searchInput").value.toUpperCase();
   const table = document.getElementById("stock-table");
-  let switching = true;
-  let dir = "asc";
-  let switchCount = 0;
+  const trs = table.getElementsByTagName("tr");
 
-  while (switching) {
-    switching = false;
-    const rows = table.rows;
-    for (let i = 1; i < rows.length - 1; i++) {
-      let shouldSwitch = false;
-      const x = rows[i].getElementsByTagName("TD")[n];
-      const y = rows[i + 1].getElementsByTagName("TD")[n];
-      const xVal = isNaN(x.innerText.replace(/[%,$]/g, "")) ? x.innerText : parseFloat(x.innerText.replace(/[%,$]/g, ""));
-      const yVal = isNaN(y.innerText.replace(/[%,$]/g, "")) ? y.innerText : parseFloat(y.innerText.replace(/[%,$]/g, ""));
-
-      if ((dir === "asc" && xVal > yVal) || (dir === "desc" && xVal < yVal)) {
-        shouldSwitch = true;
-        break;
-      }
-    }
-
-    if (shouldSwitch) {
-      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-      switching = true;
-      switchCount++;
-    } else {
-      if (switchCount === 0 && dir === "asc") {
-        dir = "desc";
-        switching = true;
-      }
+  for (let i = 1; i < trs.length; i++) {
+    const td = trs[i].getElementsByTagName("td")[0];
+    if (td) {
+      trs[i].style.display = td.innerText.toUpperCase().indexOf(input) > -1 ? "" : "none";
     }
   }
 }
-
-// автооновлення кожні 100 секунд
-updateTable();
-setInterval(updateTable, 100000);
