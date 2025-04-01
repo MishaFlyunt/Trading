@@ -9,6 +9,10 @@ const tickers = [
 
 const apiUrl = "https://query1.finance.yahoo.com/v7/finance/quote?symbols=";
 
+function formatNumber(n) {
+  return n ? n.toLocaleString("en-US") : "N/A";
+}
+
 function fetchYahooFinanceData() {
   const tbody = document.getElementById("table-body");
   tbody.innerHTML = "";
@@ -25,13 +29,24 @@ function fetchYahooFinanceData() {
       .then(data => {
         if (data.quoteResponse && data.quoteResponse.result) {
           data.quoteResponse.result.forEach(stock => {
+            const price = stock.regularMarketPrice;
+            const change = stock.regularMarketChange;
+            const changePercent = stock.regularMarketChangePercent;
+            const volume = stock.regularMarketVolume;
+            const adv = stock.averageDailyVolume3Month;
+            const imbalance = (volume && adv) ? volume - adv : null;
+
             const row = document.createElement("tr");
             row.innerHTML = `
               <td>${now}</td>
               <td>${stock.symbol}</td>
-              <td>$${stock.regularMarketPrice?.toFixed(2) || "N/A"}</td>
-              <td>${stock.regularMarketChange?.toFixed(2) || "N/A"}</td>
-              <td>${stock.regularMarketChangePercent?.toFixed(2) || "N/A"}%</td>
+              <td>$${price?.toFixed(2) || "N/A"}</td>
+              <td>${change?.toFixed(2) || "N/A"}</td>
+              <td>${changePercent?.toFixed(2) || "N/A"}%</td>
+              <td>${formatNumber(adv)}</td>
+              <td style="color:${imbalance > 0 ? 'green' : 'red'}">
+                ${imbalance !== null ? (imbalance > 0 ? "+" : "") + formatNumber(imbalance) : "N/A"}
+              </td>
             `;
             tbody.appendChild(row);
           });
