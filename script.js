@@ -1,42 +1,39 @@
 
-function fetchAlphaData() {
+function fetchADV(symbol) {
+  const toDate = new Date().toISOString().split('T')[0];
+  const fromDate = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/range/1/day/${fromDate}/${toDate}?adjusted=true&sort=desc&limit=10&apiKey=${apiKey}`;
+
+  return fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      if (!data.results || data.results.length === 0) return null;
+      const volumes = data.results.map(d => d.v);
+      const avg = volumes.reduce((sum, v) => sum + v, 0) / volumes.length;
+      return { symbol, adv: Math.round(avg) };
+    })
+    .catch(() => null);
+}
+
+function updateTable() {
   const tbody = document.getElementById("table-body");
   tbody.innerHTML = "";
+
   const now = new Date().toLocaleTimeString();
 
-  tickers.forEach((symbol) => {
-    const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${apiKey}`;
-    const proxiedUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
-
-    fetch(proxiedUrl)
-      .then(res => res.json())
-      .then(data => {
-        const quote = data["Global Quote"];
-        if (quote && quote["05. price"]) {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${now}</td>
-            <td>${symbol}</td>
-            <td>$${parseFloat(quote["05. price"]).toFixed(2)}</td>
-            <td>${parseFloat(quote["09. change"]).toFixed(2)}</td>
-            <td>${quote["10. change percent"]}</td>
-            <td>${quote["06. volume"]}</td>
-          `;
-          tbody.appendChild(row);
-        } else {
-          const row = document.createElement("tr");
-          row.innerHTML = `<td colspan='6'>No data for ${symbol}</td>`;
-          tbody.appendChild(row);
-        }
-      })
-      .catch(err => {
-        const row = document.createElement("tr");
-        row.innerHTML = `<td colspan='6'>Error loading ${symbol}</td>`;
-        tbody.appendChild(row);
-        console.error(err);
-      });
+  Promise.all(tickers.map(fetchADV)).then(results => {
+    results.forEach(item => {
+      if (!item) return;
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${item.symbol}</td>
+        <td>${item.adv.toLocaleString()}</td>
+        <td>${now}</td>
+      `;
+      tbody.appendChild(row);
+    });
   });
 }
 
-fetchAlphaData();
-setInterval(fetchAlphaData, 60000); // оновлення раз в 60 сек
+updateTable();
+setInterval(updateTable, 20000);
