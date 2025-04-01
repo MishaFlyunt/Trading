@@ -5,7 +5,10 @@ function fetchAlphaData() {
   const now = new Date().toLocaleTimeString();
 
   tickers.forEach((symbol) => {
-    fetch(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${apiKey}`)
+    const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${apiKey}`;
+    const proxiedUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
+
+    fetch(proxiedUrl)
       .then(res => res.json())
       .then(data => {
         const quote = data["Global Quote"];
@@ -30,6 +33,7 @@ function fetchAlphaData() {
         const row = document.createElement("tr");
         row.innerHTML = `<td colspan='6'>Error loading ${symbol}</td>`;
         tbody.appendChild(row);
+        console.error(err);
       });
   });
 }
