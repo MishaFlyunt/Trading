@@ -1,11 +1,5 @@
 
-const tickers = [
-  "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "BRK-B", "UNH", "JPM",
-  "V", "XOM", "PG", "JNJ", "MA", "HD", "CVX", "LLY", "MRK", "ABBV",
-  "PEP", "KO", "AVGO", "ADBE", "TMO", "CSCO", "MCD", "WMT", "BAC", "NFLX",
-  "ORCL", "ABT", "NKE", "COST", "DHR", "QCOM", "INTC", "TXN", "LIN", "AMGN",
-  "PM", "NEE", "UNP", "UPS", "HON", "IBM", "MS", "RTX", "CAT", "BA"
-];
+const tickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'BRK.B', 'UNH', 'JPM', 'V', 'XOM', 'PG', 'JNJ', 'MA', 'HD', 'CVX', 'LLY', 'MRK', 'ABBV', 'PEP', 'KO', 'AVGO', 'ADBE', 'TMO', 'CSCO', 'MCD', 'WMT', 'BAC', 'NFLX', 'ORCL', 'ABT', 'NKE', 'COST', 'DHR', 'QCOM', 'INTC', 'TXN', 'LIN', 'AMGN', 'PM', 'NEE', 'UNP', 'UPS', 'HON', 'IBM', 'MS', 'RTX', 'CAT', 'BA'];
 
 const apiUrl = "https://query1.finance.yahoo.com/v7/finance/quote?symbols=";
 
@@ -44,15 +38,24 @@ function fetchYahooFinanceData() {
               <td>${change?.toFixed(2) || "N/A"}</td>
               <td>${changePercent?.toFixed(2) || "N/A"}%</td>
               <td>${formatNumber(adv)}</td>
-              <td style="color:${imbalance > 0 ? 'green' : 'red'}">
+              <td style="color:${imbalance > 0 ? 'green' : imbalance < 0 ? 'red' : 'black'}">
                 ${imbalance !== null ? (imbalance > 0 ? "+" : "") + formatNumber(imbalance) : "N/A"}
               </td>
             `;
             tbody.appendChild(row);
           });
+        } else {
+          const row = document.createElement("tr");
+          row.innerHTML = `<td colspan='7'>Error fetching data or no results.</td>`;
+          tbody.appendChild(row);
         }
       })
-      .catch(err => console.error("Yahoo fetch error:", err));
+      .catch(err => {
+        console.error("Yahoo fetch error:", err);
+        const row = document.createElement("tr");
+        row.innerHTML = `<td colspan='7'>Error loading data.</td>`;
+        tbody.appendChild(row);
+      });
   });
 }
 
