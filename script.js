@@ -1,121 +1,94 @@
 
-let sortColumn = localStorage.getItem("sortColumn") || 0;
-let sortDirection = localStorage.getItem("sortDirection") || "asc";
-
 function applyTheme() {
   const theme = localStorage.getItem("theme") || "light";
   document.body.classList.toggle("dark", theme === "dark");
 }
-
 function toggleTheme() {
   const isDark = document.body.classList.toggle("dark");
   localStorage.setItem("theme", isDark ? "dark" : "light");
 }
 
-async function fetchADV(symbol) {
-  const toDate = new Date().toISOString().split('T')[0];
-  const fromDate = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-  const url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/range/1/day/${fromDate}/${toDate}?adjusted=true&sort=desc&limit=10&apiKey=${apiKey}`;
-
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-    if (!data.results || data.results.length === 0) return null;
-    const volumes = data.results.map(d => d.v);
-    const adv = volumes.reduce((sum, v) => sum + v, 0) / volumes.length;
-    return Math.round(adv);
-  } catch {
-    return null;
-  }
+function clearSortIndicators(tableId) {
+  document.querySelectorAll(`#${tableId} th`).forEach(th => {
+    th.classList.remove("sorted-asc", "sorted-desc");
+    const span = th.querySelector(".arrow");
+    if (span) th.removeChild(span);
+  });
 }
 
-async function fetchSnapshot(symbol) {
-  const url = `https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/${symbol}?apiKey=${apiKey}`;
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-    if (!data.ticker) return null;
-    return {
-      volume: data.ticker.day.v,
-      change: data.ticker.todaysChangePerc,
-      bid: data.ticker.lastQuote.p,
-      ask: data.ticker.lastQuote.ap
-    };
-  } catch {
-    return null;
-  }
+function addSortIndicator(th, isAsc) {
+  const arrow = document.createElement("span");
+  arrow.className = "arrow";
+  arrow.innerText = isAsc ? " ▲" : " ▼";
+  th.appendChild(arrow);
+  th.classList.add(isAsc ? "sorted-asc" : "sorted-desc");
+}
+
+function sortTable(tableId, colIndex) {
+  const table = document.getElementById(tableId);
+  const tbody = table.tBodies[0];
+  let rows = Array.from(tbody.rows);
+
+  const headers = table.tHead.rows[0].cells;
+  clearSortIndicators(tableId);
+
+  let isAsc = table.getAttribute("data-sort-dir") !== "asc";
+  table.setAttribute("data-sort-dir", isAsc ? "asc" : "desc");
+
+  rows.sort((a, b) => {
+    const aText = a.cells[colIndex].innerText.replace(/[%,$]/g, '');
+    const bText = b.cells[colIndex].innerText.replace(/[%,$]/g, '');
+    const aVal = isNaN(aText) ? aText.toLowerCase() : parseFloat(aText);
+    const bVal = isNaN(bText) ? bText.toLowerCase() : parseFloat(bText);
+    return isAsc ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
+  });
+
+  addSortIndicator(headers[colIndex], isAsc);
+  rows.forEach(row => tbody.appendChild(row));
 }
 
 async function updateTable() {
-  const tbody = document.getElementById("table-body");
-  tbody.innerHTML = "";
   const now = new Date().toLocaleTimeString();
+  const posBody = document.getElementById("pos-body");
+  const negBody = document.getElementById("neg-body");
+  posBody.innerHTML = "";
+  negBody.innerHTML = "";
 
-  let rows = [];
-  for (const symbol of tickers) {
-    const [adv, snapshot] = await Promise.all([
-      fetchADV(symbol),
-      fetchSnapshot(symbol)
-    ]);
+  const data = [
+    { symbol: "AAPL", imbalance: 120000, matched: 130000, side: "buy" },
+    { symbol: "TSLA", imbalance: -100000, matched: 110000, side: "sell" },
+    { symbol: "MSFT", imbalance: 85000, matched: 100000, side: "buy" },
+    { symbol: "NVDA", imbalance: -95000, matched: 100000, side: "sell" },
+    { symbol: "META", imbalance: 175000, matched: 180000, side: "buy" },
+    { symbol: "T", imbalance: -200000, matched: 190000, side: "sell" },
+    { symbol: "GOOG", imbalance: 70000, matched: 100000, side: "buy" },
+    { symbol: "BABA", imbalance: -160000, matched: 170000, side: "sell" },
+    { symbol: "AMZN", imbalance: 100000, matched: 120000, side: "buy" },
+    { symbol: "ORCL", imbalance: -120000, matched: 130000, side: "sell" },
+  ];
 
-    if (!adv || !snapshot) continue;
+  data.forEach(d => {
+    const percent = Math.abs(d.imbalance) / d.matched * 100;
+    if (percent < 70) return;
 
-    const colorClass = snapshot.change > 0 ? "green" : snapshot.change < 0 ? "red" : "";
-    rows.push([
-      symbol,
-      adv,
-      snapshot.volume,
-      `<span class="${colorClass}">${snapshot.change.toFixed(2)}%</span>`,
-      snapshot.bid,
-      snapshot.ask,
-      now
-    ]);
-  }
+    const row = document.createElement("tr");
+    const color = d.imbalance > 0 ? "green" : "red";
+    row.innerHTML = `
+      <td>${now}</td>
+      <td>${d.symbol}</td>
+      <td class="${color}">${d.imbalance.toLocaleString()}</td>
+      <td>${d.matched.toLocaleString()}</td>
+      <td>${percent.toFixed(2)}%</td>
+    `;
 
-  sortAndRender(rows);
-}
-
-function sortAndRender(data) {
-  data.sort((a, b) => {
-    const valA = isNaN(a[sortColumn]) ? a[sortColumn] : parseFloat(a[sortColumn]);
-    const valB = isNaN(b[sortColumn]) ? b[sortColumn] : parseFloat(b[sortColumn]);
-    return sortDirection === "asc" ? valA - valB : valB - valA;
+    if (d.imbalance > 0) {
+      posBody.appendChild(row);
+    } else {
+      negBody.appendChild(row);
+    }
   });
-
-  const tbody = document.getElementById("table-body");
-  tbody.innerHTML = "";
-  data.forEach(row => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = row.map(cell => `<td>${cell}</td>`).join("");
-    tbody.appendChild(tr);
-  });
-}
-
-function sortTable(n) {
-  if (sortColumn == n) {
-    sortDirection = sortDirection === "asc" ? "desc" : "asc";
-  } else {
-    sortColumn = n;
-    sortDirection = "asc";
-  }
-  localStorage.setItem("sortColumn", sortColumn);
-  localStorage.setItem("sortDirection", sortDirection);
-  updateTable();
 }
 
 applyTheme();
 updateTable();
-setInterval(updateTable, 100000);
-
-function filterTable() {
-  const input = document.getElementById("searchInput").value.toUpperCase();
-  const table = document.getElementById("stock-table");
-  const trs = table.getElementsByTagName("tr");
-
-  for (let i = 1; i < trs.length; i++) {
-    const td = trs[i].getElementsByTagName("td")[0];
-    if (td) {
-      trs[i].style.display = td.innerText.toUpperCase().indexOf(input) > -1 ? "" : "none";
-    }
-  }
-}
+setInterval(updateTable, 30000);

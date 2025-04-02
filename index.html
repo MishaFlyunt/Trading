@@ -3,36 +3,47 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Polygon Stock Monitor</title>
+  <title>Polygon Imbalance %ADV Demo</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Live Stock Monitor</h1>
+  <h1>Polygon Snapshot Imbalance %ADV ≥ 70% (Demo)</h1>
   <div id="controls">
     <button onclick="updateTable()">🔄 Оновити вручну</button>
     <button onclick="toggleTheme()">🌓 Перемкнути тему</button>
-    <input type="text" id="searchInput" placeholder="🔍 Пошук по символу..." onkeyup="filterTable()">
   </div>
-  <table id="stock-table">
-    <thead>
-      <tr>
-        <th onclick="sortTable(0)">Symbol</th>
-        <th onclick="sortTable(1)">ADV (10d)</th>
-        <th onclick="sortTable(2)">Volume Today</th>
-        <th onclick="sortTable(3)">Price Change</th>
-        <th onclick="sortTable(4)">Bid</th>
-        <th onclick="sortTable(5)">Ask</th>
-        <th>Last Updated</th>
-      </tr>
-    </thead>
-    <tbody id="table-body">
-      <tr><td colspan="7">Loading...</td></tr>
-    </tbody>
-  </table>
-  <script>
-    const tickers = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX", "AMD", "INTC"];
-    const apiKey = 'Z1xGkXAwBFkCUIAwRqF0l287Jov2sTIu';
-  </script>
+  <div class="table-wrapper">
+    <div>
+      <h2>🟩 Positive Imbalance</h2>
+      <table id="pos-table" data-sort-dir="asc">
+        <thead><tr>
+<th onclick="sortTable('pos-table', 0)">Time</th>
+<th onclick="sortTable('pos-table', 1)">Symbol</th>
+<th onclick="sortTable('pos-table', 2)">Imbalance</th>
+<th onclick="sortTable('pos-table', 3)">Matched</th>
+<th onclick="sortTable('pos-table', 4)">%ADV</th>
+</tr></thead>
+        <tbody id="pos-body">
+          <tr><td colspan="5">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h2>🟥 Negative Imbalance</h2>
+      <table id="neg-table" data-sort-dir="asc">
+        <thead><tr>
+<th onclick="sortTable('neg-table', 0)">Time</th>
+<th onclick="sortTable('neg-table', 1)">Symbol</th>
+<th onclick="sortTable('neg-table', 2)">Imbalance</th>
+<th onclick="sortTable('neg-table', 3)">Matched</th>
+<th onclick="sortTable('neg-table', 4)">%ADV</th>
+</tr></thead>
+        <tbody id="neg-body">
+          <tr><td colspan="5">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
   <script src="script.js"></script>
 </body>
 </html>

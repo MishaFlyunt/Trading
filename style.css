@@ -6,7 +6,6 @@ body {
   color: var(--text);
   transition: background 0.3s, color 0.3s;
 }
-
 :root {
   --bg: #f4f4f4;
   --text: #333;
@@ -15,7 +14,6 @@ body {
   --row-alt: #f9f9f9;
   --header: #f2f2f2;
 }
-
 body.dark {
   --bg: #1e1e1e;
   --text: #f0f0f0;
@@ -24,52 +22,61 @@ body.dark {
   --row-alt: #333;
   --header: #3c3c3c;
 }
-
 h1 {
   text-align: center;
 }
-
-button {
-  display: inline-block;
-  margin: 0 10px 15px 10px;
-  padding: 10px 20px;
-  font-size: 1em;
-  cursor: pointer;
-}
-
 #controls {
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
-
+button {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background-color: var(--table-bg);
+  color: var(--text);
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+button:hover {
+  background-color: var(--header);
+}
+.table-wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.table-wrapper > div {
+  flex: 1;
+  min-width: 450px;
+}
 table {
   width: 100%;
   border-collapse: collapse;
-  background-color: var(--table-bg);
+  background: var(--table-bg);
 }
-
 th, td {
   border: 1px solid var(--border);
   padding: 10px;
   text-align: center;
   color: var(--text);
 }
-
 th {
   background-color: var(--header);
   cursor: pointer;
 }
-
 tr:nth-child(even) {
   background-color: var(--row-alt);
 }
-
-.green {
+td.red {
+  color: crimson;
+  font-weight: bold;
+}
+td.green {
   color: limegreen;
   font-weight: bold;
 }
-
-.red {
-  color: crimson;
-  font-weight: bold;
+th.sorted-asc, th.sorted-desc {
+  background-color: #cce5ff;
 }
