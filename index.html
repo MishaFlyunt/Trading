@@ -2,69 +2,105 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>📊 Дані з amerxmocs.com</title>
+    <title>Imbalance Monitor</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f3f4f6;
-            color: #111827;
+            font-family: sans-serif;
+            background: var(--bg);
+            color: var(--text);
             padding: 2rem;
-        }
-        h1 {
-            font-size: 1.5rem;
-        }
-        .table-container {
-            margin-top: 1.5rem;
+            transition: background 0.3s, color 0.3s;
         }
         table {
-            width: 100%;
             border-collapse: collapse;
-            margin-bottom: 2rem;
-            background-color: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            width: 100%;
+            margin-top: 1rem;
+            background: var(--table-bg);
+            color: var(--text);
         }
         th, td {
-            padding: 8px 12px;
-            border: 1px solid #e5e7eb;
-            text-align: left;
+            border: 1px solid #888;
+            padding: 8px;
         }
         th {
-            background-color: #f9fafb;
+            background: var(--header-bg);
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        button {
+            padding: 8px 12px;
+            font-size: 1rem;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <h1>📊 Дані з amerxmocs.com</h1>
-    <div class="table-container">
-        <h2>Buy Imbalance</h2>
-        <div id="buy-table">Завантаження...</div>
+    <div class="controls">
+        <h1>📊 Imbalance Monitor</h1>
+        <div>
+            <button onclick="loadAll()">🔄 Оновити вручну</button>
+            <button onclick="toggleTheme()">🌓 Змінити тему</button>
+        </div>
     </div>
-    <div class="table-container">
-        <h2>Sell Imbalance</h2>
-        <div id="sell-table">Завантаження...</div>
-    </div>
+    <h2>Buy Imbalance</h2>
+    <div id="buy">Завантаження...</div>
+    <h2>Sell Imbalance</h2>
+    <div id="sell">Завантаження...</div>
+
     <script>
-        async function loadTable(jsonPath, containerId) {
-            const response = await fetch(jsonPath);
-            const data = await response.json();
-            const container = document.getElementById(containerId);
+        let theme = localStorage.getItem("theme") || "light";
+
+        function applyTheme() {
+            if (theme === "dark") {
+                document.documentElement.style.setProperty('--bg', '#111');
+                document.documentElement.style.setProperty('--text', '#fff');
+                document.documentElement.style.setProperty('--table-bg', '#222');
+                document.documentElement.style.setProperty('--header-bg', '#333');
+            } else {
+                document.documentElement.style.setProperty('--bg', '#f4f4f4');
+                document.documentElement.style.setProperty('--text', '#000');
+                document.documentElement.style.setProperty('--table-bg', '#fff');
+                document.documentElement.style.setProperty('--header-bg', '#eee');
+            }
+        }
+
+        function toggleTheme() {
+            theme = (theme === "dark") ? "light" : "dark";
+            localStorage.setItem("theme", theme);
+            applyTheme();
+        }
+
+        async function loadTable(json, id) {
+            const res = await fetch(json + '?t=' + new Date().getTime());
+            const data = await res.json();
+            const container = document.getElementById(id);
             if (data.length === 0) {
-                container.innerHTML = "<p>Немає даних</p>";
+                container.innerText = "Немає даних";
                 return;
             }
             let html = "<table><thead><tr>";
-            data[0].forEach(col => html += "<th>" + col + "</th>");
+            data[0].forEach(cell => html += `<th>${cell}</th>`);
             html += "</tr></thead><tbody>";
             data.slice(1).forEach(row => {
                 html += "<tr>";
-                row.forEach(cell => html += "<td>" + cell + "</td>");
+                row.forEach(cell => html += `<td>${cell}</td>`);
                 html += "</tr>";
             });
             html += "</tbody></table>";
             container.innerHTML = html;
         }
-        loadTable("buy_data.json", "buy-table");
-        loadTable("sell_data.json", "sell-table");
+
+        function loadAll() {
+            loadTable("buy_data.json", "buy");
+            loadTable("sell_data.json", "sell");
+        }
+
+        applyTheme();
+        loadAll();
+        setInterval(loadAll, 30000);
     </script>
 </body>
 </html>
