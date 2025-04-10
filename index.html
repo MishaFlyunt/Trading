@@ -1,49 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Polygon Imbalance %ADV Demo</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <title>📊 Дані з amerxmocs.com</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f4f6;
+            color: #111827;
+            padding: 2rem;
+        }
+        h1 {
+            font-size: 1.5rem;
+        }
+        .table-container {
+            margin-top: 1.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        th, td {
+            padding: 8px 12px;
+            border: 1px solid #e5e7eb;
+            text-align: left;
+        }
+        th {
+            background-color: #f9fafb;
+        }
+    </style>
 </head>
 <body>
-  <h1>Imbalance %ADV ≥ 70% (Demo)</h1>
-  <div id="controls">
-    <button onclick="updateTable()">🔄 Оновити вручну</button>
-    <button onclick="toggleTheme()">🌓 Перемкнути тему</button>
-  </div>
-  <div class="table-wrapper">
-    <div>
-      <h2>🟩 Positive Imbalance</h2>
-      <table id="pos-table" data-sort-dir="asc">
-        <thead><tr>
-<th onclick="sortTable('pos-table', 0)">Time</th>
-<th onclick="sortTable('pos-table', 1)">Symbol</th>
-<th onclick="sortTable('pos-table', 2)">Imbalance</th>
-<th onclick="sortTable('pos-table', 3)">Matched</th>
-<th onclick="sortTable('pos-table', 4)">%ADV</th>
-</tr></thead>
-        <tbody id="pos-body">
-          <tr><td colspan="5">Loading...</td></tr>
-        </tbody>
-      </table>
+    <h1>📊 Дані з amerxmocs.com</h1>
+    <div class="table-container">
+        <h2>Buy Imbalance</h2>
+        <div id="buy-table">Завантаження...</div>
     </div>
-    <div>
-      <h2>🟥 Negative Imbalance</h2>
-      <table id="neg-table" data-sort-dir="asc">
-        <thead><tr>
-<th onclick="sortTable('neg-table', 0)">Time</th>
-<th onclick="sortTable('neg-table', 1)">Symbol</th>
-<th onclick="sortTable('neg-table', 2)">Imbalance</th>
-<th onclick="sortTable('neg-table', 3)">Matched</th>
-<th onclick="sortTable('neg-table', 4)">%ADV</th>
-</tr></thead>
-        <tbody id="neg-body">
-          <tr><td colspan="5">Loading...</td></tr>
-        </tbody>
-      </table>
+    <div class="table-container">
+        <h2>Sell Imbalance</h2>
+        <div id="sell-table">Завантаження...</div>
     </div>
-  </div>
-  <script src="script.js"></script>
+    <script>
+        async function loadTable(jsonPath, containerId) {
+            const response = await fetch(jsonPath);
+            const data = await response.json();
+            const container = document.getElementById(containerId);
+            if (data.length === 0) {
+                container.innerHTML = "<p>Немає даних</p>";
+                return;
+            }
+            let html = "<table><thead><tr>";
+            data[0].forEach(col => html += "<th>" + col + "</th>");
+            html += "</tr></thead><tbody>";
+            data.slice(1).forEach(row => {
+                html += "<tr>";
+                row.forEach(cell => html += "<td>" + cell + "</td>");
+                html += "</tr>";
+            });
+            html += "</tbody></table>";
+            container.innerHTML = html;
+        }
+        loadTable("buy_data.json", "buy-table");
+        loadTable("sell_data.json", "sell-table");
+    </script>
 </body>
 </html>
