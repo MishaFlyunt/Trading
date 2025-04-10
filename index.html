@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <title>Imbalance Monitor</title>
     <style>
+        :root {
+            --bg: #f4f4f4;
+            --text: #000;
+            --table-bg: #fff;
+            --header-bg: #eee;
+        }
         body {
             font-family: sans-serif;
             background: var(--bg);
@@ -14,13 +20,14 @@
         table {
             border-collapse: collapse;
             width: 100%;
-            margin-top: 1rem;
             background: var(--table-bg);
             color: var(--text);
         }
         th, td {
             border: 1px solid #888;
             padding: 8px;
+            text-align: left;
+            cursor: pointer;
         }
         th {
             background: var(--header-bg);
@@ -35,6 +42,13 @@
             font-size: 1rem;
             cursor: pointer;
         }
+        .tables {
+            display: flex;
+            gap: 2rem;
+        }
+        .table-container {
+            flex: 1;
+        }
     </style>
 </head>
 <body>
@@ -45,10 +59,16 @@
             <button onclick="toggleTheme()">🌓 Змінити тему</button>
         </div>
     </div>
-    <h2>Buy Imbalance</h2>
-    <div id="buy">Завантаження...</div>
-    <h2>Sell Imbalance</h2>
-    <div id="sell">Завантаження...</div>
+    <div class="tables">
+        <div class="table-container">
+            <h2>Buy Imbalance</h2>
+            <div id="buy">Завантаження...</div>
+        </div>
+        <div class="table-container">
+            <h2>Sell Imbalance</h2>
+            <div id="sell">Завантаження...</div>
+        </div>
+    </div>
 
     <script>
         let theme = localStorage.getItem("theme") || "light";
@@ -73,6 +93,19 @@
             applyTheme();
         }
 
+        function sortTable(table, colIndex) {
+            const tbody = table.querySelector("tbody");
+            const rows = Array.from(tbody.querySelectorAll("tr"));
+            const asc = table.getAttribute("data-sort-dir") !== "asc";
+            rows.sort((a, b) => {
+                const cellA = a.children[colIndex].innerText;
+                const cellB = b.children[colIndex].innerText;
+                return asc ? cellA.localeCompare(cellB, 'uk', {numeric: true}) : cellB.localeCompare(cellA, 'uk', {numeric: true});
+            });
+            table.setAttribute("data-sort-dir", asc ? "asc" : "desc");
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
         async function loadTable(json, id) {
             const res = await fetch(json + '?t=' + new Date().getTime());
             const data = await res.json();
@@ -81,8 +114,8 @@
                 container.innerText = "Немає даних";
                 return;
             }
-            let html = "<table><thead><tr>";
-            data[0].forEach(cell => html += `<th>${cell}</th>`);
+            let html = "<table data-sort-dir='asc'><thead><tr>";
+            data[0].forEach((cell, i) => html += `<th onclick="sortTable(this.closest('table'), ${i})">${cell}</th>`);
             html += "</tr></thead><tbody>";
             data.slice(1).forEach(row => {
                 html += "<tr>";

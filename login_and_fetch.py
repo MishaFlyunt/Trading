@@ -49,7 +49,9 @@ try:
         data = []
         for row in rows:
             cols = row.find_all(["td", "th"])
-            data.append([col.get_text(strip=True) for col in cols if col.get_text(strip=True)])
+            clean_row = [col.get_text(strip=True) for col in cols if col.get_text(strip=True) != "#"]
+            if clean_row:
+                data.append(clean_row)
         return data
 
     buy_data = extract_table("MainContent_BuyTable")
