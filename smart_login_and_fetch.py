@@ -1,116 +1,119 @@
 import os
 import time
-import json
-import pytz
 import subprocess
-from datetime import datetime, time as dtime
+import requests
 from bs4 import BeautifulSoup
-from dotenv import load_dotenv
 from selenium import webdriver
-from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from pytz import timezone
+from datetime import datetime
+import json
 
-manual_run = os.getenv("MANUAL_RUN", "false").lower() == "true"
+def is_ny_time_active():
+    ny = timezone("America/New_York")
+    now = datetime.now(ny)
+    start = now.replace(hour=13, minute=30, second=0, microsecond=0)
+    end = now.replace(hour=16, minute=0, microsecond=0)
+    return start <= now <= end
 
-if not os.path.exists(".env"):
-    print("❌ Файл .env не знайдено. Завершення.")
-    exit(1)
-
-load_dotenv()
-
-GITHUB_USERNAME = os.getenv("GITHUB_USERNAME")
-GITHUB_REPO = os.getenv("GITHUB_REPO")
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-GITHUB_REMOTE = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/{GITHUB_REPO}.git"
-
-NY_TZ = pytz.timezone("America/New_York")
-now = datetime.now(NY_TZ)
-start_time = dtime(13, 30)
-end_time = dtime(16, 0)
-
-if not manual_run and not (start_time <= now.time() <= end_time):
-    print(f"🌙 Зараз {now.time().strftime('%H:%M:%S')} NY — поза годинами автооновлення. Завершення.")
-    exit(0)
-
-chrome_options = Options()
-chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
-
-logged_in = False
-driver = None
-
-def save_log(buy, sell):
-    with open("last_run.log", "w") as f:
-        line = f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Скрипт запущено успішно. Buy: {len(buy)}, Sell: {len(sell)}"
-        print(line)
-        f.write(line + "\n")
+def wait_for_chrome():
+    for _ in range(30):
+        try:
+            r = requests.get("http://localhost:9222/json/version")
+            if r.status_code == 200:
+                return True
+        except:
+            pass
+        time.sleep(1)
+    return False
 
 def git_commit_and_push():
-    subprocess.run(["git", "fetch", "origin"])
-    subprocess.run(["git", "reset", "--hard", "origin/main"])
-    subprocess.run(["git", "add", "buy_data.json", "sell_data.json", "last_run.log"], check=True)
+    remote_url = os.getenv("GIT_REMOTE_URL")
+    if not remote_url:
+        print("❌ Не задано GIT_REMOTE_URL в .env")
+        return
+    subprocess.run(["git", "add", "."], check=True)
     subprocess.run(["git", "commit", "-m", "🔄 Автооновлення imbalance даних"], check=False)
-    subprocess.run(["git", "push", GITHUB_REMOTE], check=True)
+    subprocess.run(["git", "pull", "--rebase"], check=False)
+    subprocess.run(["git", "push", remote_url], check=False)
 
-def parse_table(soup, table_id):
-    data = []
-    table = soup.find("table", {"id": table_id})
-    if not table:
-        return data
-    rows = table.find_all("tr")[1:]
-    for row in rows:
-        cells = [td.text.strip() for td in row.find_all("td")]
-        if len(cells) >= 7 and cells[0] != "#":
-            data.append({
-                "time": cells[1],
-                "symbol": cells[2],
-                "imbalance": cells[3],
-                "paired": cells[4],
-                "value": cells[5],
-                "adv": cells[6]
-            })
-    return data
-
-try:
-    print("🔐 Перевіряємо статус сесії...")
-    driver = webdriver.Chrome(service=Service(), options=chrome_options)
-    driver.get("http://www.amerxmocs.com/Default.aspx?index=")
-    time.sleep(3)
-    if "Welcome" not in driver.page_source:
-        print("🔓 Сесія неактивна. Виконуємо логін...")
-        driver.get("http://www.amerxmocs.com/Account/Login.aspx")
-        time.sleep(2)
-        driver.find_element(By.ID, "MainContent_UserName").send_keys("mkotsko")
-        driver.find_element(By.ID, "MainContent_Password").send_keys("Xzw184hcL!")
+def try_login(driver):
+    driver.get("http://www.amerxmocs.com/Account/Login.aspx")
+    time.sleep(2)
+    if "Log Out" in driver.page_source:
+        print("✅ Уже залогінено.")
+        return True
+    try:
+        driver.find_element(By.ID, "MainContent_UserName").send_keys(os.getenv("LOGIN"))
+        driver.find_element(By.ID, "MainContent_Password").send_keys(os.getenv("PASSWORD"))
         driver.find_element(By.ID, "MainContent_LoginButton").click()
-        time.sleep(3)
-        logged_in = True
-    else:
-        print("✅ Сесія активна.")
-        logged_in = True
+        time.sleep(2)
+        if "Welcome" in driver.page_source:
+            print("✅ Логін успішний.")
+            return True
+    except Exception as e:
+        print("❌ Логін не вдалось виконати:", e)
+    return False
 
-    print("📄 Завантажуємо таблиці...")
-    time.sleep(3)
-    with open("debug_page.html", "w", encoding="utf-8") as f:
-        f.write(driver.page_source)
-    print("✅ Збережено debug_page.html")
+print("🔐 Перевіряємо статус сесії...")
 
-    soup = BeautifulSoup(driver.page_source, "lxml")
-    buy_data = parse_table(soup, "MainContent_BuyTable")
-    sell_data = parse_table(soup, "MainContent_SellTable")
+if not wait_for_chrome():
+    print("❌ Chrome не запущено з --remote-debugging-port=9222")
+    exit(1)
 
-    with open("buy_data.json", "w") as f:
-        json.dump(buy_data, f, indent=2)
-    with open("sell_data.json", "w") as f:
-        json.dump(sell_data, f, indent=2)
+options = Options()
+options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
+driver = webdriver.Chrome(service=Service(), options=options)
 
-    save_log(buy_data, sell_data)
-    print("\n🚀 Пушимо зміни на GitHub...")
+if not try_login(driver):
+    print("❌ Логін не пройдено. Завершення.")
+    driver.quit()
+    exit(1)
+
+print("📄 Завантажуємо таблиці...")
+driver.get("http://www.amerxmocs.com/Default.aspx?index=")
+time.sleep(2)
+html = driver.page_source
+
+with open("debug_page.html", "w", encoding="utf-8") as f:
+    f.write(html)
+print("✅ Збережено debug_page.html")
+
+soup = BeautifulSoup(html, "lxml")
+
+def extract_table(table):
+    rows = []
+    for tr in table.find_all("tr"):
+        cells = [td.get_text(strip=True) for td in tr.find_all(["td", "th"])]
+        if cells and cells[0] != "#":
+            rows.append(cells)
+    return rows
+
+buy_table = soup.find("table", id="MainContent_BuyTable")
+sell_table = soup.find("table", id="MainContent_SellTable")
+
+buy_data = extract_table(buy_table) if buy_table else []
+sell_data = extract_table(sell_table) if sell_table else []
+
+with open("buy_data.json", "w") as f:
+    json.dump(buy_data, f, indent=2)
+with open("sell_data.json", "w") as f:
+    json.dump(sell_data, f, indent=2)
+
+log_line = f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Скрипт запущено успішно. Buy: {len(buy_data)}, Sell: {len(sell_data)}\n"
+print(log_line.strip())
+with open("last_run.log", "a") as f:
+    f.write(log_line)
+
+if os.getenv("MANUAL_RUN") == "true" or is_ny_time_active():
+    print("🚀 Пушимо зміни на GitHub...")
     git_commit_and_push()
 
-finally:
-    if not logged_in:
-        if driver:
-            driver.quit()
-    else:
-        print("⚠️ Ви увійшли у сесію. Chrome НЕ буде закрито, щоб уникнути втрати сесії.")
+if os.getenv("MANUAL_RUN") != "true":
+    driver.quit()
+    print("🧹 Завершено. Chrome закрито.")
+else:
+    print("⚠️ Ви увійшли у сесію. Chrome НЕ буде закрито, щоб уникнути втрати сесії.")
+    input("🧹 Натисни Enter, щоб завершити...")
