@@ -1,15 +1,15 @@
 [
   [
-    "Time",
+    "Update Time",
     "Symbol",
-    "Imbalance",
+    "Sell Imbalance",
     "ADV",
     "% ImbADV"
   ],
   [
-    "22:14",
-    "TOTAL",
     "",
+    "now",
+    "TOTAL",
     "",
     ""
   ]
