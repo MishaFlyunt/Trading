@@ -1,5 +1,7 @@
 import os
 import time
+import json
+from datetime import datetime
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -7,7 +9,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 import subprocess
-import json
 
 load_dotenv()
 USERNAME = os.getenv("LOGIN")
@@ -27,19 +28,27 @@ def git_commit_and_push():
     except subprocess.CalledProcessError as e:
         print(f"❌ Git помилка: {e}")
 
-def extract_table(table, imbalance_type):
-    rows = [["Update Time", "Symbol", f"{imbalance_type} Imbalance", "ADV", "% ImbADV"]]
+def extract_table(table):
+    rows = [["Update Time", "Symbol", "Imbalance", "ADV", "% ImbADV"]]
     if table:
         for row in table.find_all("tr")[1:]:
             cols = [td.get_text(strip=True) for td in row.find_all("td")]
-            if not cols or cols[0].startswith("#") or "TOTAL" in cols[0].upper():
+            if (
+                not cols
+                or cols[0].startswith("#")
+                or "TOTAL" in cols[0].upper()
+                or len(cols) < 3
+            ):
                 continue
-            if len(cols) < 3:
-                continue
-            time_col = cols[0]
-            symbol_col = cols[1].split()[0]  # Виділяємо тільки тікер
-            imbalance_val = cols[2]
-            rows.append([time_col, symbol_col, imbalance_val, "", ""])
+            symbol = cols[1]
+            imbalance = cols[2]
+            rows.append([
+                datetime.now().strftime("%H:%M:%S"),
+                symbol,
+                imbalance,
+                "",
+                ""
+            ])
     return rows
 
 try:
@@ -74,16 +83,15 @@ while True:
     buy_table = soup.find("table", {"id": "MainContent_BuyTable"})
     sell_table = soup.find("table", {"id": "MainContent_SellTable"})
 
-    buy_data = extract_table(buy_table, "Buy")
-    sell_data = extract_table(sell_table, "Sell")
+    buy_data = extract_table(buy_table)
+    sell_data = extract_table(sell_table)
 
     with open("buy_data.json", "w") as f:
         json.dump(buy_data, f, indent=2)
-
     with open("sell_data.json", "w") as f:
         json.dump(sell_data, f, indent=2)
 
-    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Скрипт запущено успішно. Buy: {len(buy_data) - 1}, Sell: {len(sell_data) - 1}")
-    git_commit_and_push()
+    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Скрипт запущено успішно. Buy: {len(buy_data)-1}, Sell: {len(sell_data)-1}")
 
-    time.sleep(300)  # чекати 5 хвилин
+    git_commit_and_push()
+    time.sleep(300)
