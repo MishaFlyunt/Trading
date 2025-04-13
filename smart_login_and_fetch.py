@@ -25,7 +25,7 @@ def git_commit_and_push():
         subprocess.run(["git", "push"], check=True)
         print("✅ Зміни запушено на GitHub.")
     except subprocess.CalledProcessError as e:
-        print(f"❌ Git помилка: {e}")
+        print(f"❌ Змін нема: {e}")
 
 try:
     driver = webdriver.Chrome(service=Service(), options=chrome_options)
