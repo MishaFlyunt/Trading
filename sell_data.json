@@ -2,17 +2,8 @@
   [
     "Update Time",
     "Symbol",
-    "Buy Imbalance",
-    "Sell Imbalance",
+    "Imbalance",
     "ADV",
     "% ImbADV"
-  ],
-  [
-    "now",
-    "TOTAL",
-    "",
-    "",
-    "",
-    ""
   ]
 ]
