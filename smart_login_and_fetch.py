@@ -1,6 +1,5 @@
 import os
 import time
-from datetime import datetime
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -26,7 +25,7 @@ def git_commit_and_push():
         subprocess.run(["git", "push"], check=True)
         print("✅ Зміни запушено на GitHub.")
     except subprocess.CalledProcessError as e:
-        print(f"❌ Змін нема або Git помилка: {e}")
+        print(f"❌ Git помилка: {e}")
 
 try:
     driver = webdriver.Chrome(service=Service(), options=chrome_options)
@@ -51,21 +50,16 @@ except Exception as e:
     print(f"❌ Помилка: {e}")
     exit(1)
 
-def parse_table(table):
-    rows = [["Time", "Symbol", "Imbalance", "ADV", "% ImbADV"]]
-    now = datetime.now().strftime("%H:%M")
+def extract_data(table, imbalance_type):
+    rows = [["Update Time", "Symbol", f"{imbalance_type} Imbalance", "ADV", "% ImbADV"]]
     if table:
         for row in table.find_all("tr")[1:]:
-            cols = row.find_all("td")
-            text_cols = [td.get_text(strip=True) for td in cols]
-            if not text_cols or text_cols[0].startswith("#"):
-                continue
-            try:
-                symbol = cols[2].get_text(strip=True).split()[0]
-                imbalance = cols[6].get_text(strip=True)
-                rows.append([now, symbol, imbalance, "", ""])
-            except Exception:
-                continue
+            cols = [td.get_text(strip=True) for td in row.find_all("td")]
+            if cols and not cols[0].startswith("#") and len(cols) >= 3:
+                update_time = cols[0]
+                symbol = cols[1].split()[0]  # Прибираємо символи після тікера
+                imbalance = cols[2]
+                rows.append([update_time, symbol, imbalance, "", ""])
     return rows
 
 while True:
@@ -77,8 +71,8 @@ while True:
     buy_table = soup.find("table", {"id": "MainContent_BuyTable"})
     sell_table = soup.find("table", {"id": "MainContent_SellTable"})
 
-    buy_data = parse_table(buy_table)
-    sell_data = parse_table(sell_table)
+    buy_data = extract_data(buy_table, "Buy")
+    sell_data = extract_data(sell_table, "Sell")
 
     with open("buy_data.json", "w") as f:
         json.dump(buy_data, f, indent=2)
