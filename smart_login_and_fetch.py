@@ -1,5 +1,6 @@
 import os
 import time
+from datetime import datetime
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -25,7 +26,7 @@ def git_commit_and_push():
         subprocess.run(["git", "push"], check=True)
         print("✅ Зміни запушено на GitHub.")
     except subprocess.CalledProcessError as e:
-        print(f"❌ Змін нема: {e}")
+        print(f"❌ Змін нема або Git помилка: {e}")
 
 try:
     driver = webdriver.Chrome(service=Service(), options=chrome_options)
@@ -50,13 +51,21 @@ except Exception as e:
     print(f"❌ Помилка: {e}")
     exit(1)
 
-def extract_table(table):
-    rows = []
+def parse_table(table):
+    rows = [["Time", "Symbol", "Imbalance", "ADV", "% ImbADV"]]
+    now = datetime.now().strftime("%H:%M")
     if table:
         for row in table.find_all("tr")[1:]:
-            cols = [td.get_text(strip=True) for td in row.find_all("td")]
-            if cols and not cols[0].startswith("#"):
-                rows.append(cols)
+            cols = row.find_all("td")
+            text_cols = [td.get_text(strip=True) for td in cols]
+            if not text_cols or text_cols[0].startswith("#"):
+                continue
+            try:
+                symbol = cols[2].get_text(strip=True).split()[0]
+                imbalance = cols[6].get_text(strip=True)
+                rows.append([now, symbol, imbalance, "", ""])
+            except Exception:
+                continue
     return rows
 
 while True:
@@ -68,16 +77,14 @@ while True:
     buy_table = soup.find("table", {"id": "MainContent_BuyTable"})
     sell_table = soup.find("table", {"id": "MainContent_SellTable"})
 
-    buy_data = extract_table(buy_table)
-    sell_data = extract_table(sell_table)
+    buy_data = parse_table(buy_table)
+    sell_data = parse_table(sell_table)
 
     with open("buy_data.json", "w") as f:
         json.dump(buy_data, f, indent=2)
     with open("sell_data.json", "w") as f:
         json.dump(sell_data, f, indent=2)
 
-    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Скрипт запущено успішно. Buy: {len(buy_data)}, Sell: {len(sell_data)}")
-
+    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Скрипт запущено успішно. Buy: {len(buy_data)-1}, Sell: {len(sell_data)-1}")
     git_commit_and_push()
-
-    time.sleep(300)  # чекати 5 хвилин
+    time.sleep(300)
