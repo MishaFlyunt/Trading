@@ -9,97 +9,99 @@
       --bg: #f4f4f4;
       --text: #000;
       --table-bg: #fff;
-      --header-bg: #eee;
+      --header-bg: #ccc;
     }
+
     body {
       font-family: sans-serif;
       background: var(--bg);
       color: var(--text);
-      padding: 1rem;
       margin: 0;
+      padding: 1rem;
       transition: background 0.3s, color 0.3s;
     }
+
     .controls {
       display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
       justify-content: space-between;
-      align-items: flex-start;
+      flex-wrap: wrap;
+      align-items: center;
       margin-bottom: 1rem;
     }
-    @media (min-width: 600px) {
-      .controls {
-        flex-direction: row;
-        align-items: center;
-      }
-    }
+
     h1, h2 {
       margin: 0.5rem 0;
     }
-    h2.buy {
-      color: red;
-    }
-    h2.sell {
-      color: green;
-    }
+
     button {
       padding: 8px 12px;
       font-size: 1rem;
       cursor: pointer;
     }
+
     .tables {
       display: flex;
       flex-direction: column;
-      gap: 2rem;
+      gap: 1rem;
     }
+
     @media (min-width: 900px) {
       .tables {
         flex-direction: row;
       }
     }
+
     .table-container {
       flex: 1;
-      overflow-x: auto;
-      overflow-y: auto;
-      max-height: 75vh;
       background: var(--table-bg);
-      padding: 1rem;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 1rem;
+      max-height: 600px;
+      overflow-y: auto;
+      border: 2px solid var(--header-bg);
     }
+
+    .table-container h2 {
+      color: red;
+    }
+
+    .table-container#sell h2 {
+      color: green;
+    }
+
     table {
       border-collapse: collapse;
       width: 100%;
       min-width: 600px;
-      background: var(--table-bg);
     }
+
     th, td {
-      border: 1px solid #888;
+      border: 2px solid var(--header-bg);
       padding: 8px;
       text-align: left;
-      cursor: pointer;
     }
+
     th {
       background: var(--header-bg);
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <div class="controls">
     <h1>📊 Imbalance Monitor</h1>
-    <div>
-      <button onclick="toggleTheme()">🌓 Змінити тему</button>
-    </div>
+    <button onclick="toggleTheme()">🌓 Змінити тему</button>
   </div>
 
   <div class="tables">
-    <div class="table-container">
-      <h2 class="buy">Buy Imbalance</h2>
-      <div id="buy">Завантаження...</div>
+    <div class="table-container" id="buy">
+      <h2>Buy Imbalance</h2>
+      <div class="table-content">Завантаження...</div>
     </div>
-    <div class="table-container">
-      <h2 class="sell">Sell Imbalance</h2>
-      <div id="sell">Завантаження...</div>
+    <div class="table-container" id="sell">
+      <h2>Sell Imbalance</h2>
+      <div class="table-content">Завантаження...</div>
     </div>
   </div>
 
@@ -116,49 +118,40 @@
         document.documentElement.style.setProperty('--bg', '#f4f4f4');
         document.documentElement.style.setProperty('--text', '#000');
         document.documentElement.style.setProperty('--table-bg', '#fff');
-        document.documentElement.style.setProperty('--header-bg', '#eee');
+        document.documentElement.style.setProperty('--header-bg', '#ccc');
       }
     }
 
     function toggleTheme() {
-      theme = (theme === "dark") ? "light" : "dark";
+      theme = theme === "dark" ? "light" : "dark";
       localStorage.setItem("theme", theme);
       applyTheme();
     }
 
-    const sortStates = {
-      buy: { colIndex: null, asc: true },
-      sell: { colIndex: null, asc: true }
-    };
-
-    function sortTable(table, colIndex, id) {
+    function sortTable(table, colIndex, desc = false) {
       const tbody = table.querySelector("tbody");
       const rows = Array.from(tbody.querySelectorAll("tr"));
-      const asc = sortStates[id].colIndex === colIndex ? !sortStates[id].asc : true;
-      sortStates[id] = { colIndex, asc };
-
       rows.sort((a, b) => {
-        const cellA = a.children[colIndex].innerText;
-        const cellB = b.children[colIndex].innerText;
-        return asc
-          ? cellA.localeCompare(cellB, 'uk', { numeric: true })
-          : cellB.localeCompare(cellA, 'uk', { numeric: true });
+        const aVal = parseFloat(a.children[colIndex].innerText.replace('%', '')) || 0;
+        const bVal = parseFloat(b.children[colIndex].innerText.replace('%', '')) || 0;
+        return desc ? bVal - aVal : aVal - bVal;
       });
-
-      table.setAttribute("data-sort-dir", asc ? "asc" : "desc");
       rows.forEach(row => tbody.appendChild(row));
     }
 
     async function loadTable(json, id) {
       const res = await fetch(json + '?t=' + new Date().getTime());
       const data = await res.json();
-      const container = document.getElementById(id);
+      const container = document.querySelector(`#${id} .table-content`);
       if (data.length === 0) {
         container.innerText = "Немає даних";
         return;
       }
-      let html = "<table data-sort-dir='asc'><thead><tr>";
-      data[0].forEach((cell, i) => html += `<th onclick="sortTable(this.closest('table'), ${i}, '${id}')">${cell}</th>`);
+
+      let html = "<table><thead><tr>";
+      data[0].forEach((cell, i) => {
+        html += `<th onclick="sortTable(this.closest('table'), ${i}, false)">${cell}</th>`;
+      });
       html += "</tr></thead><tbody>";
       data.slice(1).forEach(row => {
         html += "<tr>";
@@ -168,12 +161,10 @@
       html += "</tbody></table>";
       container.innerHTML = html;
 
-      // Apply previous sort if exists
+      // Автосортування за останнім стовпцем (наприклад: %ADV)
+      const lastColIndex = data[0].length - 1;
       const table = container.querySelector("table");
-      const sort = sortStates[id];
-      if (sort.colIndex !== null) {
-        sortTable(table, sort.colIndex, id);
-      }
+      sortTable(table, lastColIndex, true);
     }
 
     function loadAll() {
@@ -183,7 +174,7 @@
 
     applyTheme();
     loadAll();
-    setInterval(loadAll, 30000);
+    setInterval(loadAll, 240000); // 240 000 мс = 4 хвилини
   </script>
 </body>
 </html>
