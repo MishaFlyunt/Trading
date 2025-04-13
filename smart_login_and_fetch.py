@@ -27,6 +27,21 @@ def git_commit_and_push():
     except subprocess.CalledProcessError as e:
         print(f"❌ Git помилка: {e}")
 
+def extract_table(table, imbalance_type):
+    rows = [["Update Time", "Symbol", f"{imbalance_type} Imbalance", "ADV", "% ImbADV"]]
+    if table:
+        for row in table.find_all("tr")[1:]:
+            cols = [td.get_text(strip=True) for td in row.find_all("td")]
+            if not cols or cols[0].startswith("#") or "TOTAL" in cols[0].upper():
+                continue
+            if len(cols) < 3:
+                continue
+            time_col = cols[0]
+            symbol_col = cols[1].split()[0]  # Виділяємо тільки тікер
+            imbalance_val = cols[2]
+            rows.append([time_col, symbol_col, imbalance_val, "", ""])
+    return rows
+
 try:
     driver = webdriver.Chrome(service=Service(), options=chrome_options)
     print("🔐 Перевіряємо статус сесії...")
@@ -50,18 +65,6 @@ except Exception as e:
     print(f"❌ Помилка: {e}")
     exit(1)
 
-def extract_data(table, imbalance_type):
-    rows = [["Update Time", "Symbol", f"{imbalance_type} Imbalance", "ADV", "% ImbADV"]]
-    if table:
-        for row in table.find_all("tr")[1:]:
-            cols = [td.get_text(strip=True) for td in row.find_all("td")]
-            if cols and not cols[0].startswith("#") and len(cols) >= 3:
-                update_time = cols[0]
-                symbol = cols[1].split()[0]  # Прибираємо символи після тікера
-                imbalance = cols[2]
-                rows.append([update_time, symbol, imbalance, "", ""])
-    return rows
-
 while True:
     html = driver.page_source
     with open("debug_page.html", "w", encoding="utf-8") as f:
@@ -71,14 +74,16 @@ while True:
     buy_table = soup.find("table", {"id": "MainContent_BuyTable"})
     sell_table = soup.find("table", {"id": "MainContent_SellTable"})
 
-    buy_data = extract_data(buy_table, "Buy")
-    sell_data = extract_data(sell_table, "Sell")
+    buy_data = extract_table(buy_table, "Buy")
+    sell_data = extract_table(sell_table, "Sell")
 
     with open("buy_data.json", "w") as f:
         json.dump(buy_data, f, indent=2)
+
     with open("sell_data.json", "w") as f:
         json.dump(sell_data, f, indent=2)
 
-    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Скрипт запущено успішно. Buy: {len(buy_data)-1}, Sell: {len(sell_data)-1}")
+    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Скрипт запущено успішно. Buy: {len(buy_data) - 1}, Sell: {len(sell_data) - 1}")
     git_commit_and_push()
-    time.sleep(300)
+
+    time.sleep(300)  # чекати 5 хвилин
