@@ -2,6 +2,7 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Imbalance Monitor</title>
     <style>
         :root {
@@ -14,14 +15,55 @@
             font-family: sans-serif;
             background: var(--bg);
             color: var(--text);
-            padding: 2rem;
+            padding: 1rem;
+            margin: 0;
             transition: background 0.3s, color 0.3s;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        @media (min-width: 600px) {
+            .controls {
+                flex-direction: row;
+                align-items: center;
+            }
+        }
+        h1, h2 {
+            margin: 0.5rem 0;
+        }
+        button {
+            padding: 8px 12px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .tables {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        @media (min-width: 900px) {
+            .tables {
+                flex-direction: row;
+            }
+        }
+        .table-container {
+            flex: 1;
+            overflow-x: auto;
+            background: var(--table-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
         table {
             border-collapse: collapse;
             width: 100%;
+            min-width: 600px;
             background: var(--table-bg);
-            color: var(--text);
         }
         th, td {
             border: 1px solid #888;
@@ -32,23 +74,6 @@
         th {
             background: var(--header-bg);
         }
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-        }
-        button {
-            padding: 8px 12px;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-        .tables {
-            display: flex;
-            gap: 2rem;
-        }
-        .table-container {
-            flex: 1;
-        }
     </style>
 </head>
 <body>
@@ -58,6 +83,7 @@
             <button onclick="toggleTheme()">🌓 Змінити тему</button>
         </div>
     </div>
+
     <div class="tables">
         <div class="table-container">
             <h2>Buy Imbalance</h2>
