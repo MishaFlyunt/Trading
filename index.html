@@ -54,6 +54,8 @@
         .table-container {
             flex: 1;
             overflow-x: auto;
+            overflow-y: auto;
+            max-height: 80vh;
             background: var(--table-bg);
             padding: 1rem;
             border-radius: 8px;
@@ -74,6 +76,15 @@
         th {
             background: var(--header-bg);
         }
+        .table-container h2 {
+            margin-bottom: 0.5rem;
+        }
+        .table-container#buy-container h2 {
+            color: darkred;
+        }
+        .table-container#sell-container h2 {
+            color: darkgreen;
+        }
     </style>
 </head>
 <body>
@@ -85,11 +96,11 @@
     </div>
 
     <div class="tables">
-        <div class="table-container">
+        <div class="table-container" id="buy-container">
             <h2>Buy Imbalance</h2>
             <div id="buy">Завантаження...</div>
         </div>
-        <div class="table-container">
+        <div class="table-container" id="sell-container">
             <h2>Sell Imbalance</h2>
             <div id="sell">Завантаження...</div>
         </div>
