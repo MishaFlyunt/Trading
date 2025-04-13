@@ -1,7 +1,5 @@
 import os
 import time
-import json
-from datetime import datetime
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -9,6 +7,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 import subprocess
+import json
 
 load_dotenv()
 USERNAME = os.getenv("LOGIN")
@@ -26,30 +25,7 @@ def git_commit_and_push():
         subprocess.run(["git", "push"], check=True)
         print("✅ Зміни запушено на GitHub.")
     except subprocess.CalledProcessError as e:
-        print(f"❌ Git помилка: {e}")
-
-def extract_table(table):
-    rows = [["Update Time", "Symbol", "Imbalance", "ADV", "% ImbADV"]]
-    if table:
-        for row in table.find_all("tr")[1:]:
-            cols = [td.get_text(strip=True) for td in row.find_all("td")]
-            if (
-                not cols
-                or cols[0].startswith("#")
-                or "TOTAL" in cols[0].upper()
-                or len(cols) < 3
-            ):
-                continue
-            symbol = cols[1]
-            imbalance = cols[2]
-            rows.append([
-                datetime.now().strftime("%H:%M:%S"),
-                symbol,
-                imbalance,
-                "",
-                ""
-            ])
-    return rows
+        print(f"❌ Змін нема: {e}")
 
 try:
     driver = webdriver.Chrome(service=Service(), options=chrome_options)
@@ -74,6 +50,44 @@ except Exception as e:
     print(f"❌ Помилка: {e}")
     exit(1)
 
+def extract_table(table, imbalance_type):
+    rows = []
+    if not table:
+        return rows
+
+    header_cells = table.find_all("tr")[0].find_all("td")
+    raw_headers = [cell.get_text(strip=True) for cell in header_cells]
+    included_indices = [i for i, h in enumerate(raw_headers) if "#" not in h]
+
+    rows.append(["Update Time", "Symbol", "Buy Imbalance", "Sell Imbalance", "ADV", "% ImbADV"])
+
+    for row in table.find_all("tr")[1:]:
+        cols = [td.get_text(strip=True) for td in row.find_all("td")]
+
+        if not cols or len(cols) < 3:
+            continue
+
+        # Пропустити рядки, де перша колонка починається з #
+        if cols[0].strip().startswith("#"):
+            continue
+
+        # Пропустити рядки, де символ у другій колонці — TOTAL
+        if len(cols) > 1 and cols[1].strip().upper() == "TOTAL":
+            continue
+
+        filtered = [cols[i] for i in included_indices if i < len(cols)]
+
+        update_time = filtered[0] if len(filtered) > 0 else ""
+        symbol = filtered[1].split()[0] if len(filtered) > 1 else ""
+        imbalance = filtered[2] if len(filtered) > 2 else ""
+
+        if imbalance_type == "Buy":
+            rows.append([update_time, symbol, imbalance, "", "", ""])
+        else:
+            rows.append([update_time, symbol, "", imbalance, "", ""])
+
+    return rows
+
 while True:
     html = driver.page_source
     with open("debug_page.html", "w", encoding="utf-8") as f:
@@ -83,15 +97,16 @@ while True:
     buy_table = soup.find("table", {"id": "MainContent_BuyTable"})
     sell_table = soup.find("table", {"id": "MainContent_SellTable"})
 
-    buy_data = extract_table(buy_table)
-    sell_data = extract_table(sell_table)
+    buy_data = extract_table(buy_table, "Buy")
+    sell_data = extract_table(sell_table, "Sell")
 
     with open("buy_data.json", "w") as f:
         json.dump(buy_data, f, indent=2)
     with open("sell_data.json", "w") as f:
         json.dump(sell_data, f, indent=2)
 
-    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Скрипт запущено успішно. Buy: {len(buy_data)-1}, Sell: {len(sell_data)-1}")
+    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Скрипт запущено успішно. Buy: {len(buy_data)}, Sell: {len(sell_data)}")
 
     git_commit_and_push()
+
     time.sleep(300)
