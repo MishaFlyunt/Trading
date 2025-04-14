@@ -9,7 +9,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 import subprocess
 import requests
-from datetime import datetime
 
 load_dotenv()
 USERNAME = os.getenv("LOGIN")
