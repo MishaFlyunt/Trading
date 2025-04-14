@@ -31,13 +31,12 @@
 
     h1, h2 {
       margin: 0.5rem 0;
-      font-size: 1.4rem;
     }
 
     button {
       padding: 8px 12px;
-      font-size: 1rem;
       border-radius: 10px;
+      font-size: 1rem;
       cursor: pointer;
     }
 
@@ -72,10 +71,6 @@
       color: green;
     }
 
-    .table-content {
-      overflow-x: auto;
-    }
-
     table {
       border-collapse: collapse;
       width: 100%;
@@ -86,7 +81,6 @@
       border: 2px solid var(--header-bg);
       padding: 8px;
       text-align: center;
-      font-size: 0.9rem;
     }
 
     th {
@@ -94,14 +88,24 @@
       cursor: pointer;
     }
 
-    @media (max-width: 600px) {
-      th, td {
-        font-size: 0.75rem;
-        padding: 6px;
-      }
-      h1, h2 {
-        font-size: 1.1rem;
-      }
+    .archive-row {
+      display: none;
+    }
+
+    .expanded + .archive-row {
+      display: table-row;
+    }
+
+    .archive-table {
+      width: 100%;
+      margin-top: 10px;
+      border-collapse: collapse;
+    }
+
+    .archive-table th, .archive-table td {
+      border: 1px solid #aaa;
+      padding: 4px;
+      text-align: center;
     }
   </style>
 </head>
@@ -147,7 +151,7 @@
 
     function sortTable(table, colIndex, desc = false) {
       const tbody = table.querySelector("tbody");
-      const rows = Array.from(tbody.querySelectorAll("tr"));
+      const rows = Array.from(tbody.querySelectorAll("tr")).filter(r => !r.classList.contains("archive-row"));
       rows.sort((a, b) => {
         const aVal = parseFloat(a.children[colIndex].innerText.replace('%', '')) || 0;
         const bVal = parseFloat(b.children[colIndex].innerText.replace('%', '')) || 0;
@@ -160,25 +164,42 @@
       const res = await fetch(json + '?t=' + new Date().getTime());
       const data = await res.json();
       const container = document.querySelector(`#${id} .table-content`);
-      if (data.length === 0) {
+      if (!data.main || data.main.length === 0) {
         container.innerText = "Немає даних";
         return;
       }
-
       let html = "<table><thead><tr>";
-      data[0].forEach((cell, i) => {
+      data.main[0].forEach((cell, i) => {
         html += `<th onclick="sortTable(this.closest('table'), ${i}, false)">${cell}</th>`;
       });
       html += "</tr></thead><tbody>";
-      data.slice(1).forEach(row => {
-        html += "<tr>";
+      for (let i = 1; i < data.main.length; i++) {
+        const row = data.main[i];
+        html += `<tr class="expand-row" data-symbol="${row[1]}">`;
         row.forEach(cell => html += `<td>${cell}</td>`);
         html += "</tr>";
-      });
+
+        if (data.archive && data.archive[row[1]]) {
+          html += `<tr class="archive-row"><td colspan="${row.length}">`;
+          html += `<table class="archive-table"><thead><tr>`;
+          html += data.archive[row[1]][0].map(c => `<th>${c}</th>`).join('');
+          html += "</tr></thead><tbody>";
+          data.archive[row[1]].slice(1).forEach(r => {
+            html += "<tr>" + r.map(c => `<td>${c}</td>`).join('') + "</tr>";
+          });
+          html += "</tbody></table></td></tr>";
+        }
+      }
       html += "</tbody></table>";
       container.innerHTML = html;
 
-      const lastColIndex = data[0].length - 1;
+      document.querySelectorAll('.expand-row').forEach(row => {
+        row.addEventListener('click', () => {
+          row.classList.toggle('expanded');
+        });
+      });
+
+      const lastColIndex = data.main[0].length - 1;
       const table = container.querySelector("table");
       sortTable(table, lastColIndex, true);
     }
@@ -190,7 +211,7 @@
 
     applyTheme();
     loadAll();
-    setInterval(loadAll, 240000); // 4 хв
+    setInterval(loadAll, 240000);
   </script>
 </body>
 </html>

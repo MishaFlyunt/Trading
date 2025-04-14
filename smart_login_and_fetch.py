@@ -132,6 +132,19 @@ while True:
         return data
 
     buy_data = enrich_data(buy_data)
+
+    def build_json_with_archive(data):
+        result = {"main": [data[0]], "archive": {}}
+        for row in data[1:]:
+            result["main"].append(row)
+            symbol = row[1]
+            if symbol not in result["archive"]:
+                result["archive"][symbol] = [["Update Time", "Imbalance", "Paired"]]
+            result["archive"][symbol].append([row[0], row[2], row[3]])
+        return result
+
+    buy_json = build_json_with_archive(buy_data)
+    sell_json = build_json_with_archive(sell_data)
     sell_data = enrich_data(sell_data)
 
     # Зберігаємо кеш
@@ -140,9 +153,11 @@ while True:
 
     # Запис результатів
     with open("buy_data.json", "w") as f:
-        json.dump(buy_data, f, indent=2)
+    # with open("buy_data.json", "w") as f:
+        json.dump(buy_json, f, indent=2)
     with open("sell_data.json", "w") as f:
-        json.dump(sell_data, f, indent=2)
+    # with open("sell_data.json", "w") as f:
+        json.dump(sell_json, f, indent=2)
 
     print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ✅ Скрипт завершено. Buy: {len(buy_data)-1}, Sell: {len(sell_data)-1}")
     git_commit_and_push()
