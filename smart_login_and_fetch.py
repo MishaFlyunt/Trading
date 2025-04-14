@@ -30,7 +30,7 @@ def git_commit_and_push():
         print(f"❌ Змін нема або Git помилка: {e}")
 
 def extract_table(table, imbalance_type):
-    headers = ["Update Time", "Symbol", "Imbalance", "ADV", "% ImbADV"]
+    headers = ["Update Time", "Symbol", "Imbalance","Paired", "ADV", "% ImbADV"]
     rows = [headers]
     if table:
         header_row = [th.get_text(strip=True) for th in table.find_all("tr")[0].find_all("th")]
@@ -38,6 +38,7 @@ def extract_table(table, imbalance_type):
             time_idx = header_row.index("Update Time")
             symbol_idx = header_row.index("Symbol")
             imbalance_idx = header_row.index(f"{imbalance_type} Imbalance")
+            paired_idx = header_row.index("Paired")
         except ValueError:
             return rows
         for row in table.find_all("tr")[1:]:
@@ -45,11 +46,13 @@ def extract_table(table, imbalance_type):
             if not cells or "TOTAL" in cells or len(cells) <= imbalance_idx:
                 continue
             symbol = cells[symbol_idx]
+            paired = cells[paired_idx]
             imbalance = cells[imbalance_idx].replace(",", "")
             update_time = cells[time_idx]
-            rows.append([update_time, symbol, imbalance, "", ""])
+            rows.append([update_time, symbol, imbalance, paired, "", ""])
     return rows
 
+# Завантаження Finviz
 def get_adv_from_finviz(symbol, cache):
     if symbol in cache:
         return cache[symbol]
