@@ -31,12 +31,13 @@
 
     h1, h2 {
       margin: 0.5rem 0;
+      font-size: 1.4rem;
     }
 
     button {
       padding: 8px 12px;
-      border-radius: 10px;
       font-size: 1rem;
+      border-radius: 10px;
       cursor: pointer;
     }
 
@@ -71,6 +72,10 @@
       color: green;
     }
 
+    .table-content {
+      overflow-x: auto;
+    }
+
     table {
       border-collapse: collapse;
       width: 100%;
@@ -81,11 +86,22 @@
       border: 2px solid var(--header-bg);
       padding: 8px;
       text-align: center;
+      font-size: 0.9rem;
     }
 
     th {
       background: var(--header-bg);
       cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+      th, td {
+        font-size: 0.75rem;
+        padding: 6px;
+      }
+      h1, h2 {
+        font-size: 1.1rem;
+      }
     }
   </style>
 </head>
@@ -162,7 +178,6 @@
       html += "</tbody></table>";
       container.innerHTML = html;
 
-      // Автосортування за останнім стовпцем (наприклад: %ADV)
       const lastColIndex = data[0].length - 1;
       const table = container.querySelector("table");
       sortTable(table, lastColIndex, true);
@@ -175,7 +190,7 @@
 
     applyTheme();
     loadAll();
-    setInterval(loadAll, 240000); // 240 000 мс = 4 хвилини
+    setInterval(loadAll, 240000); // 4 хв
   </script>
 </body>
 </html>
