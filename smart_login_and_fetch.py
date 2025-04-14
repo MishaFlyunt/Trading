@@ -8,6 +8,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 import subprocess
+import requests
+from datetime import datetime
 
 load_dotenv()
 USERNAME = os.getenv("LOGIN")
@@ -43,10 +45,37 @@ def extract_table(table, imbalance_type):
             if not cells or "TOTAL" in cells or len(cells) <= imbalance_idx:
                 continue
             symbol = cells[symbol_idx]
-            imbalance = cells[imbalance_idx]
+            imbalance = cells[imbalance_idx].replace(",", "")
             update_time = cells[time_idx]
             rows.append([update_time, symbol, imbalance, "", ""])
     return rows
+
+def get_adv_from_finviz(symbol, cache):
+    if symbol in cache:
+        return cache[symbol]
+    try:
+        url = f"https://finviz.com/quote.ashx?t={symbol}&p=d"  
+        headers = {"User-Agent": "Mozilla/5.0"}
+        response = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(response.text, "html.parser")
+        table = soup.find("table", class_="snapshot-table2")
+        for row in table.find_all("tr"):
+            cells = row.find_all("td")
+            for i in range(len(cells)):
+                if cells[i].text.strip() == "Volume":
+                    volume_str = cells[i+1].text.strip().replace(",", "")
+                    if volume_str.endswith("M"):
+                        adv = int(float(volume_str[:-1]) * 1_000_000)
+                    elif volume_str.endswith("K"):
+                        adv = int(float(volume_str[:-1]) * 1_000)
+                    else:
+                        adv = int(volume_str)
+                    cache[symbol] = adv
+                    return adv
+    except Exception as e:
+        print(f"⚠️ Не вдалося отримати ADV для {symbol}: {e}")
+    cache[symbol] = 0
+    return 0
 
 try:
     driver = webdriver.Chrome(service=Service(), options=chrome_options)
@@ -83,11 +112,35 @@ while True:
     buy_data = extract_table(buy_table, "Buy")
     sell_data = extract_table(sell_table, "Sell")
 
+    # Завантаження кешу
+    adv_cache = {}
+    if os.path.exists("adv_cache.json"):
+        with open("adv_cache.json") as f:
+            adv_cache = json.load(f)
+
+    # Обчислення %ImbADV
+    def enrich_data(data):
+        for i in range(1, len(data)):
+            symbol = data[i][1]
+            imbalance = float(data[i][2]) if data[i][2] else 0
+            adv = get_adv_from_finviz(symbol, adv_cache)
+            data[i][3] = str(adv)
+            data[i][4] = f"{(imbalance / adv * 100):.1f}" if adv else "0"
+        return data
+
+    buy_data = enrich_data(buy_data)
+    sell_data = enrich_data(sell_data)
+
+    # Зберігаємо кеш
+    with open("adv_cache.json", "w") as f:
+        json.dump(adv_cache, f, indent=2)
+
+    # Запис результатів
     with open("buy_data.json", "w") as f:
         json.dump(buy_data, f, indent=2)
     with open("sell_data.json", "w") as f:
         json.dump(sell_data, f, indent=2)
 
-    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Скрипт запущено успішно. Buy: {len(buy_data)-1}, Sell: {len(sell_data)-1}")
+    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ✅ Скрипт завершено. Buy: {len(buy_data)-1}, Sell: {len(sell_data)-1}")
     git_commit_and_push()
     time.sleep(300)
