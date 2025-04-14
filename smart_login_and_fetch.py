@@ -153,10 +153,8 @@ while True:
 
     # Запис результатів
     with open("buy_data.json", "w") as f:
-    # with open("buy_data.json", "w") as f:
         json.dump(buy_json, f, indent=2)
     with open("sell_data.json", "w") as f:
-    # with open("sell_data.json", "w") as f:
         json.dump(sell_json, f, indent=2)
 
     print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ✅ Скрипт завершено. Buy: {len(buy_data)-1}, Sell: {len(sell_data)-1}")
