@@ -160,4 +160,4 @@ while True:
 
     print("✅ Дані збережено у buy_data.json та sell_data.json")
     git_commit_and_push()
-    time.sleep(300)
+    time.sleep(100)
