@@ -30,7 +30,8 @@
     }
 
     h1, h2 {
-      margin: 0.5rem 0;
+      margin: 0.3rem 0;
+      /* padding: 10px; */
     }
 
     button {
@@ -61,10 +62,16 @@
       max-height: 600px;
       overflow-y: auto;
       border: 2px solid var(--header-bg);
+      position: relative;
     }
 
     .table-container h2 {
       color: red;
+      position: sticky;
+      top: 0;
+      background: var(--table-bg);
+      z-index: 2;
+      padding: 4px 0;
     }
 
     .table-container#sell h2 {
@@ -86,26 +93,13 @@
     th {
       background: var(--header-bg);
       cursor: pointer;
+      position: sticky;
+      top: 36px;
+      z-index: 1;
     }
 
-    .archive-row {
+    .archive-row.hidden {
       display: none;
-    }
-
-    .expanded + .archive-row {
-      display: table-row;
-    }
-
-    .archive-table {
-      width: 100%;
-      margin-top: 10px;
-      border-collapse: collapse;
-    }
-
-    .archive-table th, .archive-table td {
-      border: 1px solid #aaa;
-      padding: 4px;
-      text-align: center;
     }
   </style>
 </head>
@@ -175,16 +169,15 @@
       html += "</tr></thead><tbody>";
       for (let i = 1; i < data.main.length; i++) {
         const row = data.main[i];
-        html += `<tr class="expand-row" data-symbol="${row[1]}">`;
+        const symbol = row[1];
+        html += `<tr class="expand-row" data-symbol="${symbol}">`;
         row.forEach(cell => html += `<td>${cell}</td>`);
         html += "</tr>";
-
-        if (data.archive && data.archive[row[1]]) {
-          html += `<tr class="archive-row"><td colspan="${row.length}">`;
-          html += `<table class="archive-table"><thead><tr>`;
-          html += data.archive[row[1]][0].map(c => `<th>${c}</th>`).join('');
+        if (data.archive && data.archive[symbol]) {
+          html += `<tr class="archive-row hidden"><td colspan="${row.length}"><table class="archive-table"><thead><tr>`;
+          html += data.archive[symbol][0].map(c => `<th>${c}</th>`).join('');
           html += "</tr></thead><tbody>";
-          data.archive[row[1]].slice(1).forEach(r => {
+          data.archive[symbol].slice(1).forEach(r => {
             html += "<tr>" + r.map(c => `<td>${c}</td>`).join('') + "</tr>";
           });
           html += "</tbody></table></td></tr>";
@@ -193,9 +186,13 @@
       html += "</tbody></table>";
       container.innerHTML = html;
 
-      document.querySelectorAll('.expand-row').forEach(row => {
+      document.querySelectorAll(`#${id} .expand-row`).forEach(row => {
         row.addEventListener('click', () => {
-          row.classList.toggle('expanded');
+          const next = row.nextElementSibling;
+          if (next && next.classList.contains("archive-row")) {
+            next.classList.toggle("hidden");
+            row.classList.toggle("expanded");
+          }
         });
       });
 
