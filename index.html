@@ -120,95 +120,121 @@
     </div>
   </div>
 
-  <script>
-    let theme = localStorage.getItem("theme") || "light";
+<!-- Замінити в <script> секції -->
 
-    function applyTheme() {
-      if (theme === "dark") {
-        document.documentElement.style.setProperty('--bg', '#111');
-        document.documentElement.style.setProperty('--text', '#fff');
-        document.documentElement.style.setProperty('--table-bg', '#222');
-        document.documentElement.style.setProperty('--header-bg', '#333');
-      } else {
-        document.documentElement.style.setProperty('--bg', '#f4f4f4');
-        document.documentElement.style.setProperty('--text', '#000');
-        document.documentElement.style.setProperty('--table-bg', '#fff');
-        document.documentElement.style.setProperty('--header-bg', '#ccc');
-      }
+<script>
+  let theme = localStorage.getItem("theme") || "light";
+
+  function applyTheme() {
+    if (theme === "dark") {
+      document.documentElement.style.setProperty('--bg', '#111');
+      document.documentElement.style.setProperty('--text', '#fff');
+      document.documentElement.style.setProperty('--table-bg', '#222');
+      document.documentElement.style.setProperty('--header-bg', '#333');
+    } else {
+      document.documentElement.style.setProperty('--bg', '#f4f4f4');
+      document.documentElement.style.setProperty('--text', '#000');
+      document.documentElement.style.setProperty('--table-bg', '#fff');
+      document.documentElement.style.setProperty('--header-bg', '#ccc');
     }
+  }
 
-    function toggleTheme() {
-      theme = theme === "dark" ? "light" : "dark";
-      localStorage.setItem("theme", theme);
-      applyTheme();
-    }
-
-    function sortTable(table, colIndex, desc = false) {
-      const tbody = table.querySelector("tbody");
-      const rows = Array.from(tbody.querySelectorAll("tr")).filter(r => !r.classList.contains("archive-row"));
-      rows.sort((a, b) => {
-        const aVal = parseFloat(a.children[colIndex].innerText.replace('%', '')) || 0;
-        const bVal = parseFloat(b.children[colIndex].innerText.replace('%', '')) || 0;
-        return desc ? bVal - aVal : aVal - bVal;
-      });
-      rows.forEach(row => tbody.appendChild(row));
-    }
-
-    async function loadTable(json, id) {
-      const res = await fetch(json + '?t=' + new Date().getTime());
-      const data = await res.json();
-      const container = document.querySelector(`#${id} .table-content`);
-      if (!data.main || data.main.length === 0) {
-        container.innerText = "Немає даних";
-        return;
-      }
-      let html = "<table><thead><tr>";
-      data.main[0].forEach((cell, i) => {
-        html += `<th onclick="sortTable(this.closest('table'), ${i}, false)">${cell}</th>`;
-      });
-      html += "</tr></thead><tbody>";
-      for (let i = 1; i < data.main.length; i++) {
-        const row = data.main[i];
-        const symbol = row[1];
-        html += `<tr class="expand-row" data-symbol="${symbol}">`;
-        row.forEach(cell => html += `<td>${cell}</td>`);
-        html += "</tr>";
-        if (data.archive && data.archive[symbol]) {
-          html += `<tr class="archive-row hidden"><td colspan="${row.length}"><table class="archive-table"><thead><tr>`;
-          html += data.archive[symbol][0].map(c => `<th>${c}</th>`).join('');
-          html += "</tr></thead><tbody>";
-          data.archive[symbol].slice(1).forEach(r => {
-            html += "<tr>" + r.map(c => `<td>${c}</td>`).join('') + "</tr>";
-          });
-          html += "</tbody></table></td></tr>";
-        }
-      }
-      html += "</tbody></table>";
-      container.innerHTML = html;
-
-      document.querySelectorAll(`#${id} .expand-row`).forEach(row => {
-        row.addEventListener('click', () => {
-          const next = row.nextElementSibling;
-          if (next && next.classList.contains("archive-row")) {
-            next.classList.toggle("hidden");
-            row.classList.toggle("expanded");
-          }
-        });
-      });
-
-      const lastColIndex = data.main[0].length - 1;
-      const table = container.querySelector("table");
-      sortTable(table, lastColIndex, true);
-    }
-
-    function loadAll() {
-      loadTable("buy_data.json", "buy");
-      loadTable("sell_data.json", "sell");
-    }
-
+  function toggleTheme() {
+    theme = theme === "dark" ? "light" : "dark";
+    localStorage.setItem("theme", theme);
     applyTheme();
-    loadAll();
-    setInterval(loadAll, 90000);
-  </script>
+  }
+
+  const sortStates = {};
+
+  function sortTable(table, colIndex) {
+    const tbody = table.querySelector("tbody");
+    const rows = Array.from(tbody.querySelectorAll("tr")).filter(r => !r.classList.contains("archive-row"));
+
+    // toggle sort direction
+    if (!sortStates[table.id]) sortStates[table.id] = {};
+    sortStates[table.id][colIndex] = !sortStates[table.id][colIndex];
+    const desc = sortStates[table.id][colIndex];
+
+    rows.sort((a, b) => {
+      const aVal = parseFloat(a.children[colIndex].innerText.replace(/[%,$,]/g, '').replace(/,/g, '')) || 0;
+      const bVal = parseFloat(b.children[colIndex].innerText.replace(/[%,$,]/g, '').replace(/,/g, '')) || 0;
+      return desc ? bVal - aVal : aVal - bVal;
+    });
+
+    rows.forEach(row => tbody.appendChild(row));
+  }
+
+  function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
+  async function loadTable(json, id) {
+    const res = await fetch(json + '?t=' + new Date().getTime());
+    const data = await res.json();
+    const container = document.querySelector(`#${id} .table-content`);
+    if (!data.main || data.main.length === 0) {
+      container.innerText = "Немає даних";
+      return;
+    }
+
+    let html = "<table id='table-" + id + "'><thead><tr>";
+    data.main[0].forEach((cell, i) => {
+      html += `<th onclick="sortTable(document.getElementById('table-${id}'), ${i})">${cell}</th>`;
+    });
+    html += "</tr></thead><tbody>";
+
+    for (let i = 1; i < data.main.length; i++) {
+      const row = data.main[i];
+      const symbol = row[1];
+      html += `<tr class="expand-row" data-symbol="${symbol}">`;
+      row.forEach((cell, j) => {
+        if ([2, 3, 4].includes(j) && !isNaN(cell) && cell !== "") {
+          html += `<td>${formatNumber(cell)}</td>`;
+        } else {
+          html += `<td>${cell}</td>`;
+        }
+      });
+      html += "</tr>";
+
+      if (data.archive && data.archive[symbol]) {
+        html += `<tr class="archive-row hidden"><td colspan="${row.length}"><table class="archive-table"><thead><tr>`;
+        html += data.archive[symbol][0].map(c => `<th>${c}</th>`).join('');
+        html += "</tr></thead><tbody>";
+        data.archive[symbol].slice(1).forEach(r => {
+          html += "<tr>" + r.map(c => `<td>${formatNumber(c)}</td>`).join('') + "</tr>";
+        });
+        html += "</tbody></table></td></tr>`;
+      }
+    }
+
+    html += "</tbody></table>";
+    container.innerHTML = html;
+
+    document.querySelectorAll(`#${id} .expand-row`).forEach(row => {
+      row.addEventListener('click', () => {
+        const next = row.nextElementSibling;
+        if (next && next.classList.contains("archive-row")) {
+          next.classList.toggle("hidden");
+          row.classList.toggle("expanded");
+        }
+      });
+    });
+
+    // За замовчуванням сортируем по % ImbADV (останній стовпець)
+    const lastColIndex = data.main[0].length - 1;
+    const table = container.querySelector("table");
+    sortTable(table, lastColIndex);
+  }
+
+  function loadAll() {
+    loadTable("buy_data.json", "buy");
+    loadTable("sell_data.json", "sell");
+  }
+
+  applyTheme();
+  loadAll();
+  setInterval(loadAll, 90000);
+</script>
 </body>
 </html>
