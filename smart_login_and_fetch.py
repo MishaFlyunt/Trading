@@ -3,6 +3,7 @@ import os
 import time
 import json
 import requests
+import math
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from selenium import webdriver
