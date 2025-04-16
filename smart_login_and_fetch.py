@@ -31,14 +31,9 @@ def git_commit_and_push():
     except subprocess.CalledProcessError as e:
         print(f"❌ Змін нема або Git помилка: {e}")
 
-
 def get_adv_from_finviz(symbol, cache):
     if symbol in cache:
-        try:
-            return int(str(cache[symbol]).replace(",", ""))
-        except:
-            print(f"⚠️ Некоректне значення в кеші для {symbol}")
-            return 0
+        return cache[symbol]
     try:
         url = f"https://finviz.com/quote.ashx?t={symbol}&p=d"
         headers = {
@@ -48,13 +43,13 @@ def get_adv_from_finviz(symbol, cache):
         response = requests.get(url, headers=headers, timeout=10)
         if response.status_code != 200:
             print(f"⚠️ Finviz статус {response.status_code} для {symbol}")
-            cache[symbol] = "0"
+            cache[symbol] = 0
             return 0
         soup = BeautifulSoup(response.text, "html.parser")
         table = soup.find("table", class_="snapshot-table2")
         if not table:
             print(f"⚠️ Таблиця не знайдена для {symbol}")
-            cache[symbol] = "0"
+            cache[symbol] = 0
             return 0
         for row in table.find_all("tr"):
             cells = row.find_all("td")
@@ -67,12 +62,11 @@ def get_adv_from_finviz(symbol, cache):
                         adv = int(float(volume_str[:-1]) * 1_000)
                     else:
                         adv = int(volume_str)
-                    # ✅ зберігаємо як рядок з комами
-                    cache[symbol] = f"{adv:,}"
+                    cache[symbol] = adv
                     return adv
     except Exception as e:
         print(f"⚠️ Не вдалося отримати ADV для {symbol}: {e}")
-    cache[symbol] = "0"
+    cache[symbol] = 0
     return 0
 
 def parse_table_from_message_table(soup):
