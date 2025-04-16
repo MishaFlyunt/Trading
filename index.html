@@ -148,21 +148,24 @@
   const sortStates = {};
 
   function sortTable(table, colIndex) {
-    const tbody = table.querySelector("tbody");
-    const rows = Array.from(tbody.querySelectorAll("tr")).filter(r => !r.classList.contains("archive-row"));
+  const tbody = table.querySelector("tbody");
+  const rows = Array.from(tbody.querySelectorAll("tr")).filter(r => !r.classList.contains("archive-row"));
 
-    // toggle sort direction
-    if (!sortStates[table.id]) sortStates[table.id] = {};
-    sortStates[table.id][colIndex] = !sortStates[table.id][colIndex];
-    const desc = sortStates[table.id][colIndex];
+  // Toggle sort direction
+  if (!sortStates[table.id]) sortStates[table.id] = {};
+  sortStates[table.id][colIndex] = !sortStates[table.id][colIndex];
+  const desc = sortStates[table.id][colIndex];
 
-    rows.sort((a, b) => {
-      const aVal = parseFloat(a.children[colIndex].innerText.replace(/[%,$,]/g, '').replace(/,/g, '')) || 0;
-      const bVal = parseFloat(b.children[colIndex].innerText.replace(/[%,$,]/g, '').replace(/,/g, '')) || 0;
-      return desc ? bVal - aVal : aVal - bVal;
-    });
+  rows.sort((a, b) => {
+    const aText = a.children[colIndex]?.innerText || "";
+    const bText = b.children[colIndex]?.innerText || "";
+    const aVal = parseFloat(aText.replace(/[,%$]/g, '').replace(/,/g, '')) || 0;
+    const bVal = parseFloat(bText.replace(/[,%$]/g, '').replace(/,/g, '')) || 0;
+    return desc ? bVal - aVal : aVal - bVal;
+  });
 
-    rows.forEach(row => tbody.appendChild(row));
+  rows.forEach(row => tbody.appendChild(row));
+
   }
 
   function formatNumber(num) {
