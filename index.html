@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -11,6 +10,8 @@
       --text: #000;
       --table-bg: #fff;
       --header-bg: #ccc;
+      --highlight: yellow;
+      --symbol-highlight: #ffe6ea;
     }
 
     body {
@@ -98,13 +99,16 @@
       z-index: 1;
     }
 
-    
-    tr.highlight {
-      background-color: #fff3b0;
-    }
-
     .archive-row.hidden {
       display: none;
+    }
+
+    .highlight {
+      background-color: var(--highlight);
+    }
+
+    .symbol-dash {
+      background-color: var(--symbol-highlight);
     }
   </style>
 </head>
@@ -134,11 +138,13 @@
         document.documentElement.style.setProperty('--text', '#fff');
         document.documentElement.style.setProperty('--table-bg', '#222');
         document.documentElement.style.setProperty('--header-bg', '#333');
+        document.documentElement.style.setProperty('--highlight', '#444'); // dark highlight
       } else {
         document.documentElement.style.setProperty('--bg', '#f4f4f4');
         document.documentElement.style.setProperty('--text', '#000');
         document.documentElement.style.setProperty('--table-bg', '#fff');
         document.documentElement.style.setProperty('--header-bg', '#ccc');
+        document.documentElement.style.setProperty('--highlight', 'yellow'); // light highlight
       }
     }
 
@@ -148,31 +154,15 @@
       applyTheme();
     }
 
-    const sortStates = {};
-
-    function sortTable(table, colIndex) {
+    function sortTable(table, colIndex, desc = false) {
       const tbody = table.querySelector("tbody");
-      const rows = Array.from(tbody.querySelectorAll("tr"))
-        .filter(r => !r.classList.contains("archive-row") && !r.closest(".archive-table"));
-
-      const tableId = table.closest(".table-container")?.id || "default";
-      if (!sortStates[tableId]) sortStates[tableId] = {};
-      sortStates[tableId][colIndex] = !sortStates[tableId][colIndex];
-      const desc = sortStates[tableId][colIndex];
-
+      const rows = Array.from(tbody.querySelectorAll("tr")).filter(r => !r.classList.contains("archive-row"));
       rows.sort((a, b) => {
-        const aVal = parseFloat(a.children[colIndex].innerText.replace(/[^0-9.\-]/g, '')) || 0;
-        const bVal = parseFloat(b.children[colIndex].innerText.replace(/[^0-9.\-]/g, '')) || 0;
+        const aVal = parseFloat(a.children[colIndex].innerText.replace(/,/g, '').replace('%', '')) || 0;
+        const bVal = parseFloat(b.children[colIndex].innerText.replace(/,/g, '').replace('%', '')) || 0;
         return desc ? bVal - aVal : aVal - bVal;
       });
-
-      rows.forEach(row => {
-        const archiveRow = row.nextElementSibling?.classList.contains("archive-row")
-          ? row.nextElementSibling
-          : null;
-        tbody.appendChild(row);
-        if (archiveRow) tbody.appendChild(archiveRow);
-      });
+      rows.forEach(row => tbody.appendChild(row));
     }
 
     async function loadTable(json, id) {
@@ -183,23 +173,26 @@
         container.innerText = "Немає даних";
         return;
       }
+
       let html = "<table><thead><tr>";
       data.main[0].forEach((cell, i) => {
-        html += `<th onclick="sortTable(this.closest('table'), ${i})">${cell}</th>`;
+        html += `<th onclick="sortTable(this.closest('table'), ${i}, false)">${cell}</th>`;
       });
       html += "</tr></thead><tbody>";
+
       for (let i = 1; i < data.main.length; i++) {
         const row = data.main[i];
         const symbol = row[1];
-        const percentCell = parseFloat(row[row.length - 1].replace('%','')) || 0;
-        const highlightClass = percentCell > 90 ? 'highlight' : '';
-        html += `<tr class="expand-row ${highlightClass}" data-symbol="${symbol}">`;
-        row.forEach((cell, idx) => {
-          const formatted = (idx >= 2 && idx <= 4 && !isNaN(cell)) ? 
-            Number(cell).toLocaleString() : cell;
-          html += `<td>${formatted}</td>`;
-        });
+        const percent = parseFloat(row[5]) || 0;
+        const hasDash = symbol.includes("-");
+        let rowClass = "expand-row";
+        if (percent > 90) rowClass += " highlight";
+        if (hasDash) rowClass += " symbol-dash";
+
+        html += `<tr class="${rowClass}" data-symbol="${symbol}">`;
+        row.forEach(cell => html += `<td>${cell}</td>`);
         html += "</tr>";
+
         if (data.archive && data.archive[symbol]) {
           html += `<tr class="archive-row hidden"><td colspan="${row.length}"><table class="archive-table"><thead><tr>`;
           html += data.archive[symbol][0].map(c => `<th>${c}</th>`).join('');
@@ -210,6 +203,7 @@
           html += "</tbody></table></td></tr>";
         }
       }
+
       html += "</tbody></table>";
       container.innerHTML = html;
 
@@ -225,7 +219,7 @@
 
       const lastColIndex = data.main[0].length - 1;
       const table = container.querySelector("table");
-      sortTable(table, lastColIndex);
+      sortTable(table, lastColIndex, true);
     }
 
     function loadAll() {
