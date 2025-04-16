@@ -151,7 +151,7 @@ while True:
             imbalance = float(row[2])
             adv = get_adv_from_finviz(symbol, adv_cache)
             row[4] = str(adv)
-            row[5] = f"{(imbalance / adv * 100):.1f}" if adv else "0"
+            row[5] = str(math.ceil(imbalance / adv * 100)) if adv else "0"
         with open(f"{kind}_data.json", "w") as f:
             json.dump(data, f, indent=2)
 
