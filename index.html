@@ -147,14 +147,18 @@
 
   const sortStates = {};
 
-  function sortTable(table, colIndex) {
+function sortTable(table, colIndex) {
   const tbody = table.querySelector("tbody");
-  const rows = Array.from(tbody.querySelectorAll("tr")).filter(r => !r.classList.contains("archive-row"));
 
-  // Toggle sort direction
-  if (!sortStates[table.id]) sortStates[table.id] = {};
-  sortStates[table.id][colIndex] = !sortStates[table.id][colIndex];
-  const desc = sortStates[table.id][colIndex];
+  // Збираємо тільки основні (не archive) рядки
+  const rows = Array.from(tbody.querySelectorAll("tr"))
+    .filter(r => !r.classList.contains("archive-row") && !r.closest(".archive-table"));
+
+  // Перемикаємо напрямок сортування
+  const tableId = table.closest(".table-container")?.id || "default";
+  if (!sortStates[tableId]) sortStates[tableId] = {};
+  sortStates[tableId][colIndex] = !sortStates[tableId][colIndex];
+  const desc = sortStates[tableId][colIndex];
 
   rows.sort((a, b) => {
     const aText = a.children[colIndex]?.innerText || "";
@@ -164,9 +168,15 @@
     return desc ? bVal - aVal : aVal - bVal;
   });
 
-  rows.forEach(row => tbody.appendChild(row));
-
-  }
+  // Перествити лише основні рядки в таблицю, archive залишити на місці
+  rows.forEach(row => {
+    const archiveRow = row.nextElementSibling?.classList.contains("archive-row")
+      ? row.nextElementSibling
+      : null;
+    tbody.appendChild(row);
+    if (archiveRow) tbody.appendChild(archiveRow);
+  });
+}
 
   function formatNumber(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
