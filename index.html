@@ -184,6 +184,11 @@ tr.dashed-symbol td {
 
   const sortStates = {};
 
+  const lastSort = {
+  buy: { col: null, desc: true },
+  sell: { col: null, desc: true }
+};
+
   function sortTable(table, colIndex, forceDesc = null) {
     const tbody = table.querySelector("tbody");
     const rows = Array.from(tbody.querySelectorAll("tr"))
@@ -192,6 +197,10 @@ tr.dashed-symbol td {
     const tableId = table.closest(".table-container")?.id || "default";
     if (!sortStates[tableId]) sortStates[tableId] = {};
     const desc = forceDesc !== null ? forceDesc : !(sortStates[tableId][colIndex] || false);
+    // ⏺ Зберігаємо останнє сортування
+if (tableId === "buy" || tableId === "sell") {
+  lastSort[tableId] = { col: colIndex, desc };
+}
     sortStates[tableId][colIndex] = desc;
 
     rows.sort((a, b) => {
@@ -213,6 +222,12 @@ tr.dashed-symbol td {
     const container = document.querySelector(`#${id} .table-content`);
     if (!data.main || data.main.length === 0) {
       container.innerText = "Немає даних";
+      // Повторне сортування після оновлення
+const table = container.querySelector("table");
+const sort = lastSort[id];
+if (sort.col !== null) {
+  sortTable(table, sort.col, sort.desc);
+}
       return;
     }
     // Підрахунок кількості акцій
