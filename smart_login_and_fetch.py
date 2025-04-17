@@ -69,6 +69,7 @@ def get_adv_from_finviz(symbol, cache):
     cache[symbol] = 0
     return 0
 
+
 def parse_table_from_message_table(soup):
     table = soup.find("table", id="MainContent_MessageTable")
     if not table:
@@ -77,19 +78,30 @@ def parse_table_from_message_table(soup):
 
     rows = table.find_all("tr")
     archive_buy = defaultdict(lambda: [["Update Time", "Imbalance", "Paired"]])
-    archive_sell = defaultdict(lambda: [["Update Time", "Imbalance", "Paired"]])
-    main_buy = [["Update Time", "Symbol", "Imbalance", "Paired", "ADV", "% ImbADV"]]
-    main_sell = [["Update Time", "Symbol", "Imbalance", "Paired", "ADV", "% ImbADV"]]
+    archive_sell = defaultdict(
+        lambda: [["Update Time", "Imbalance", "Paired"]])
+    main_buy = [["Update Time", "Symbol",
+                 "Imbalance", "Paired", "ADV", "% ImbADV"]]
+    main_sell = [["Update Time", "Symbol",
+                  "Imbalance", "Paired", "ADV", "% ImbADV"]]
     latest_buy = {}
     latest_sell = {}
 
     for row in rows[1:]:
-        cells = [td.text.strip() for td in row.find_all("td")]
+        cells = row.find_all("td")
         if len(cells) < 5:
             continue
-        time_val, symbol, side, imbalance, paired = cells
-        imbalance = int(imbalance.replace(",", "")) if imbalance else 0
-        paired = int(paired.replace(",", "")) if paired else 0
+
+        time_val = cells[0].text.strip()
+        symbol_tag = cells[1].find("a")
+        symbol = symbol_tag.text.strip(
+        ) if symbol_tag else cells[1].text.strip().replace(" ", "")
+        side = cells[2].text.strip()
+        imbalance = int(cells[3].text.strip().replace(
+            ",", "")) if cells[3].text.strip() else 0
+        paired = int(cells[4].text.strip().replace(
+            ",", "")) if cells[4].text.strip() else 0
+
         target_latest = latest_buy if side == "B" else latest_sell
         target_archive = archive_buy if side == "B" else archive_sell
 
