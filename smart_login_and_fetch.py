@@ -54,7 +54,7 @@ def get_adv_from_finviz(symbol, cache):
         for row in table.find_all("tr"):
             cells = row.find_all("td")
             for i in range(len(cells)):
-                if cells[i].text.strip() == "Volume":
+                if cells[i].text.strip() == "Avg Volume":
                     volume_str = cells[i+1].text.strip().replace(",", "")
                     if volume_str.endswith("M"):
                         adv = int(float(volume_str[:-1]) * 1_000_000)

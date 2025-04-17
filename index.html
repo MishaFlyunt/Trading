@@ -148,11 +148,11 @@ tr.dashed-symbol td {
 
   <div class="tables">
     <div class="table-container" id="buy">
-      <h2>Buy Imbalance</h2>
+      <h2>Buy Imbalance (<span id="buy-count">0</span>)</h2>
       <div class="table-content">Завантаження...</div>
     </div>
     <div class="table-container" id="sell">
-      <h2>Sell Imbalance</h2>
+      <h2>Sell Imbalance (<span id="sell-count">0</span>)</h2>
       <div class="table-content">Завантаження...</div>
     </div>
   </div>
@@ -215,6 +215,13 @@ tr.dashed-symbol td {
       container.innerText = "Немає даних";
       return;
     }
+    // Підрахунок кількості акцій
+if (id === "buy") {
+  document.getElementById("buy-count").textContent = data.main.length - 1;
+}
+if (id === "sell") {
+  document.getElementById("sell-count").textContent = data.main.length - 1;
+}
 
     let html = "<table><thead><tr>";
     data.main[0].forEach((cell, i) => {
