@@ -183,6 +183,10 @@ tr.dashed-symbol td {
   }
 
   const sortStates = {};
+  const lastSort = {
+    buy: { col: null, desc: true },
+    sell: { col: null, desc: true }
+  };
 
   function sortTable(table, colIndex, forceDesc = null) {
     const tbody = table.querySelector("tbody");
@@ -193,6 +197,11 @@ tr.dashed-symbol td {
     if (!sortStates[tableId]) sortStates[tableId] = {};
     const desc = forceDesc !== null ? forceDesc : !(sortStates[tableId][colIndex] || false);
     sortStates[tableId][colIndex] = desc;
+
+    // 🔄 Зберігаємо останнє сортування
+    if (tableId === "buy" || tableId === "sell") {
+      lastSort[tableId] = { col: colIndex, desc };
+    }
 
     rows.sort((a, b) => {
       const aVal = parseFloat(a.children[colIndex].innerText.replace(/[^0-9.\-]/g, '')) || 0;
@@ -215,13 +224,8 @@ tr.dashed-symbol td {
       container.innerText = "Немає даних";
       return;
     }
-    // Підрахунок кількості акцій
-if (id === "buy") {
-  document.getElementById("buy-count").textContent = data.main.length - 1;
-}
-if (id === "sell") {
-  document.getElementById("sell-count").textContent = data.main.length - 1;
-}
+
+    document.getElementById(`${id}-count`).textContent = data.main.length - 1;
 
     let html = "<table><thead><tr>";
     data.main[0].forEach((cell, i) => {
@@ -250,37 +254,37 @@ if (id === "sell") {
         html += data.archive[symbol][0].map(c => `<th>${c}</th>`).join('');
         html += "</tr></thead><tbody>";
         data.archive[symbol].slice(1).forEach(r => {
-  html += "<tr>";
-  r.forEach((c, idx) => {
-    const formatted = (idx >= 1 && !isNaN(c)) ? Number(c).toLocaleString() : c;
-    html += `<td>${formatted}</td>`;
-  });
-  html += "</tr>";
-});
+          html += "<tr>";
+          r.forEach((c, idx) => {
+            const formatted = (idx >= 1 && !isNaN(c)) ? Number(c).toLocaleString() : c;
+            html += `<td>${formatted}</td>`;
+          });
+          html += "</tr>";
+        });
         html += "</tbody></table></td></tr>";
       }
     }
     html += "</tbody></table>";
     container.innerHTML = html;
 
-    // Додаємо події для розгортання архіву
     document.querySelectorAll(`#${id} .expand-row`).forEach(row => {
-  row.addEventListener('click', (e) => {
-    const clickedCellIndex = Array.from(row.children).indexOf(e.target);
-    if (clickedCellIndex === 1) return; // Якщо клікаємо по Symbol — нічого не робимо
+      row.addEventListener('click', (e) => {
+        const clickedCellIndex = Array.from(row.children).indexOf(e.target);
+        if (clickedCellIndex === 1) return;
+        const next = row.nextElementSibling;
+        if (next && next.classList.contains("archive-row")) {
+          next.classList.toggle("hidden");
+          row.classList.toggle("expanded");
+        }
+      });
+    });
 
-    const next = row.nextElementSibling;
-    if (next && next.classList.contains("archive-row")) {
-      next.classList.toggle("hidden");
-      row.classList.toggle("expanded");
-    }
-  });
-});
-
-    // Автосортування по колонці % ImbADV
+    // ⏪ Повертаємо останнє сортування
     const table = container.querySelector("table");
-    const lastColIndex = data.main[0].length - 1;
-    sortTable(table, lastColIndex, true);
+    const sort = lastSort[id];
+    if (sort.col !== null) {
+      sortTable(table, sort.col, sort.desc);
+    }
   }
 
   function loadAll() {
