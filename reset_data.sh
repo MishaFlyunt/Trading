@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Файли, які потрібно очистити
-FILES=("buy_data.json" "sell_data.json" "adv_cache.json")
+FILES=("buy_data.json" "sell_data.json" "adv_cache.json" "adv_cache.json")
 
 # Каталог скрипта
 SCRIPT_DIR="/Users/mihajloflunt/Desktop/Home/Навчання/GOIT/Trading"
