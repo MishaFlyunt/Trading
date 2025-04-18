@@ -179,7 +179,7 @@ async def main():
                 with open("adv_cache.json") as f:
                     adv_cache = json.load(f)
                 if not isinstance(adv_cache, dict):
-                    print("⚠️ adv_cache.json некоректний. Створено новий.")
+                    print("⚠️ Файл кешу не є словником. Створено новий пустий кеш.")
                     adv_cache = {}
         except Exception as e:
             print(f"⚠️ Не вдалося завантажити кеш: {e}")
@@ -198,7 +198,6 @@ async def main():
             with open(f"{kind}_data.json", "w") as f:
                 json.dump(data, f, indent=2)
 
-            # === Телеграм-сповіщення ===
             prev_file = f"prev_{kind}.json"
             prev_symbols = {}
             if os.path.exists(prev_file):
@@ -207,7 +206,7 @@ async def main():
                         prev_data = json.load(f)
                         prev_symbols = {row[1]: True for row in prev_data.get("main", [])[
                             1:]}
-                except:
+                except Exception:
                     prev_symbols = {}
 
             for row in data["main"][1:]:
@@ -221,7 +220,6 @@ async def main():
                     msg = f"🔥 {side} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
                     await send_telegram_message(msg)
 
-                # Перевірка перекруту сторони
                 opposite_kind = "sell" if kind == "buy" else "buy"
                 opposite_prev_file = f"prev_{opposite_kind}.json"
                 opposite_prev_symbols = {}
@@ -231,8 +229,8 @@ async def main():
                             opp_data = json.load(f)
                             opposite_prev_symbols = {row[1]: True for row in opp_data.get("main", [])[
                                 1:]}
-                    except:
-                        pass
+                    except Exception:
+                        opposite_prev_symbols = {}
 
                 if percent > 90 and symbol in opposite_prev_symbols:
                     direction = "BUY → SELL" if kind == "sell" else "SELL → BUY"
@@ -245,10 +243,15 @@ async def main():
         with open("adv_cache.json", "w") as f:
             json.dump(adv_cache, f, indent=2)
 
-        print("✅ Дані збережено та оброблено.")
+        print("✅ Дані збережено у buy_data.json та sell_data.json")
         git_commit_and_push()
 
-        if datetime.now().hour == 23:
+        now = datetime.now()
+        if now.hour == 23:
             print("🛑 Завершення скрипта о 23:00")
             break
         time.sleep(40)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
