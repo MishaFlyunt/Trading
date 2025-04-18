@@ -1,14 +1,33 @@
 #!/bin/bash
 
-# Очищення файлів
-echo "{}" > adv_cache.json
-echo '{"main": [], "archive": {}}' > buy_data.json
-echo '{"main": [], "archive": {}}' > sell_data.json
+# Файли, які потрібно очистити
+FILES=("buy_data.json" "sell_data.json" "adv_cache.json")
 
-# Коміт і пуш
-git add adv_cache.json buy_data.json sell_data.json
-git commit -m "🧹 Автоочищення JSON файлів о 23:00 за Києвом"
-git push
+# Каталог скрипта
+SCRIPT_DIR="/Users/mihajloflunt/Desktop/Home/Навчання/GOIT/Trading"
 
-echo "✅ Файли очищено та запушено на GitHub"
+# Перехід у каталог
+cd "$SCRIPT_DIR" || exit 1
 
+# Створити лог-файл
+LOGFILE="$SCRIPT_DIR/reset_log.txt"
+{
+  echo ""
+  echo "🧹 Reset запущено: $(date '+%Y-%m-%d %H:%M:%S')"
+
+  # Очистити файли
+  for file in "${FILES[@]}"; do
+    if [ -f "$file" ]; then
+      > "$file"
+      echo "✅ Очищено файл: $file"
+    else
+      echo "⚠️ Файл не знайдено: $file"
+    fi
+  done
+
+  # Git-операції
+  git add .
+  git commit -m "🧹 Автоочищення JSON файлів о 23:00 за Києвом"
+  git push
+  echo "✅ Git push виконано"
+} >> "$LOGFILE" 2>&1
