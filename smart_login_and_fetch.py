@@ -199,15 +199,15 @@ async def main():
                 json.dump(data, f, indent=2)
 
             prev_file = f"prev_{kind}.json"
-            prev_symbols = {}
-            if os.path.exists(prev_file):
-                try:
-                    with open(prev_file) as f:
-                        prev_data = json.load(f)
-                        prev_symbols = {row[1]: True for row in prev_data.get("main", [])[
-                            1:]}
-                except Exception:
-                    prev_symbols = {}
+            # prev_symbols = {}
+            # if os.path.exists(prev_file):
+            #     try:
+            #         with open(prev_file) as f:
+            #             prev_data = json.load(f)
+            #             prev_symbols = {row[1]: True for row in prev_data.get("main", [])[
+            #                 1:]}
+            #     except Exception:
+            #         prev_symbols = {}
 
             for row in data["main"][1:]:
                 symbol = row[1]
