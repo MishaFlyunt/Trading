@@ -145,107 +145,110 @@ if __name__ == "__main__":
         "🔔 Тестове повідомлення: перевірка Telegram бота"))
 
 
-
-try:
-    driver = webdriver.Chrome(service=Service(), options=chrome_options)
-    print("🔐 Перевіряємо статус сесії...")
-    driver.get("http://www.amerxmocs.com/Default.aspx?index=")
-    time.sleep(3)
-    if "Account/Login.aspx" in driver.current_url:
-        print("🔓 Сесія неактивна. Виконуємо логін...")
-        driver.get("http://www.amerxmocs.com/Account/Login.aspx")
-        time.sleep(2)
-        driver.find_element(By.ID, "MainContent_UserName").send_keys(USERNAME)
-        driver.find_element(By.ID, "MainContent_Password").send_keys(PASSWORD)
-        driver.find_element(By.ID, "MainContent_LoginButton").click()
-        time.sleep(3)
-except Exception as e:
-    print(f"❌ Помилка: {e}")
-    exit(1)
-
-while True:
-    html = driver.page_source
-    with open("debug_page.html", "w", encoding="utf-8") as f:
-        f.write(html)
-
-    soup = BeautifulSoup(html, "html.parser")
-    parsed = parse_table_from_message_table(soup)
-
-    adv_cache = {}
+async def main():
     try:
-        if os.path.exists("adv_cache.json"):
-            with open("adv_cache.json") as f:
-                adv_cache = json.load(f)
-            if not isinstance(adv_cache, dict):
-                print("⚠️ Файл кешу не є словником. Створено новий пустий кеш.")
-                adv_cache = {}
+        driver = webdriver.Chrome(service=Service(), options=chrome_options)
+        print("🔐 Перевіряємо статус сесії...")
+        driver.get("http://www.amerxmocs.com/Default.aspx?index=")
+        time.sleep(3)
+        if "Account/Login.aspx" in driver.current_url:
+            print("🔓 Сесія неактивна. Виконуємо логін...")
+            driver.get("http://www.amerxmocs.com/Account/Login.aspx")
+            time.sleep(2)
+            driver.find_element(
+                By.ID, "MainContent_UserName").send_keys(USERNAME)
+            driver.find_element(
+                By.ID, "MainContent_Password").send_keys(PASSWORD)
+            driver.find_element(By.ID, "MainContent_LoginButton").click()
+            time.sleep(3)
     except Exception as e:
-        print(f"⚠️ Не вдалося завантажити кеш: {e}")
+        print(f"❌ Помилка: {e}")
+        return
+
+    while True:
+        html = driver.page_source
+        with open("debug_page.html", "w", encoding="utf-8") as f:
+            f.write(html)
+
+        soup = BeautifulSoup(html, "html.parser")
+        parsed = parse_table_from_message_table(soup)
+
         adv_cache = {}
+        try:
+            if os.path.exists("adv_cache.json"):
+                with open("adv_cache.json") as f:
+                    adv_cache = json.load(f)
+                if not isinstance(adv_cache, dict):
+                    print("⚠️ adv_cache.json некоректний. Створено новий.")
+                    adv_cache = {}
+        except Exception as e:
+            print(f"⚠️ Не вдалося завантажити кеш: {e}")
+            adv_cache = {}
 
-    for kind in ("buy", "sell"):
-        data = parsed[kind]
-        for i in range(1, len(data["main"])):
-            row = data["main"][i]
-            symbol = row[1]
-            imbalance = float(row[2])
-            adv = get_adv_from_finviz(symbol, adv_cache)
-            row[4] = str(adv)
-            row[5] = str(math.ceil(imbalance / adv * 100)) if adv else "0"
+        for kind in ("buy", "sell"):
+            data = parsed[kind]
+            for i in range(1, len(data["main"])):
+                row = data["main"][i]
+                symbol = row[1]
+                imbalance = float(row[2])
+                adv = get_adv_from_finviz(symbol, adv_cache)
+                row[4] = str(adv)
+                row[5] = str(math.ceil(imbalance / adv * 100)) if adv else "0"
 
-        with open(f"{kind}_data.json", "w") as f:
-            json.dump(data, f, indent=2)
+            with open(f"{kind}_data.json", "w") as f:
+                json.dump(data, f, indent=2)
 
-        prev_file = f"prev_{kind}.json"
-        prev_symbols = {}
-        if os.path.exists(prev_file):
-            try:
-                with open(prev_file) as f:
-                    prev_data = json.load(f)
-                    prev_symbols = {row[1]: True for row in prev_data.get("main", [])[
-                        1:]}
-            except Exception:
-                prev_symbols = {}
-
-        for row in data["main"][1:]:
-            symbol = row[1]
-            imbalance = int(row[2])
-            adv = int(row[4])
-            percent = int(row[5])
-
-            if percent > 95:
-                side = "BUY" if kind == "buy" else "SELL"
-                msg = f"🔥 {side} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
-                asyncio.run(send_telegram_message(msg))
-
-            opposite_kind = "sell" if kind == "buy" else "buy"
-            opposite_prev_file = f"prev_{opposite_kind}.json"
-            opposite_prev_symbols = {}
-            if os.path.exists(opposite_prev_file):
+            # === Телеграм-сповіщення ===
+            prev_file = f"prev_{kind}.json"
+            prev_symbols = {}
+            if os.path.exists(prev_file):
                 try:
-                    with open(opposite_prev_file) as f:
-                        opp_data = json.load(f)
-                        opposite_prev_symbols = {row[1]: True for row in opp_data.get("main", [])[
+                    with open(prev_file) as f:
+                        prev_data = json.load(f)
+                        prev_symbols = {row[1]: True for row in prev_data.get("main", [])[
                             1:]}
-                except Exception:
-                    opposite_prev_symbols = {}
+                except:
+                    prev_symbols = {}
 
-            if percent > 90 and symbol in opposite_prev_symbols:
-                direction = "BUY → SELL" if kind == "sell" else "SELL → BUY"
-                msg = f"🔄 {direction} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
-                asyncio.run(send_telegram_message(msg))
+            for row in data["main"][1:]:
+                symbol = row[1]
+                imbalance = int(row[2])
+                adv = int(row[4])
+                percent = int(row[5])
 
-        with open(prev_file, "w") as f:
-            json.dump(data, f, indent=2)
+                if percent > 95:
+                    side = "BUY" if kind == "buy" else "SELL"
+                    msg = f"🔥 {side} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
+                    await send_telegram_message(msg)
 
-    with open("adv_cache.json", "w") as f:
-        json.dump(adv_cache, f, indent=2)
+                # Перевірка перекруту сторони
+                opposite_kind = "sell" if kind == "buy" else "buy"
+                opposite_prev_file = f"prev_{opposite_kind}.json"
+                opposite_prev_symbols = {}
+                if os.path.exists(opposite_prev_file):
+                    try:
+                        with open(opposite_prev_file) as f:
+                            opp_data = json.load(f)
+                            opposite_prev_symbols = {row[1]: True for row in opp_data.get("main", [])[
+                                1:]}
+                    except:
+                        pass
 
-    print("✅ Дані збережено у buy_data.json та sell_data.json")
-    git_commit_and_push()
+                if percent > 90 and symbol in opposite_prev_symbols:
+                    direction = "BUY → SELL" if kind == "sell" else "SELL → BUY"
+                    msg = f"🔄 {direction} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
+                    await send_telegram_message(msg)
 
-    now = datetime.now()
-    if now.hour == 23:
-        print("🛑 Завершення скрипта о 23:00")
-        break
-    time.sleep(40)
+            with open(prev_file, "w") as f:
+                json.dump(data, f, indent=2)
+
+        with open("adv_cache.json", "w") as f:
+            json.dump(adv_cache, f, indent=2)
+
+        print("✅ Дані збережено та оброблено.")
+        git_commit_and_push()
+
+        if datetime.now().hour == 23:
+            print("🛑 Завершення скрипта о 23:00")
+            break
+        time.sleep(40)
