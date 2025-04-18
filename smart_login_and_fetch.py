@@ -11,6 +11,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 import subprocess
 import telegram
+import asyncio
 from collections import defaultdict
 from datetime import datetime
 
@@ -131,9 +132,9 @@ def parse_table_from_message_table(soup):
     }
 
 
-def send_telegram_message(message):
+async def send_telegram_message(message):
     try:
-        bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
+        await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
         print("📨 Надіслано сповіщення у Telegram")
     except Exception as e:
         print(f"❌ Помилка надсилання в Telegram: {e}")
@@ -213,7 +214,7 @@ while True:
             if percent > 95:
                 side = "BUY" if kind == "buy" else "SELL"
                 msg = f"🔥 {side} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
-                send_telegram_message(msg)
+                asyncio.run(send_telegram_message(msg))
 
             opposite_kind = "sell" if kind == "buy" else "buy"
             opposite_prev_file = f"prev_{opposite_kind}.json"
@@ -230,7 +231,7 @@ while True:
             if percent > 90 and symbol in opposite_prev_symbols:
                 direction = "BUY → SELL" if kind == "sell" else "SELL → BUY"
                 msg = f"🔄 {direction} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
-                send_telegram_message(msg)
+                asyncio.run(send_telegram_message(msg))
 
         with open(prev_file, "w") as f:
             json.dump(data, f, indent=2)
