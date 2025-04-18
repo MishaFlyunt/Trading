@@ -12,6 +12,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 import subprocess
 from collections import defaultdict
+from datetime import datetime
 
 load_dotenv()
 USERNAME = os.getenv("LOGIN")
@@ -87,6 +88,10 @@ def parse_table_from_message_table(soup):
     latest_buy = {}
     latest_sell = {}
 
+    # 🔥 Очистка перед кожним парсингом
+    latest_buy.clear()
+    latest_sell.clear()
+
     for row in rows[1:]:
         cells = row.find_all("td")
         if len(cells) < 5:
@@ -95,7 +100,7 @@ def parse_table_from_message_table(soup):
         time_val = cells[0].text.strip()
         symbol_tag = cells[1].find("a")
         symbol = symbol_tag.text.strip(
-        ) if symbol_tag else cells[1].text.strip().replace(" ", "")
+        ) if symbol_tag else cells[1].text.strip()
         side = cells[2].text.strip()
         imbalance = int(cells[3].text.strip().replace(
             ",", "")) if cells[3].text.strip() else 0
@@ -103,11 +108,13 @@ def parse_table_from_message_table(soup):
             ",", "")) if cells[4].text.strip() else 0
 
         target_latest = latest_buy if side == "B" else latest_sell
-        target_archive = archive_buy if side == "B" else archive_sell
+    target_archive = archive_buy if side == "B" else archive_sell
 
-        target_archive[symbol].append([time_val, imbalance, paired])
-        if symbol not in target_latest:
-            target_latest[symbol] = (time_val, imbalance, paired)
+    # Додаємо до архіву
+    target_archive[symbol].append([time_val, imbalance, paired])
+
+    # Оновлюємо лише найсвіжіші
+    target_latest[symbol] = (time_val, imbalance, paired)
 
     for symbol, (t, imb, paired) in latest_buy.items():
         main_buy.append([t, symbol, imb, paired, "", ""])
@@ -173,4 +180,8 @@ while True:
 
     print("✅ Дані збережено у buy_data.json та sell_data.json")
     git_commit_and_push()
-    time.sleep(60)
+    now = datetime.now()
+    if now.hour == 23:
+        print("🛑 Завершення скрипта о 23:00")
+        break
+    time.sleep(40)
