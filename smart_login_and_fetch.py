@@ -140,9 +140,9 @@ async def send_telegram_message(message):
         print(f"❌ Помилка надсилання в Telegram: {e}")
 
         # ✅ ТЕСТОВЕ ПОВІДОМЛЕННЯ
-if __name__ == "__main__":
-    asyncio.run(send_telegram_message(
-        "🔔 Тестове повідомлення: перевірка Telegram бота"))
+# if __name__ == "__main__":
+#     asyncio.run(send_telegram_message(
+#         "🔔 Тестове повідомлення: перевірка Telegram бота"))
 
 
 async def main():
