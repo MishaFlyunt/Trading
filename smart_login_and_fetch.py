@@ -138,6 +138,10 @@ def send_telegram_message(message):
     except Exception as e:
         print(f"❌ Помилка надсилання в Telegram: {e}")
 
+        # ✅ ТЕСТОВЕ ПОВІДОМЛЕННЯ
+send_telegram_message("🔔 Тестове повідомлення: перевірка Telegram бота")
+
+
 
 try:
     driver = webdriver.Chrome(service=Service(), options=chrome_options)
