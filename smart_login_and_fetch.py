@@ -1,4 +1,3 @@
-
 import os
 import time
 import json
@@ -15,16 +14,13 @@ import telegram
 from collections import defaultdict
 from datetime import datetime
 
-
 load_dotenv()
 USERNAME = os.getenv("LOGIN")
 PASSWORD = os.getenv("PASSWORD")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
-
 bot = telegram.Bot(token=TELEGRAM_TOKEN)
-
 
 chrome_options = Options()
 chrome_options.add_argument("--remote-debugging-port=9222")
@@ -100,7 +96,6 @@ def parse_table_from_message_table(soup):
     latest_buy = {}
     latest_sell = {}
 
-    # 🔥 Очистка перед кожним парсингом
     latest_buy.clear()
     latest_sell.clear()
 
@@ -120,13 +115,10 @@ def parse_table_from_message_table(soup):
             ",", "")) if cells[4].text.strip() else 0
 
         target_latest = latest_buy if side == "B" else latest_sell
-    target_archive = archive_buy if side == "B" else archive_sell
+        target_archive = archive_buy if side == "B" else archive_sell
 
-    # Додаємо до архіву
-    target_archive[symbol].append([time_val, imbalance, paired])
-
-    # Оновлюємо лише найсвіжіші
-    target_latest[symbol] = (time_val, imbalance, paired)
+        target_archive[symbol].append([time_val, imbalance, paired])
+        target_latest[symbol] = (time_val, imbalance, paired)
 
     for symbol, (t, imb, paired) in latest_buy.items():
         main_buy.append([t, symbol, imb, paired, "", ""])
@@ -139,7 +131,6 @@ def parse_table_from_message_table(soup):
     }
 
 
-# Функція для надсилання повідомлень
 def send_telegram_message(message):
     try:
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
@@ -198,63 +189,52 @@ while True:
         with open(f"{kind}_data.json", "w") as f:
             json.dump(data, f, indent=2)
 
-         # ТЕЛЕГРАМ
-
-         # 📊 Завантажити попередній стан для перевірки змін
-            prev_file = f"prev_{kind}.json"
-            prev_symbols = {}
-
+        prev_file = f"prev_{kind}.json"
+        prev_symbols = {}
         if os.path.exists(prev_file):
             try:
                 with open(prev_file) as f:
                     prev_data = json.load(f)
                     prev_symbols = {row[1]: True for row in prev_data.get("main", [])[
-                1:]}
+                        1:]}
             except Exception:
                 prev_symbols = {}
 
-        # 🔔 Telegram сповіщення
-            for row in data["main"][1:]:
-                symbol = row[1]
-                imbalance = int(row[2])
-                adv = int(row[4])
-                percent = int(row[5])
+        for row in data["main"][1:]:
+            symbol = row[1]
+            imbalance = int(row[2])
+            adv = int(row[4])
+            percent = int(row[5])
 
-    # 📢 Якщо % ImbADV > 95 — сповіщення
-    if percent > 95:
-        side = "BUY" if kind == "buy" else "SELL"
-        msg = f"🔥 {side} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
-        send_telegram_message(msg)
+            if percent > 95:
+                side = "BUY" if kind == "buy" else "SELL"
+                msg = f"🔥 {side} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
+                send_telegram_message(msg)
 
-    # 📢 Якщо символ був у попередньому списку з протилежного типу
-    opposite_kind = "sell" if kind == "buy" else "buy"
-    opposite_prev_file = f"prev_{opposite_kind}.json"
-    opposite_prev_symbols = {}
-    if os.path.exists(opposite_prev_file):
-        try:
-            with open(opposite_prev_file) as f:
-                opp_data = json.load(f)
-                opposite_prev_symbols = {row[1]: True for row in opp_data.get("main", [])[
-                    1:]}
-        except Exception:
+            opposite_kind = "sell" if kind == "buy" else "buy"
+            opposite_prev_file = f"prev_{opposite_kind}.json"
             opposite_prev_symbols = {}
+            if os.path.exists(opposite_prev_file):
+                try:
+                    with open(opposite_prev_file) as f:
+                        opp_data = json.load(f)
+                        opposite_prev_symbols = {row[1]: True for row in opp_data.get("main", [])[
+                            1:]}
+                except Exception:
+                    opposite_prev_symbols = {}
 
-    if percent > 90 and symbol in opposite_prev_symbols:
-        direction = "BUY → SELL" if kind == "sell" else "SELL → BUY"
-        msg = f"🔄 {direction} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
-        send_telegram_message(msg)
+            if percent > 90 and symbol in opposite_prev_symbols:
+                direction = "BUY → SELL" if kind == "sell" else "SELL → BUY"
+                msg = f"🔄 {direction} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
+                send_telegram_message(msg)
 
-    # 💾 Зберегти як prev для наступної ітерації
-    with open(prev_file, "w") as f:
-         json.dump(data, f, indent=2)
-         
-      # ТЕЛЕГРАМ ЗАКІНЧЕННЯ
+        with open(prev_file, "w") as f:
+            json.dump(data, f, indent=2)
 
     with open("adv_cache.json", "w") as f:
         json.dump(adv_cache, f, indent=2)
 
     print("✅ Дані збережено у buy_data.json та sell_data.json")
-
     git_commit_and_push()
 
     now = datetime.now()
