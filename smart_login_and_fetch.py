@@ -11,26 +11,38 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 import subprocess
+import telegram
 from collections import defaultdict
 from datetime import datetime
+
 
 load_dotenv()
 USERNAME = os.getenv("LOGIN")
 PASSWORD = os.getenv("PASSWORD")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+
+
+bot = telegram.Bot(token=TELEGRAM_TOKEN)
+
 
 chrome_options = Options()
 chrome_options.add_argument("--remote-debugging-port=9222")
-chrome_options.add_argument(f"--user-data-dir={os.path.expanduser('~')}/chrome-selenium")
+chrome_options.add_argument(
+    f"--user-data-dir={os.path.expanduser('~')}/chrome-selenium")
 chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
+
 
 def git_commit_and_push():
     try:
         subprocess.run(["git", "add", "."], check=True)
-        subprocess.run(["git", "commit", "-m", "🔄 Автооновлення imbalance даних"], check=True)
+        subprocess.run(
+            ["git", "commit", "-m", "🔄 Автооновлення imbalance даних"], check=True)
         subprocess.run(["git", "push"], check=True)
         print("✅ Зміни запушено на GitHub.")
     except subprocess.CalledProcessError as e:
         print(f"❌ Змін нема або Git помилка: {e}")
+
 
 def get_adv_from_finviz(symbol, cache):
     if symbol in cache:
@@ -126,6 +138,16 @@ def parse_table_from_message_table(soup):
         "sell": {"main": main_sell, "archive": dict(archive_sell)},
     }
 
+
+# Функція для надсилання повідомлень
+def send_telegram_message(message):
+    try:
+        bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
+        print("📨 Надіслано сповіщення у Telegram")
+    except Exception as e:
+        print(f"❌ Помилка надсилання в Telegram: {e}")
+
+
 try:
     driver = webdriver.Chrome(service=Service(), options=chrome_options)
     print("🔐 Перевіряємо статус сесії...")
@@ -172,14 +194,69 @@ while True:
             adv = get_adv_from_finviz(symbol, adv_cache)
             row[4] = str(adv)
             row[5] = str(math.ceil(imbalance / adv * 100)) if adv else "0"
+
         with open(f"{kind}_data.json", "w") as f:
             json.dump(data, f, indent=2)
+
+         # ТЕЛЕГРАМ
+
+         # 📊 Завантажити попередній стан для перевірки змін
+            prev_file = f"prev_{kind}.json"
+            prev_symbols = {}
+
+        if os.path.exists(prev_file):
+            try:
+                with open(prev_file) as f:
+                    prev_data = json.load(f)
+                    prev_symbols = {row[1]: True for row in prev_data.get("main", [])[
+                1:]}
+            except Exception:
+                prev_symbols = {}
+
+        # 🔔 Telegram сповіщення
+            for row in data["main"][1:]:
+                symbol = row[1]
+                imbalance = int(row[2])
+                adv = int(row[4])
+                percent = int(row[5])
+
+    # 📢 Якщо % ImbADV > 95 — сповіщення
+    if percent > 95:
+        side = "BUY" if kind == "buy" else "SELL"
+        msg = f"🔥 {side} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
+        send_telegram_message(msg)
+
+    # 📢 Якщо символ був у попередньому списку з протилежного типу
+    opposite_kind = "sell" if kind == "buy" else "buy"
+    opposite_prev_file = f"prev_{opposite_kind}.json"
+    opposite_prev_symbols = {}
+    if os.path.exists(opposite_prev_file):
+        try:
+            with open(opposite_prev_file) as f:
+                opp_data = json.load(f)
+                opposite_prev_symbols = {row[1]: True for row in opp_data.get("main", [])[
+                    1:]}
+        except Exception:
+            opposite_prev_symbols = {}
+
+    if percent > 90 and symbol in opposite_prev_symbols:
+        direction = "BUY → SELL" if kind == "sell" else "SELL → BUY"
+        msg = f"🔄 {direction} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
+        send_telegram_message(msg)
+
+    # 💾 Зберегти як prev для наступної ітерації
+    with open(prev_file, "w") as f:
+         json.dump(data, f, indent=2)
+         
+      # ТЕЛЕГРАМ ЗАКІНЧЕННЯ
 
     with open("adv_cache.json", "w") as f:
         json.dump(adv_cache, f, indent=2)
 
     print("✅ Дані збережено у buy_data.json та sell_data.json")
+
     git_commit_and_push()
+
     now = datetime.now()
     if now.hour == 23:
         print("🛑 Завершення скрипта о 23:00")
