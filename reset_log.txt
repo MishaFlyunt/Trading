@@ -3,3 +3,9 @@
 ✅ Очищено файл: buy_data.json
 ✅ Очищено файл: sell_data.json
 ✅ Очищено файл: adv_cache.json
+[main 3aeac63] 🧹 Автоочищення JSON файлів о 23:00 за Києвом
+ 5 files changed, 33 insertions(+), 12 deletions(-)
+ create mode 100644 reset_log.txt
+To https://github.com/MishaFlyunt/Trading.git
+   54df692..3aeac63  main -> main
+✅ Git push виконано
