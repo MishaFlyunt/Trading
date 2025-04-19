@@ -252,17 +252,17 @@ async def main():
         # 🔧 Викликаємо reset_data.sh через subprocess
            reset_script = "/Users/mihajloflunt/Desktop/Home/Навчання/GOIT/Trading/reset_data.sh"
            if os.path.exists(reset_script):
-            try:
-                print("🚀 Запускаємо reset_data.sh...")
-                subprocess.run(["/bin/bash", reset_script], check=True)
-                print("✅ reset_data.sh виконано успішно.")
-            except subprocess.CalledProcessError as e:
-                print(f"❌ Помилка виконання reset_data.sh: {e}")
-        else:
-            print("❌ Файл reset_data.sh не знайдено!")
+              try:
+                  print("🚀 Запускаємо reset_data.sh...")
+                  subprocess.run(["/bin/bash", reset_script], check=True)
+                  print("✅ reset_data.sh виконано успішно.")
+              except subprocess.CalledProcessError as e:
+                  print(f"❌ Помилка виконання reset_data.sh: {e}")
+           else:
+                print("❌ Файл reset_data.sh не знайдено!")
 
-        break
-    time.sleep(40)
+           break
+        time.sleep(40)
 
 
 if __name__ == "__main__":
