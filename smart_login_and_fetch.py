@@ -248,7 +248,7 @@ async def main():
 
         now = datetime.now()
         if now.hour == 23:
-           print("🛑 Завершення скрипта о 23:00")
+            print("🛑 Завершення скрипта о 23:00")
         # 🔧 Викликаємо reset_data.sh через subprocess
            reset_script = "/Users/mihajloflunt/Desktop/Home/Навчання/GOIT/Trading/reset_data.sh"
            if os.path.exists(reset_script):
