@@ -28,3 +28,9 @@ To https://github.com/MishaFlyunt/Trading.git
 ✅ Очищено файл: adv_cache.json
 ✅ Очищено файл: prev_buy.json
 ✅ Очищено файл: prev_sell.json
+[main fcdd02b] 🧹 Автоочищення JSON файлів о 23:00 за Києвом
+ 8 files changed, 17 insertions(+), 66 deletions(-)
+ delete mode 100644 my_cron
+To https://github.com/MishaFlyunt/Trading.git
+   2077f6a..fcdd02b  main -> main
+✅ Git push виконано
