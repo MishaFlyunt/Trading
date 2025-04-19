@@ -1,1 +1,0 @@
-0 23 * * * /Users/mihajloflunt/Desktop/Home/Навчання/GOIT/Trading/reset_data.sh >> /Users/mihajloflunt/Desktop/Home/Навчання/GOIT/Trading/cron_output.log 2>&1
