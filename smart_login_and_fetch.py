@@ -252,57 +252,57 @@ async def main():
                 json.dump(data, f, indent=2)
 
             prev_file = f"prev_{kind}.json"
-prev_percent_map = {}
+            prev_percent_map = {}
 
 # 1. Завантажуємо попередні % ImbADV
-if os.path.exists(prev_file):
-    try:
-        with open(prev_file) as f:
-            prev_data = json.load(f)
-            for row in prev_data.get("main", [])[1:]:
-                prev_symbol = row[1]
-                prev_percent = int(row[5]) if row[5].isdigit() else 0
-                prev_percent_map[prev_symbol] = prev_percent
-    except Exception as e:
-        print(f"⚠️ Не вдалося завантажити {prev_file}: {e}")
+            if os.path.exists(prev_file):
+                try:
+                    with open(prev_file) as f:
+                        prev_data = json.load(f)
+                        for row in prev_data.get("main", [])[1:]:
+                            prev_symbol = row[1]
+                            prev_percent = int(row[5]) if row[5].isdigit() else 0
+                            prev_percent_map[prev_symbol] = prev_percent
+                except Exception as e:
+                   print(f"⚠️ Не вдалося завантажити {prev_file}: {e}")
 
 # 2. Обробка поточних рядків
-for row in data["main"][1:]:
-    symbol = row[1]
-    imbalance = int(row[2])
-    adv = int(row[4]) if row[4].isdigit() else 0
-    percent = int(row[5]) if row[5].isdigit() else 0
+            for row in data["main"][1:]:
+                symbol = row[1]
+                imbalance = int(row[2])
+                adv = int(row[4]) if row[4].isdigit() else 0
+                percent = int(row[5]) if row[5].isdigit() else 0
 
-    prev_percent = prev_percent_map.get(symbol, 0)
-    percent_change = percent - prev_percent
+                prev_percent = prev_percent_map.get(symbol, 0)
+                percent_change = percent - prev_percent
 
     # 🔥 Надсилаємо, якщо % ImbADV зріс на 10 або більше
-    if percent_change >= 10 and percent >= 40:
-        side = "BUY" if kind == "buy" else "SELL"
-        msg = f"🔥 {side} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}% (+{percent_change}%)"
-        await send_telegram_message(msg)
+                if percent_change >= 10 and percent >= 40:
+                    side = "BUY" if kind == "buy" else "SELL"
+                    msg = f"🔥 {side} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}% (+{percent_change}%)"
+                    await send_telegram_message(msg)
 
     # 🔄 Зміна сторони
-    opposite_kind = "sell" if kind == "buy" else "buy"
-    opposite_prev_file = f"prev_{opposite_kind}.json"
-    opposite_prev_symbols = {}
-    if os.path.exists(opposite_prev_file):
-        try:
-            with open(opposite_prev_file) as f:
-                opp_data = json.load(f)
-                opposite_prev_symbols = {
-                    r[1]: True for r in opp_data.get("main", [])[1:]}
-        except Exception:
-            opposite_prev_symbols = {}
+                opposite_kind = "sell" if kind == "buy" else "buy"
+                opposite_prev_file = f"prev_{opposite_kind}.json"
+                opposite_prev_symbols = {}
+                if os.path.exists(opposite_prev_file):
+                    try:
+                        with open(opposite_prev_file) as f:
+                             opp_data = json.load(f)
+                             opposite_prev_symbols = {
+                             r[1]: True for r in opp_data.get("main", [])[1:]}
+                    except Exception:
+                        opposite_prev_symbols = {}
 
-    if percent > 56 and symbol in opposite_prev_symbols:
-        direction = "BUY → SELL" if kind == "sell" else "SELL → BUY"
-        msg = f"🔄 {direction} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
-        await send_telegram_message(msg)
+                if percent > 56 and symbol in opposite_prev_symbols:
+                    direction = "BUY → SELL" if kind == "sell" else "SELL → BUY"
+                    msg = f"🔄 {direction} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
+                    await send_telegram_message(msg)
 
 # 3. Зберігаємо файл для наступного порівняння
-with open(prev_file, "w") as f:
-    json.dump(data, f, indent=2)
+        with open(prev_file, "w") as f:
+            json.dump(data, f, indent=2)
 
         with open("adv_cache.json", "w") as f:
             json.dump(adv_cache, f, indent=2)
