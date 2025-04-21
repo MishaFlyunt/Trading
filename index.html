@@ -252,6 +252,7 @@ tr.flash-change {
       html += `<th onclick="sortTable(this.closest('table'), ${i})">${cell}</th>`;
     });
     html += "</tr></thead><tbody>";
+      
     for (let i = 1; i < data.main.length; i++) {
       const row = data.main[i];
       const symbol = row[1];
