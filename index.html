@@ -142,9 +142,10 @@ tr.dashed-symbol td {
 </head>
 <body>
   <div class="controls">
-    <h1>📊 Imbalance Monitor</h1>
-    <button onclick="toggleTheme()">🌓 Змінити тему</button>
-  </div>
+  <h1>📊 Imbalance Monitor</h1>
+  <div id="last-update" style="font-weight: bold;">Last update: <span id="update-time">—</span></div>
+  <button onclick="toggleTheme()">🌓 Змінити тему</button>
+</div>
 
   <div class="tables">
     <div class="table-container" id="buy">
@@ -297,6 +298,14 @@ tr.dashed-symbol td {
   applyTheme();
   loadAll();
   setInterval(loadAll, 60000);
+  function updateTimestamp() {
+  const el = document.getElementById("update-time");
+  const now = new Date();
+  const formatted = now.toLocaleTimeString('en-US', { hour12: false });
+  el.textContent = formatted;
+}
+updateTimestamp(); // перше оновлення
+setInterval(updateTimestamp, 60000); // щохвилини
 </script>
 </body>
 </html>

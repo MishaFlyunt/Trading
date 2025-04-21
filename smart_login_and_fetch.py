@@ -114,8 +114,8 @@ def parse_table_from_message_table(soup, driver):
         table = soup.find("table", id="MainContent_MessageTable")
         if table:
             break
-        print("🕒 Таблиця ще не доступна, повторна перевірка через 30 сек...")
-        time.sleep(30)
+        print("🕒 Таблиця ще не доступна, повторна перевірка через 60 сек...")
+        time.sleep(60)
         soup = BeautifulSoup(driver.page_source, "html.parser")
 
     rows = table.find_all("tr")
@@ -174,24 +174,48 @@ async def send_telegram_message(message):
 
 
 async def main():
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+
     try:
         driver = webdriver.Chrome(service=Service(), options=chrome_options)
         print("🔐 Перевіряємо статус сесії...")
         driver.get("http://www.amerxmocs.com/Default.aspx?index=")
-        time.sleep(3)
+        await asyncio.sleep(3)
+
         if "Account/Login.aspx" in driver.current_url:
             print("🔓 Сесія неактивна. Виконуємо логін...")
             driver.get("http://www.amerxmocs.com/Account/Login.aspx")
-            time.sleep(2)
-            driver.find_element(
-                By.ID, "MainContent_UserName").send_keys(USERNAME)
-            driver.find_element(
-                By.ID, "MainContent_Password").send_keys(PASSWORD)
-            driver.find_element(By.ID, "MainContent_LoginButton").click()
-            time.sleep(3)
+
+            for attempt in range(20):  # максимум 10 хвилин
+                try:
+                    WebDriverWait(driver, 5).until(
+                        EC.presence_of_element_located(
+                            (By.ID, "MainContent_UserName"))
+                    )
+                    driver.find_element(By.ID, "MainContent_UserName").clear()
+                    driver.find_element(
+                        By.ID, "MainContent_UserName").send_keys(USERNAME)
+                    driver.find_element(By.ID, "MainContent_Password").clear()
+                    driver.find_element(
+                        By.ID, "MainContent_Password").send_keys(PASSWORD)
+                    driver.find_element(
+                        By.ID, "MainContent_LoginButton").click()
+                    await asyncio.sleep(3)
+                    print("✅ Логін виконано або обробляється...")
+                    break
+                except Exception as e:
+                    print(
+                        f"⏳ Логін ще недоступний ({attempt+1}/20). Повтор через 30 сек...")
+                    await asyncio.sleep(30)
+            else:
+                print("❌ Не вдалося залогінитись після 20 спроб. Вихід.")
+                return
+
     except Exception as e:
-        print(f"❌ Помилка: {e}")
+        print(f"❌ Помилка ініціалізації драйвера або логіну: {e}")
         return
+
 
     while True:
         html = driver.page_source
