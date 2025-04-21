@@ -276,7 +276,7 @@ async def main():
                     except Exception:
                         opposite_prev_symbols = {}
 
-                if percent > 5 and symbol in opposite_prev_symbols:
+                if percent > 56 and symbol in opposite_prev_symbols:
                     direction = "BUY → SELL" if kind == "sell" else "SELL → BUY"
                     msg = f"🔄 {direction} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
                     await send_telegram_message(msg)
