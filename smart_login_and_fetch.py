@@ -251,15 +251,6 @@ async def main():
                 json.dump(data, f, indent=2)
 
             prev_file = f"prev_{kind}.json"
-            # prev_symbols = {}
-            # if os.path.exists(prev_file):
-            #     try:
-            #         with open(prev_file) as f:
-            #             prev_data = json.load(f)
-            #             prev_symbols = {row[1]: True for row in prev_data.get("main", [])[
-            #                 1:]}
-            #     except Exception:
-            #         prev_symbols = {}
 
             for row in data["main"][1:]:
                 symbol = row[1]
@@ -284,7 +275,7 @@ async def main():
                     except Exception:
                         opposite_prev_symbols = {}
 
-                if percent > 90 and symbol in opposite_prev_symbols:
+                if percent > 50 and symbol in opposite_prev_symbols:
                     direction = "BUY → SELL" if kind == "sell" else "SELL → BUY"
                     msg = f"🔄 {direction} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
                     await send_telegram_message(msg)
