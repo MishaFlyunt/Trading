@@ -109,12 +109,14 @@ def get_adv_from_finviz(symbol, cache):
     return 0
 
 
-def parse_table_from_message_table(soup):
-    table = soup.find("table", id="MainContent_MessageTable")
-    if not table:
-        print("❌ Таблиця MessageTable не знайдена. Можливо, сесія неактивна або логін не пройшов.")
-        # sys.exit(1)
-        return {"buy": {"main": [], "archive": {}}, "sell": {"main": [], "archive": {}}}
+def parse_table_from_message_table(soup, driver):
+    while True:
+        table = soup.find("table", id="MainContent_MessageTable")
+        if table:
+            break
+        print("🕒 Таблиця ще не доступна, повторна перевірка через 30 сек...")
+        time.sleep(30)
+        soup = BeautifulSoup(driver.page_source, "html.parser")
 
     rows = table.find_all("tr")
     archive_buy = defaultdict(lambda: [["Update Time", "Imbalance", "Paired"]])
@@ -127,14 +129,10 @@ def parse_table_from_message_table(soup):
     latest_buy = {}
     latest_sell = {}
 
-    latest_buy.clear()
-    latest_sell.clear()
-
     for row in rows[1:]:
         cells = row.find_all("td")
         if len(cells) < 5:
             continue
-
         time_val = cells[0].text.strip()
         symbol_tag = cells[1].find("a")
         symbol = symbol_tag.text.strip(
@@ -158,7 +156,7 @@ def parse_table_from_message_table(soup):
 
     return {
         "buy": {"main": main_buy, "archive": dict(archive_buy)},
-        "sell": {"main": main_sell, "archive": dict(archive_sell)},
+        "sell": {"main": main_sell, "archive": dict(archive_sell)}
     }
 
 
@@ -201,7 +199,7 @@ async def main():
             f.write(html)
 
         soup = BeautifulSoup(html, "html.parser")
-        parsed = parse_table_from_message_table(soup)
+        parsed = parse_table_from_message_table(soup, driver)
 
         adv_cache = {}
         try:
