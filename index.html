@@ -1,355 +1,378 @@
 <!DOCTYPE html>
 <html lang="uk">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Imbalance Monitor</title>
-  <style>
-    :root {
-  --bg: #f4f4f4;
-  --text: #000;
-  --table-bg: #fff;
-  --header-bg: #ccc;
-  --alert-text: red;
-}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Imbalance Monitor</title>
+    <style>
+      :root {
+        --bg: #f4f4f4;
+        --text: #000;
+        --table-bg: #fff;
+        --header-bg: #ccc;
+        --alert-text: red;
+      }
 
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  font-family: sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  transition: background 0.3s, color 0.3s;
-}
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        font-family: sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        transition: background 0.3s, color 0.3s;
+      }
 
-/* Верхній блок */
-.controls {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  align-items: center;
-  padding: 1rem;
-}
+      /* Верхній блок */
+      .controls {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 1rem;
+      }
 
-h1, h2 {
-  margin: 0.3rem 0;
-}
+      h1,
+      h2 {
+        margin: 0.3rem 0;
+      }
 
-button {
-  padding: 8px 12px;
-  border-radius: 10px;
-  font-size: 1rem;
-  cursor: pointer;
-}
+      button {
+        padding: 8px 12px;
+        border-radius: 10px;
+        font-size: 1rem;
+        cursor: pointer;
+      }
 
-/* Контейнер для таблиць */
-.tables {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  height: calc(100vh - 100px); /* 100px = висота controls + відступ */
-  padding: 0 1rem 1rem 1rem;
-  box-sizing: border-box;
-}
+      /* Контейнер для таблиць */
+      .tables {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        height: calc(100vh - 100px); /* 100px = висота controls + відступ */
+        padding: 0 1rem 1rem 1rem;
+        box-sizing: border-box;
+      }
 
-@media (min-width: 900px) {
-  .tables {
-    flex-direction: row;
-  }
-}
-
-/* Блок окремої таблиці */
-.table-container {
-  flex: 1;
-  background: var(--table-bg);
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  border: 2px solid var(--header-bg);
-  position: relative;
-  height: 100%;
-}
-
-.table-container h2 {
-  position: sticky;
-  top: 0;
-  background: var(--table-bg);
-  z-index: 2;
-  padding: 4px 0;
-  margin: 0;
-  font-size: 1.2rem;
-  color: green;
-}
-
-.table-container#sell h2 {
-  color: red;
-}
-
-/* Прокрутка лише для таблиць */
-.table-content {
-  flex-grow: 1;
-  overflow-y: auto;
-}
-
-/* Таблиця */
-table {
-  border-collapse: collapse;
-  width: 100%;
-  min-width: 600px;
-}
-
-th, td {
-  border: 2px solid var(--header-bg);
-  padding: 8px;
-  text-align: center;
-}
-
-th {
-  background: var(--header-bg);
-  cursor: pointer;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
-
-/* Підсвітка умовна */
-tr.high-imbalance td {
-  color: var(--alert-text);
-  font-weight: bold;
-}
-
-tr.dashed-symbol td {
-  color: var(--alert-text);
-  font-weight: bold;
-}
-
-.archive-row.hidden {
-  display: none;
-}
-
-/* Підсвітка лідера Buy */
-tr.buy-leader td {
-  background-color: #d3f9d8; /* м’який зелений */
-}
-
-/* Підсвітка лідера Sell */
-tr.sell-leader td {
-  background-color: #ffd6d6; /* м’який рожевий */
-}
-
-/* Анімація зміни */
-tr.flash-change {
-  animation: flash 1s ease-in-out;
-}
-
-@keyframes flash {
-  from { background-color: #ffff99; }
-  to { background-color: transparent; }
-}
-
-/* Темна тема */
-[data-theme="dark"] {
-  --bg: #111;
-  --text: #fff;
-  --table-bg: #222;
-  --header-bg: #333;
-  --alert-text: lightcoral;
-}
-  </style>
-</head>
-<body>
-  <div class="controls">
-  <h1>📊 Imbalance Monitor</h1>
-  <div id="last-update" style="font-weight: bold;">Last update: <span id="update-time">—</span></div>
-  <button onclick="toggleTheme()">🌓 Змінити тему</button>
-</div>
-
-  <div class="tables">
-    <div class="table-container" id="buy">
-      <h2>Buy Imbalance (<span id="buy-count">0</span>)</h2>
-      <div class="table-content">📭 Дані наразі недоступні</div>
-    </div>
-    <div class="table-container" id="sell">
-      <h2>Sell Imbalance (<span id="sell-count">0</span>)</h2>
-      <div class="table-content">📭 Дані наразі недоступні</div>
-    </div>
-  </div>
-
-  <script>
-  let theme = localStorage.getItem("theme") || "light";
-
-  function applyTheme() {
-    const root = document.documentElement;
-    root.setAttribute("data-theme", theme);
-    if (theme === "dark") {
-      root.style.setProperty('--bg', '#111');
-      root.style.setProperty('--text', '#fff');
-      root.style.setProperty('--table-bg', '#222');
-      root.style.setProperty('--header-bg', '#333');
-    } else {
-      root.style.setProperty('--bg', '#f4f4f4');
-      root.style.setProperty('--text', '#000');
-      root.style.setProperty('--table-bg', '#fff');
-      root.style.setProperty('--header-bg', '#ccc');
-    }
-  }
-
-  function toggleTheme() {
-    theme = theme === "dark" ? "light" : "dark";
-    localStorage.setItem("theme", theme);
-    applyTheme();
-  }
-
-  function saveSortState(tableId, colIndex, desc) {
-    localStorage.setItem(`sort_${tableId}`, JSON.stringify({ col: colIndex, desc }));
-  }
-
-  function getSortState(tableId) {
-    const state = localStorage.getItem(`sort_${tableId}`);
-    return state ? JSON.parse(state) : null;
-  }
-
-  function sortTable(table, colIndex, forceDesc = null) {
-    const tbody = table.querySelector("tbody");
-    const rows = Array.from(tbody.querySelectorAll("tr"))
-      .filter(r => !r.classList.contains("archive-row") && !r.closest(".archive-table"));
-
-    const tableId = table.closest(".table-container")?.id || "default";
-    const state = getSortState(tableId);
-    let desc = forceDesc !== null ? forceDesc : state?.col === colIndex ? !state.desc : true;
-
-    rows.sort((a, b) => {
-      const aVal = parseFloat(a.children[colIndex].innerText.replace(/[^0-9.\-]/g, '')) || 0;
-      const bVal = parseFloat(b.children[colIndex].innerText.replace(/[^0-9.\-]/g, '')) || 0;
-      return desc ? bVal - aVal : aVal - bVal;
-    });
-
-    rows.forEach(row => {
-      const archiveRow = row.nextElementSibling?.classList.contains("archive-row") ? row.nextElementSibling : null;
-      tbody.appendChild(row);
-      if (archiveRow) tbody.appendChild(archiveRow);
-    });
-
-    saveSortState(tableId, colIndex, desc);
-  }
-
-  async function loadTable(json, id) {
-    const res = await fetch(json + '?t=' + new Date().getTime());
-    const data = await res.json();
-    const container = document.querySelector(`#${id} .table-content`);
-    if (!data.main || data.main.length === 0) {
-      container.innerText = "📭 Дані наразі недоступні";
-      return;
-    }
-
-    document.getElementById(`${id}-count`).textContent = data.main.length - 1;
-
-    let html = "<table><thead><tr>";
-    data.main[0].forEach((cell, i) => {
-      html += `<th onclick="sortTable(this.closest('table'), ${i})">${cell}</th>`;
-    });
-    html += "</tr></thead><tbody>";
-      let maxPercent = 0;
-      let leaderSymbol = null;
-
-// Знаходимо символ з найбільшим %ImbADV
-for (let i = 1; i < data.main.length; i++) {
-  const percent = parseFloat(data.main[i][data.main[i].length - 1].replace('%','')) || 0;
-  if (percent > maxPercent) {
-    maxPercent = percent;
-    leaderSymbol = data.main[i][1];
-  }
-}
-    for (let i = 1; i < data.main.length; i++) {
-  const row = data.main[i];
-  const symbol = row[1];
-  const percent = parseFloat(row[row.length - 1].replace('%','')) || 0;
-
-  const isLeader = symbol === leaderSymbol;
-  const leaderClass = isLeader ? (id === "buy" ? "buy-leader" : "sell-leader") : "";
-  const flashClass = isLeader ? "flash-change" : "";
-
-  const classes = [
-    "expand-row",
-    percent > 90 ? "high-imbalance" : "",
-    symbol.includes("-") ? "dashed-symbol" : "",
-    leaderClass,
-    flashClass
-  ].join(" ").trim();
-
-  html += `<tr class="${classes}" data-symbol="${symbol}">`;
-  row.forEach((cell, idx) => {
-    const formatted = (idx >= 2 && idx <= 4 && !isNaN(cell)) ? Number(cell).toLocaleString() : cell;
-    html += `<td>${formatted}</td>`;
-  });
-  html += "</tr>";
-
-  // Архів як було
-  if (data.archive && data.archive[symbol]) {
-    html += `<tr class="archive-row hidden"><td colspan="${row.length}"><table class="archive-table"><thead><tr>`;
-    html += data.archive[symbol][0].map(c => `<th>${c}</th>`).join('');
-    html += "</tr></thead><tbody>";
-    data.archive[symbol].slice(1).forEach(r => {
-      html += "<tr>";
-      r.forEach((c, idx) => {
-        const formatted = (idx >= 1 && !isNaN(c)) ? Number(c).toLocaleString() : c;
-        html += `<td>${formatted}</td>`;
-      });
-      html += "</tr>";
-    });
-    html += "</tbody></table></td></tr>;
-  }
-}
-    html += "</tbody></table>";
-    container.innerHTML = html;
-
-    document.querySelectorAll(`#${id} .expand-row`).forEach(row => {
-      row.addEventListener('click', (e) => {
-        const clickedCellIndex = Array.from(row.children).indexOf(e.target);
-        if (clickedCellIndex === 1) return;
-        const next = row.nextElementSibling;
-        if (next && next.classList.contains("archive-row")) {
-          next.classList.toggle("hidden");
-          row.classList.toggle("expanded");
+      @media (min-width: 900px) {
+        .tables {
+          flex-direction: row;
         }
-      });
-    });
+      }
 
-    // Повертаємо останнє сортування
-    const table = container.querySelector("table");
-    const saved = getSortState(id);
-    if (saved) {
-      sortTable(table, saved.col, saved.desc);
-    } else {
-      const lastColIndex = data.main[0].length - 1;
-      sortTable(table, lastColIndex, true);
-    }
-  }
+      /* Блок окремої таблиці */
+      .table-container {
+        flex: 1;
+        background: var(--table-bg);
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        border: 2px solid var(--header-bg);
+        position: relative;
+        height: 100%;
+      }
 
-  function loadAll() {
-    loadTable("buy_data.json", "buy");
-    loadTable("sell_data.json", "sell");
-  }
+      .table-container h2 {
+        position: sticky;
+        top: 0;
+        background: var(--table-bg);
+        z-index: 2;
+        padding: 4px 0;
+        margin: 0;
+        font-size: 1.2rem;
+        color: green;
+      }
 
-  applyTheme();
-loadAll();
-setInterval(loadAll, 60000);
+      .table-container#sell h2 {
+        color: red;
+      }
 
-function updateTimestamp() {
-  const el = document.getElementById("update-time");
-  const now = new Date();
-  const formatted = now.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  });
-  el.textContent = formatted;
-}
-updateTimestamp(); // перше оновлення
-setInterval(updateTimestamp, 60000); // щохвилини
-</script>
-</body>
+      /* Прокрутка лише для таблиць */
+      .table-content {
+        flex-grow: 1;
+        overflow-y: auto;
+      }
+
+      /* Таблиця */
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        min-width: 600px;
+      }
+
+      th,
+      td {
+        border: 2px solid var(--header-bg);
+        padding: 8px;
+        text-align: center;
+      }
+
+      th {
+        background: var(--header-bg);
+        cursor: pointer;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+
+      /* Підсвітка умовна */
+      tr.high-imbalance td {
+        color: var(--alert-text);
+        font-weight: bold;
+      }
+
+      tr.dashed-symbol td {
+        color: var(--alert-text);
+        font-weight: bold;
+      }
+
+      .archive-row.hidden {
+        display: none;
+      }
+
+      /* Підсвітка лідера Buy */
+      tr.buy-leader td {
+        background-color: #d3f9d8; /* м’який зелений */
+      }
+
+      /* Підсвітка лідера Sell */
+      tr.sell-leader td {
+        background-color: #ffd6d6; /* м’який рожевий */
+      }
+
+      /* Анімація зміни */
+      tr.flash-change {
+        animation: flash 1s ease-in-out;
+      }
+
+      @keyframes flash {
+        from {
+          background-color: #ffff99;
+        }
+        to {
+          background-color: transparent;
+        }
+      }
+
+      /* Темна тема */
+      [data-theme="dark"] {
+        --bg: #111;
+        --text: #fff;
+        --table-bg: #222;
+        --header-bg: #333;
+        --alert-text: lightcoral;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="controls">
+      <h1>📊 Imbalance Monitor</h1>
+      <div id="last-update" style="font-weight: bold">
+        Last update: <span id="update-time">—</span>
+      </div>
+      <button onclick="toggleTheme()">🌓 Змінити тему</button>
+    </div>
+
+    <div class="tables">
+      <div class="table-container" id="buy">
+        <h2>Buy Imbalance (<span id="buy-count">0</span>)</h2>
+        <div class="table-content">📭 Дані наразі недоступні</div>
+      </div>
+      <div class="table-container" id="sell">
+        <h2>Sell Imbalance (<span id="sell-count">0</span>)</h2>
+        <div class="table-content">📭 Дані наразі недоступні</div>
+      </div>
+    </div>
+
+    <script>
+      let theme = localStorage.getItem("theme") || "light";
+
+      function applyTheme() {
+        const root = document.documentElement;
+        root.setAttribute("data-theme", theme);
+        if (theme === "dark") {
+          root.style.setProperty("--bg", "#111");
+          root.style.setProperty("--text", "#fff");
+          root.style.setProperty("--table-bg", "#222");
+          root.style.setProperty("--header-bg", "#333");
+        } else {
+          root.style.setProperty("--bg", "#f4f4f4");
+          root.style.setProperty("--text", "#000");
+          root.style.setProperty("--table-bg", "#fff");
+          root.style.setProperty("--header-bg", "#ccc");
+        }
+      }
+
+      function toggleTheme() {
+        theme = theme === "dark" ? "light" : "dark";
+        localStorage.setItem("theme", theme);
+        applyTheme();
+      }
+
+      function saveSortState(tableId, colIndex, desc) {
+        localStorage.setItem(`sort_${tableId}`, JSON.stringify({ col: colIndex, desc }));
+      }
+
+      function getSortState(tableId) {
+        const state = localStorage.getItem(`sort_${tableId}`);
+        return state ? JSON.parse(state) : null;
+      }
+
+      function sortTable(table, colIndex, forceDesc = null) {
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.querySelectorAll("tr")).filter(
+          (r) => !r.classList.contains("archive-row") && !r.closest(".archive-table")
+        );
+
+        const tableId = table.closest(".table-container")?.id || "default";
+        const state = getSortState(tableId);
+        let desc =
+          forceDesc !== null ? forceDesc : state?.col === colIndex ? !state.desc : true;
+
+        rows.sort((a, b) => {
+          const aVal =
+            parseFloat(a.children[colIndex].innerText.replace(/[^0-9.\-]/g, "")) || 0;
+          const bVal =
+            parseFloat(b.children[colIndex].innerText.replace(/[^0-9.\-]/g, "")) || 0;
+          return desc ? bVal - aVal : aVal - bVal;
+        });
+
+        rows.forEach((row) => {
+          const archiveRow = row.nextElementSibling?.classList.contains("archive-row")
+            ? row.nextElementSibling
+            : null;
+          tbody.appendChild(row);
+          if (archiveRow) tbody.appendChild(archiveRow);
+        });
+
+        saveSortState(tableId, colIndex, desc);
+      }
+
+      async function loadTable(json, id) {
+        const res = await fetch(json + "?t=" + new Date().getTime());
+        const data = await res.json();
+        const container = document.querySelector(`#${id} .table-content`);
+        if (!data.main || data.main.length === 0) {
+          container.innerText = "📭 Дані наразі недоступні";
+          return;
+        }
+
+        document.getElementById(`${id}-count`).textContent = data.main.length - 1;
+
+        let html = "<table><thead><tr>";
+        data.main[0].forEach((cell, i) => {
+          html += `<th onclick="sortTable(this.closest('table'), ${i})">${cell}</th>`;
+        });
+        html += "</tr></thead><tbody>";
+        let maxPercent = 0;
+        let leaderSymbol = null;
+
+        // Знаходимо символ з найбільшим %ImbADV
+        for (let i = 1; i < data.main.length; i++) {
+          const percent =
+            parseFloat(data.main[i][data.main[i].length - 1].replace("%", "")) || 0;
+          if (percent > maxPercent) {
+            maxPercent = percent;
+            leaderSymbol = data.main[i][1];
+          }
+        }
+        for (let i = 1; i < data.main.length; i++) {
+          const row = data.main[i];
+          const symbol = row[1];
+          const percent = parseFloat(row[row.length - 1].replace("%", "")) || 0;
+
+          const isLeader = symbol === leaderSymbol;
+          const leaderClass = isLeader
+            ? id === "buy"
+              ? "buy-leader"
+              : "sell-leader"
+            : "";
+          const flashClass = isLeader ? "flash-change" : "";
+
+          const classes = [
+            "expand-row",
+            percent > 90 ? "high-imbalance" : "",
+            symbol.includes("-") ? "dashed-symbol" : "",
+            leaderClass,
+            flashClass,
+          ]
+            .join(" ")
+            .trim();
+
+          html += `<tr class="${classes}" data-symbol="${symbol}">`;
+          row.forEach((cell, idx) => {
+            const formatted =
+              idx >= 2 && idx <= 4 && !isNaN(cell) ? Number(cell).toLocaleString() : cell;
+            html += `<td>${formatted}</td>`;
+          });
+          html += "</tr>";
+
+          // Архів як було
+          if (data.archive && data.archive[symbol]) {
+            html += `<tr class="archive-row hidden"><td colspan="${row.length}"><table class="archive-table"><thead><tr>`;
+            html += data.archive[symbol][0].map((c) => `<th>${c}</th>`).join("");
+            html += "</tr></thead><tbody>";
+            data.archive[symbol].slice(1).forEach((r) => {
+              html += "<tr>";
+              r.forEach((c, idx) => {
+                const formatted = idx >= 1 && !isNaN(c) ? Number(c).toLocaleString() : c;
+                html += `<td>${formatted}</td>`;
+              });
+              html += "</tr>";
+            });
+            html += "</tbody></table></td></tr>";
+          }
+        }
+        html += "</tbody></table>";
+        container.innerHTML = html;
+
+        document.querySelectorAll(`#${id} .expand-row`).forEach((row) => {
+          row.addEventListener("click", (e) => {
+            const clickedCellIndex = Array.from(row.children).indexOf(e.target);
+            if (clickedCellIndex === 1) return;
+            const next = row.nextElementSibling;
+            if (next && next.classList.contains("archive-row")) {
+              next.classList.toggle("hidden");
+              row.classList.toggle("expanded");
+            }
+          });
+        });
+
+        // Повертаємо останнє сортування
+        const table = container.querySelector("table");
+        const saved = getSortState(id);
+        if (saved) {
+          sortTable(table, saved.col, saved.desc);
+        } else {
+          const lastColIndex = data.main[0].length - 1;
+          sortTable(table, lastColIndex, true);
+        }
+      }
+
+      function loadAll() {
+        loadTable("buy_data.json", "buy");
+        loadTable("sell_data.json", "sell");
+      }
+
+      applyTheme();
+      loadAll();
+      setInterval(loadAll, 60000);
+
+      function updateTimestamp() {
+        const el = document.getElementById("update-time");
+        const now = new Date();
+        const formatted = now.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        });
+        el.textContent = formatted;
+      }
+      updateTimestamp(); // перше оновлення
+      setInterval(updateTimestamp, 60000); // щохвилини
+    </script>
+  </body>
 </html>
