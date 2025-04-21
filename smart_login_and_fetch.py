@@ -261,7 +261,7 @@ async def main():
                 percent = int(row[5]) if row[5].isdigit() else 0
 
                 last_sent = last_sent_map.get(symbol, 0)
-                if percent >= 40 and (last_sent == 0 or percent >= last_sent + 10):
+                if percent >= 20 and (last_sent == 0 or percent >= last_sent + 10):
                     side = "BUY" if kind == "buy" else "SELL"
                     diff = percent - last_sent
                     msg = f"🔥 {side} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}% (+{diff}%)"
@@ -280,7 +280,7 @@ async def main():
                     except Exception:
                         opposite_prev_symbols = {}
 
-                if percent > 56 and symbol in opposite_prev_symbols:
+                if percent > 16 and symbol in opposite_prev_symbols:
                     direction = "BUY → SELL" if kind == "sell" else "SELL → BUY"
                     msg = f"🔄 {direction} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
                     await send_telegram_message(msg)
