@@ -282,6 +282,7 @@
         for (let i = 1; i < data.main.length; i++) {
           const row = data.main[i];
           const symbol = row[1];
+          const finvizLink = `<a href="https://finviz.com/quote.ashx?t=${symbol}&p=d" target="_blank" title="Відкрити на Finviz">🔗</a>`;
           const percent = parseFloat(row[row.length - 1].replace("%", "")) || 0;
 
           const isLeader = symbol === leaderSymbol;
@@ -303,9 +304,13 @@
             .trim();
 
           html += `<tr class="${classes}" data-symbol="${symbol}">`;
-          row.forEach((cell, idx) => {
-            const formatted =
+          rrow.forEach((cell, idx) => {
+            let formatted =
               idx >= 2 && idx <= 4 && !isNaN(cell) ? Number(cell).toLocaleString() : cell;
+            if (idx === 1) {
+              // символ + посилання
+              formatted = `${cell} ${finvizLink}`;
+            }
             html += `<td>${formatted}</td>`;
           });
           html += "</tr>";
