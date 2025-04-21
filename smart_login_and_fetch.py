@@ -251,38 +251,7 @@ async def main():
             with open(f"{kind}_data.json", "w") as f:
                 json.dump(data, f, indent=2)
 
-            prev_file = f"prev_{kind}.json"
-
-            for row in data["main"][1:]:
-                symbol = row[1]
-                imbalance = int(row[2])
-                adv = int(row[4])
-                percent = int(row[5])
-
-                if percent > 40:
-                    side = "BUY" if kind == "buy" else "SELL"
-                    msg = f"🔥 {side} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
-                    await send_telegram_message(msg)
-
-                opposite_kind = "sell" if kind == "buy" else "buy"
-                opposite_prev_file = f"prev_{opposite_kind}.json"
-                opposite_prev_symbols = {}
-                if os.path.exists(opposite_prev_file):
-                    try:
-                        with open(opposite_prev_file) as f:
-                            opp_data = json.load(f)
-                            opposite_prev_symbols = {row[1]: True for row in opp_data.get("main", [])[
-                                1:]}
-                    except Exception:
-                        opposite_prev_symbols = {}
-
-                if percent > 56 and symbol in opposite_prev_symbols:
-                    direction = "BUY → SELL" if kind == "sell" else "SELL → BUY"
-                    msg = f"🔄 {direction} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
-                    await send_telegram_message(msg)
-
-            with open(prev_file, "w") as f:
-                json.dump(data, f, indent=2)
+            ч
 
         with open("adv_cache.json", "w") as f:
             json.dump(adv_cache, f, indent=2)
