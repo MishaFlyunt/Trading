@@ -252,7 +252,17 @@ tr.flash-change {
       html += `<th onclick="sortTable(this.closest('table'), ${i})">${cell}</th>`;
     });
     html += "</tr></thead><tbody>";
-      
+      let maxPercent = 0;
+      let leaderSymbol = null;
+
+// Знаходимо символ з найбільшим %ImbADV
+for (let i = 1; i < data.main.length; i++) {
+  const percent = parseFloat(data.main[i][data.main[i].length - 1].replace('%','')) || 0;
+  if (percent > maxPercent) {
+    maxPercent = percent;
+    leaderSymbol = data.main[i][1];
+  }
+}
     for (let i = 1; i < data.main.length; i++) {
       const row = data.main[i];
       const symbol = row[1];
