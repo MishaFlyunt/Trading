@@ -3,6 +3,7 @@ import time
 import json
 import requests
 import math
+import psutil
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from selenium import webdriver
@@ -16,12 +17,39 @@ from collections import defaultdict
 from datetime import datetime
 
 load_dotenv()
+
+def is_chrome_running_with_debugging():
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        try:
+            if 'Google Chrome' in proc.info['name'] and '--remote-debugging-port=9222' in ' '.join(proc.info['cmdline']):
+                return True
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            continue
+    return False
+
 USERNAME = os.getenv("LOGIN")
 PASSWORD = os.getenv("PASSWORD")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 bot = telegram.Bot(token=TELEGRAM_TOKEN)
+
+if not is_chrome_running_with_debugging():
+    print("🧭 Chrome не запущено з remote-debugging. Запускаємо...")
+    chrome_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+    user_data_dir = os.path.expanduser("~/chrome-selenium")
+    target_url = "http://www.amerxmocs.com/Default.aspx?index="
+
+    subprocess.Popen([
+        chrome_path,
+        "--remote-debugging-port=9222",
+        f"--user-data-dir={user_data_dir}",
+        "--new-window",
+        target_url
+    ])
+    time.sleep(5)  # зачекати, поки вкладка відкриється
+else:
+    print("🟢 Chrome вже працює з remote-debugging.")
 
 chrome_options = Options()
 chrome_options.add_argument("--remote-debugging-port=9222")
