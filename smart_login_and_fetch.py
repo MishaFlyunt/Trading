@@ -42,7 +42,6 @@ if not is_chrome_running_with_debugging():
     chrome_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
     user_data_dir = os.path.expanduser("~/chrome-selenium")
     target_url = "http://www.amerxmocs.com/Default.aspx?index="
-
     subprocess.Popen([
         chrome_path,
         "--remote-debugging-port=9222",
@@ -50,7 +49,7 @@ if not is_chrome_running_with_debugging():
         "--new-window",
         target_url
     ])
-    time.sleep(5)  # зачекати, поки вкладка відкриється
+    time.sleep(5)
 else:
     print("🟢 Chrome вже працює з remote-debugging.")
 
@@ -78,7 +77,7 @@ def get_adv_from_finviz(symbol, cache):
     try:
         url = f"https://finviz.com/quote.ashx?t={symbol}&p=d"
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+            "User-Agent": "Mozilla/5.0",
             "Accept-Language": "en-US,en;q=0.9",
         }
         response = requests.get(url, headers=headers, timeout=10)
@@ -169,11 +168,6 @@ async def send_telegram_message(message):
     except Exception as e:
         print(f"❌ Помилка надсилання в Telegram: {e}")
 
-#         # ✅ ТЕСТОВЕ ПОВІДОМЛЕННЯ
-# if __name__ == "__main__":
-#     asyncio.run(send_telegram_message(
-#         "🔔 Тестове повідомлення: перевірка Telegram бота"))
-
 
 async def main():
     from selenium.webdriver.support.ui import WebDriverWait
@@ -189,12 +183,10 @@ async def main():
             print("🔓 Сесія неактивна. Виконуємо логін...")
             driver.get("http://www.amerxmocs.com/Account/Login.aspx")
 
-            for attempt in range(20):  # максимум 10 хвилин
+            for attempt in range(20):
                 try:
                     WebDriverWait(driver, 5).until(
-                        EC.presence_of_element_located(
-                            (By.ID, "MainContent_UserName"))
-                    )
+                        EC.presence_of_element_located((By.ID, "MainContent_UserName")))
                     driver.find_element(By.ID, "MainContent_UserName").clear()
                     driver.find_element(
                         By.ID, "MainContent_UserName").send_keys(USERNAME)
@@ -206,14 +198,13 @@ async def main():
                     await asyncio.sleep(3)
                     print("✅ Логін виконано або обробляється...")
                     break
-                except Exception as e:
+                except Exception:
                     print(
                         f"⏳ Логін ще недоступний ({attempt+1}/20). Повтор через 30 сек...")
                     await asyncio.sleep(30)
             else:
                 print("❌ Не вдалося залогінитись після 20 спроб. Вихід.")
                 return
-
     except Exception as e:
         print(f"❌ Помилка ініціалізації драйвера або логіну: {e}")
         return
@@ -227,16 +218,13 @@ async def main():
         parsed = parse_table_from_message_table(soup, driver)
 
         adv_cache = {}
-        try:
-            if os.path.exists("adv_cache.json"):
+        if os.path.exists("adv_cache.json"):
+            try:
                 with open("adv_cache.json") as f:
                     adv_cache = json.load(f)
-                if not isinstance(adv_cache, dict):
-                    print("⚠️ Файл кешу не є словником. Створено новий пустий кеш.")
-                    adv_cache = {}
-        except Exception as e:
-            print(f"⚠️ Не вдалося завантажити кеш: {e}")
-            adv_cache = {}
+            except Exception as e:
+                print(f"⚠️ Не вдалося завантажити кеш: {e}")
+                adv_cache = {}
 
         for kind in ("buy", "sell"):
             data = parsed[kind]
@@ -252,17 +240,33 @@ async def main():
                 json.dump(data, f, indent=2)
 
             prev_file = f"prev_{kind}.json"
+            last_sent_map = {}
+
+            if os.path.exists(prev_file):
+                try:
+                    with open(prev_file) as f:
+                        prev_data = json.load(f)
+                        for prev_row in prev_data.get("main", [])[1:]:
+                            symbol = prev_row[1]
+                            sent_percent = int(
+                                prev_row[5]) if prev_row[5].isdigit() else 0
+                            last_sent_map[symbol] = sent_percent
+                except Exception as e:
+                    print(f"⚠️ Не вдалося зчитати {prev_file}: {e}")
 
             for row in data["main"][1:]:
                 symbol = row[1]
                 imbalance = int(row[2])
-                adv = int(row[4])
-                percent = int(row[5])
+                adv = int(row[4]) if row[4].isdigit() else 0
+                percent = int(row[5]) if row[5].isdigit() else 0
 
-                if percent > 40:
+                last_sent = last_sent_map.get(symbol, 0)
+                if percent >= 40 and (last_sent == 0 or percent >= last_sent + 10):
                     side = "BUY" if kind == "buy" else "SELL"
-                    msg = f"🔥 {side} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
+                    diff = percent - last_sent
+                    msg = f"🔥 {side} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}% (+{diff}%)"
                     await send_telegram_message(msg)
+                    last_sent_map[symbol] = percent
 
                 opposite_kind = "sell" if kind == "buy" else "buy"
                 opposite_prev_file = f"prev_{opposite_kind}.json"
@@ -271,8 +275,8 @@ async def main():
                     try:
                         with open(opposite_prev_file) as f:
                             opp_data = json.load(f)
-                            opposite_prev_symbols = {row[1]: True for row in opp_data.get("main", [])[
-                                1:]}
+                            opposite_prev_symbols = {
+                                r[1]: True for r in opp_data.get("main", [])[1:]}
                     except Exception:
                         opposite_prev_symbols = {}
 
@@ -280,6 +284,11 @@ async def main():
                     direction = "BUY → SELL" if kind == "sell" else "SELL → BUY"
                     msg = f"🔄 {direction} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
                     await send_telegram_message(msg)
+
+            for row in data["main"][1:]:
+                symbol = row[1]
+                row[5] = str(last_sent_map.get(
+                    symbol, int(row[5]) if row[5].isdigit() else 0))
 
             with open(prev_file, "w") as f:
                 json.dump(data, f, indent=2)
@@ -293,7 +302,6 @@ async def main():
         now = datetime.now()
         if now.hour == 23:
             print("🛑 Завершення скрипта о 23:00")
-        # 🔧 Викликаємо reset_data.sh через subprocess
             reset_script = "/Users/mihajloflunt/Desktop/Home/Навчання/GOIT/Trading/reset_data.sh"
             if os.path.exists(reset_script):
                 try:
@@ -304,8 +312,8 @@ async def main():
                     print(f"❌ Помилка виконання reset_data.sh: {e}")
             else:
                 print("❌ Файл reset_data.sh не знайдено!")
-
             break
+
         time.sleep(40)
 
 if __name__ == "__main__":
