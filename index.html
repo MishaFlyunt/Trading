@@ -264,37 +264,45 @@ for (let i = 1; i < data.main.length; i++) {
   }
 }
     for (let i = 1; i < data.main.length; i++) {
-      const row = data.main[i];
-      const symbol = row[1];
-      const percent = parseFloat(row[row.length - 1].replace('%','')) || 0;
-      const classes = [
-        "expand-row",
-        percent > 90 ? "high-imbalance" : "",
-        symbol.includes("-") ? "dashed-symbol" : ""
-      ].join(" ").trim();
+  const row = data.main[i];
+  const symbol = row[1];
+  const percent = parseFloat(row[row.length - 1].replace('%','')) || 0;
 
-      html += `<tr class="${classes}" data-symbol="${symbol}">`;
-      row.forEach((cell, idx) => {
-        const formatted = (idx >= 2 && idx <= 4 && !isNaN(cell)) ? Number(cell).toLocaleString() : cell;
+  const isLeader = symbol === leaderSymbol;
+  const leaderClass = isLeader ? (id === "buy" ? "buy-leader" : "sell-leader") : "";
+  const flashClass = isLeader ? "flash-change" : "";
+
+  const classes = [
+    "expand-row",
+    percent > 90 ? "high-imbalance" : "",
+    symbol.includes("-") ? "dashed-symbol" : "",
+    leaderClass,
+    flashClass
+  ].join(" ").trim();
+
+  html += `<tr class="${classes}" data-symbol="${symbol}">`;
+  row.forEach((cell, idx) => {
+    const formatted = (idx >= 2 && idx <= 4 && !isNaN(cell)) ? Number(cell).toLocaleString() : cell;
+    html += `<td>${formatted}</td>`;
+  });
+  html += "</tr>";
+
+  // Архів як було
+  if (data.archive && data.archive[symbol]) {
+    html += `<tr class="archive-row hidden"><td colspan="${row.length}"><table class="archive-table"><thead><tr>`;
+    html += data.archive[symbol][0].map(c => `<th>${c}</th>`).join('');
+    html += "</tr></thead><tbody>";
+    data.archive[symbol].slice(1).forEach(r => {
+      html += "<tr>";
+      r.forEach((c, idx) => {
+        const formatted = (idx >= 1 && !isNaN(c)) ? Number(c).toLocaleString() : c;
         html += `<td>${formatted}</td>`;
       });
       html += "</tr>";
-
-      if (data.archive && data.archive[symbol]) {
-        html += `<tr class="archive-row hidden"><td colspan="${row.length}"><table class="archive-table"><thead><tr>`;
-        html += data.archive[symbol][0].map(c => `<th>${c}</th>`).join('');
-        html += "</tr></thead><tbody>";
-        data.archive[symbol].slice(1).forEach(r => {
-          html += "<tr>";
-          r.forEach((c, idx) => {
-            const formatted = (idx >= 1 && !isNaN(c)) ? Number(c).toLocaleString() : c;
-            html += `<td>${formatted}</td>`;
-          });
-          html += "</tr>";
-        });
-        html += "</tbody></table></td></tr>";
-      }
-    }
+    });
+    html += "</tbody></table></td></tr>;
+  }
+}
     html += "</tbody></table>";
     container.innerHTML = html;
 
