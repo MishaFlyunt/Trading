@@ -304,7 +304,7 @@
             .trim();
 
           html += `<tr class="${classes}" data-symbol="${symbol}">`;
-          rrow.forEach((cell, idx) => {
+          row.forEach((cell, idx) => {
             let formatted =
               idx >= 2 && idx <= 4 && !isNaN(cell) ? Number(cell).toLocaleString() : cell;
             if (idx === 1) {
