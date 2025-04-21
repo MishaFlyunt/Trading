@@ -4,6 +4,7 @@ import json
 import requests
 import math
 import psutil
+import sys
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from selenium import webdriver
@@ -111,8 +112,8 @@ def get_adv_from_finviz(symbol, cache):
 def parse_table_from_message_table(soup):
     table = soup.find("table", id="MainContent_MessageTable")
     if not table:
-        print("❌ Таблиця MessageTable не знайдена")
-        return {"buy": {"main": [], "archive": {}}, "sell": {"main": [], "archive": {}}}
+        print("❌ Таблиця MessageTable не знайдена. Можливо, сесія неактивна або логін не пройшов.")
+        sys.exit(1)
 
     rows = table.find_all("tr")
     archive_buy = defaultdict(lambda: [["Update Time", "Imbalance", "Paired"]])
