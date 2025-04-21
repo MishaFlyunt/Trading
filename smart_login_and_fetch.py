@@ -19,6 +19,7 @@ from datetime import datetime
 
 load_dotenv()
 
+
 def is_chrome_running_with_debugging():
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
         try:
@@ -27,6 +28,7 @@ def is_chrome_running_with_debugging():
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             continue
     return False
+
 
 USERNAME = os.getenv("LOGIN")
 PASSWORD = os.getenv("PASSWORD")
@@ -215,7 +217,6 @@ async def main():
     except Exception as e:
         print(f"❌ Помилка ініціалізації драйвера або логіну: {e}")
         return
-
 
     while True:
         html = driver.page_source
