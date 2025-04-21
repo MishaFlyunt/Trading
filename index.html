@@ -130,6 +130,26 @@ tr.dashed-symbol td {
   display: none;
 }
 
+/* Підсвітка лідера Buy */
+tr.buy-leader td {
+  background-color: #d3f9d8; /* м’який зелений */
+}
+
+/* Підсвітка лідера Sell */
+tr.sell-leader td {
+  background-color: #ffd6d6; /* м’який рожевий */
+}
+
+/* Анімація зміни */
+tr.flash-change {
+  animation: flash 1s ease-in-out;
+}
+
+@keyframes flash {
+  from { background-color: #ffff99; }
+  to { background-color: transparent; }
+}
+
 /* Темна тема */
 [data-theme="dark"] {
   --bg: #111;
