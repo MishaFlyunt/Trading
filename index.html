@@ -220,7 +220,7 @@ tr.dashed-symbol td {
     const data = await res.json();
     const container = document.querySelector(`#${id} .table-content`);
     if (!data.main || data.main.length === 0) {
-      container.innerText = "Немає даних";
+      container.innerText = "📭 Дані наразі недоступні";
       return;
     }
 
