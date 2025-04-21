@@ -259,7 +259,7 @@ async def main():
                 adv = int(row[4])
                 percent = int(row[5])
 
-                if percent > 10:
+                if percent > 5:
                     side = "BUY" if kind == "buy" else "SELL"
                     msg = f"🔥 {side} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
                     await send_telegram_message(msg)
