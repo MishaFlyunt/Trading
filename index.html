@@ -296,12 +296,17 @@ tr.dashed-symbol td {
   }
 
   applyTheme();
-  loadAll();
-  setInterval(loadAll, 60000);
-  function updateTimestamp() {
+loadAll();
+setInterval(loadAll, 60000);
+
+function updateTimestamp() {
   const el = document.getElementById("update-time");
   const now = new Date();
-  const formatted = now.toLocaleTimeString('en-US', { hour12: false });
+  const formatted = now.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
   el.textContent = formatted;
 }
 updateTimestamp(); // перше оновлення
