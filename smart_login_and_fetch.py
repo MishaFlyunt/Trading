@@ -262,6 +262,8 @@ async def main():
 
                 last_sent = last_sent_map.get(symbol, 0)
                 if percent >= 20 and (last_sent == 0 or percent >= last_sent + 10):
+                    print(
+                        f"🔍 {symbol}: now={percent}%, last={last_sent} → відправляємо")
                     side = "BUY" if kind == "buy" else "SELL"
                     diff = percent - last_sent
                     msg = f"🔥 {side} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}% (+{diff}%)"
@@ -287,8 +289,9 @@ async def main():
 
             for row in data["main"][1:]:
                 symbol = row[1]
-                row[5] = str(last_sent_map.get(
-                    symbol, int(row[5]) if row[5].isdigit() else 0))
+                sent_value = last_sent_map.get(symbol)
+                if sent_value is not None:
+                     row[5] = str(sent_value)
 
             with open(prev_file, "w") as f:
                 json.dump(data, f, indent=2)
