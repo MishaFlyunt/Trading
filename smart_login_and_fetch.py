@@ -259,7 +259,7 @@ async def main():
                 adv = int(row[4])
                 percent = int(row[5])
 
-                if percent > 95:
+                if percent > 10:
                     side = "BUY" if kind == "buy" else "SELL"
                     msg = f"🔥 {side} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
                     await send_telegram_message(msg)
@@ -276,7 +276,7 @@ async def main():
                     except Exception:
                         opposite_prev_symbols = {}
 
-                if percent > 50 and symbol in opposite_prev_symbols:
+                if percent > 5 and symbol in opposite_prev_symbols:
                     direction = "BUY → SELL" if kind == "sell" else "SELL → BUY"
                     msg = f"🔄 {direction} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
                     await send_telegram_message(msg)
