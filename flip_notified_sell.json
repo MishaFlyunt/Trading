@@ -4,5 +4,6 @@
   "EGP": true,
   "X": true,
   "PNR": true,
-  "RMD": true
+  "RMD": true,
+  "SPHR": true
 }
