@@ -16,7 +16,15 @@ import subprocess
 import telegram
 import asyncio
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
+
+
+def is_adv_outdated(date_str, max_age_days=10):
+    try:
+        adv_date = datetime.strptime(date_str, "%Y-%m-%d")
+        return datetime.now() - adv_date > timedelta(days=max_age_days)
+    except Exception:
+        return True
 
 load_dotenv()
 
@@ -73,8 +81,12 @@ def git_commit_and_push():
 
 
 def get_adv_from_finviz(symbol, cache):
-    if symbol in cache and cache[symbol] != 0:
-        return cache[symbol]
+    cache_entry = cache.get(symbol)
+    if cache_entry and isinstance(cache_entry, dict):
+        if not is_adv_outdated(cache_entry.get("date", ""), 10) and cache_entry.get("adv", 0) > 0:
+            return cache_entry["adv"]
+
+    # Інакше — парсимо Finviz
     try:
         url = f"https://finviz.com/quote.ashx?t={symbol}&p=d"
         headers = {
@@ -82,22 +94,22 @@ def get_adv_from_finviz(symbol, cache):
             "Accept-Language": "en-US,en;q=0.9",
         }
         response = requests.get(url, headers=headers, timeout=15)
-
         time.sleep(random.uniform(1.5, 3.5))
 
         if response.status_code == 429:
             print(f"🚫 Finviz заблокував: 429 для {symbol}")
-            return cache.get(symbol, 0)  # повертаємо попереднє, якщо є
+            return cache_entry["adv"] if cache_entry else 0
 
         if response.status_code != 200:
             print(f"⚠️ Finviz статус {response.status_code} для {symbol}")
             return 0
+
         soup = BeautifulSoup(response.text, "html.parser")
         table = soup.find("table", class_="snapshot-table2")
         if not table:
             print(f"⚠️ Таблиця не знайдена для {symbol}")
-            cache[symbol] = 0
             return 0
+
         for row in table.find_all("tr"):
             cells = row.find_all("td")
             for i in range(len(cells)):
@@ -109,11 +121,15 @@ def get_adv_from_finviz(symbol, cache):
                         adv = int(float(volume_str[:-1]) * 1_000)
                     else:
                         adv = int(volume_str)
-                    cache[symbol] = adv
+
+                    cache[symbol] = {
+                        "adv": adv,
+                        "date": datetime.now().strftime("%Y-%m-%d")
+                    }
                     return adv
     except Exception as e:
         print(f"⚠️ Не вдалося отримати ADV для {symbol}: {e}")
-    cache[symbol] = 0
+
     return 0
 
 
