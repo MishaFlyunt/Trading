@@ -81,6 +81,14 @@ def git_commit_and_push():
 
 
 def get_adv_from_finviz(symbol, cache):
+    if any(char in symbol for char in ['.', '-', ' ']):
+        print(f"⚠️ Символ {symbol} містить недопустимі символи. ADV = 0")
+        cache[symbol] = {
+            "adv": 0,
+            "date": datetime.now().strftime("%Y-%m-%d")
+        }
+        return 0
+
     cache_entry = cache.get(symbol)
     if cache_entry and isinstance(cache_entry, dict):
         if not is_adv_outdated(cache_entry.get("date", ""), 10) and cache_entry.get("adv", 0) > 0:
