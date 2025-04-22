@@ -1,1 +1,7 @@
-{}
+{
+  "CWAN": true,
+  "GPN": true,
+  "SPHR": true,
+  "PRM": true,
+  "G": true
+}
