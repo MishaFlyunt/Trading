@@ -4,7 +4,6 @@ import json
 import requests
 import math
 import psutil
-# import sys
 import random
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
