@@ -157,6 +157,11 @@
         }
       }
 
+      a.finviz-link {
+        text-decoration: none;
+        color: inherit;
+      }
+
       /* Темна тема */
       [data-theme="dark"] {
         --bg: #111;
@@ -283,7 +288,7 @@
             rowStyle = "background-color: #007366; color: white;";
           }
 
-          const finvizLink = `<a href="https://finviz.com/quote.ashx?t=${symbol}&p=d" target="_blank" title="Відкрити на Finviz">🔗</a>`;
+          const finvizLink = `<a class="finviz-link" href="https://finviz.com/quote.ashx?t=${symbol}&p=d" target="_blank" title="Відкрити на Finviz">🔗</a>`;
 
           html += `<tr class="expand-row" data-symbol="${symbol}" style="${rowStyle}">`;
           row.forEach((cell, idx) => {
