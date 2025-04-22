@@ -286,7 +286,7 @@ async def main():
                 percent = int(row[5]) if row[5].isdigit() else 0
 
                 last_sent = last_sent_map.get(symbol, 0)
-                if percent >= 10 and (last_sent == 0 or percent >= last_sent + 10):
+                if percent >= 3 and (last_sent == 0 or percent >= last_sent + 10):
                     print(f"{symbol}: now={percent}%, last={last_sent} → відправляємо")
                     if kind == "buy":
                         arrow = "🟢⬆️"
@@ -312,7 +312,7 @@ async def main():
                     except Exception:
                         opposite_prev_symbols = {}
 
-                if percent > 10 and symbol in opposite_prev_symbols:
+                if percent > 2 and symbol in opposite_prev_symbols:
                     direction = "🟢BUY → 🔴SELL" if kind == "sell" else "🔴SELL → 🟢BUY"
                     msg = f"🔄 Зміна сторони {direction} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
                     await send_telegram_message(msg)
