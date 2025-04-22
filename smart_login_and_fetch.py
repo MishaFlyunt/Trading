@@ -298,10 +298,10 @@ async def main():
                     print(f"{symbol}: now={percent}%, last={last_sent} → відправляємо")
                     if kind == "buy":
                         arrow = "🟢⬆️"
-                        side = "BUY"
+                        side = "Buy"
                     else:
                         arrow = "🔴⬇️"
-                        side = "SELL"
+                        side = "Sell"
                     diff = percent - last_sent
                     msg = f"{arrow} {side}  |  {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}% (+{diff}%)"
                     await send_telegram_message(msg)

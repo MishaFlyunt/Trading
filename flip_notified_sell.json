@@ -2,5 +2,7 @@
   "EL": true,
   "GPN": true,
   "EGP": true,
-  "X": true
+  "X": true,
+  "PNR": true,
+  "RMD": true
 }
