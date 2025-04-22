@@ -1,9 +1,6 @@
 {
-  "EL": true,
-  "GPN": true,
-  "EGP": true,
-  "X": true,
-  "PNR": true,
+  "HUN": true,
   "RMD": true,
-  "SPHR": true
+  "EGP": true,
+  "X": true
 }

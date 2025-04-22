@@ -302,8 +302,11 @@ async def main():
                     else:
                         arrow = "🔴⬇️"
                         side = "Sell"
-                    diff = percent - last_sent
-                    msg = f"{arrow} {side}  |  {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}% (+{diff}%)"
+                    msg = f"{arrow} {side}  |  {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
+
+                    if last_sent > 0:
+                        diff = percent - last_sent
+                        msg += f" (+{diff}%)"
                     await send_telegram_message(msg)
                     last_sent_map[symbol] = percent
 
@@ -330,7 +333,7 @@ async def main():
                     except Exception:
                         flip_notified = {}
 
-                if percent > 3 and symbol in opposite_prev_symbols:
+                if percent > 10 and symbol in opposite_prev_symbols:
                     if not flip_notified.get(symbol):
                         direction = "🟢BUY → 🔴SELL" if kind == "sell" else "🔴SELL → 🟢BUY"
                         msg = f"🔄 Зміна сторони {direction}  |  {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
