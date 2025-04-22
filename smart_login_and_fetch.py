@@ -320,16 +320,32 @@ async def main():
                     except Exception:
                         opposite_prev_symbols = {}
 
+                # Зміна сторони BUY ↔ SELL з унікальністю
+                flip_file = f"flip_notified_{kind}.json"
+                flip_notified = {}
+                if os.path.exists(flip_file):
+                    try:
+                        with open(flip_file) as f:
+                            flip_notified = json.load(f)
+                    except Exception:
+                        flip_notified = {}
+
                 if percent > 1 and symbol in opposite_prev_symbols:
-                    direction = "🟢BUY → 🔴SELL" if kind == "sell" else "🔴SELL → 🟢BUY"
-                    msg = f"🔄 Зміна сторони {direction}  |  {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
-                    await send_telegram_message(msg)
+                    if not flip_notified.get(symbol):
+                        direction = "🟢BUY → 🔴SELL" if kind == "sell" else "🔴SELL → 🟢BUY"
+                        msg = f"🔄 Зміна сторони {direction}  |  {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
+                        await send_telegram_message(msg)
+                        flip_notified[symbol] = True
 
             for row in data["main"][1:]:
                 symbol = row[1]
                 sent_value = last_sent_map.get(symbol)
                 if sent_value is not None:
                     row[5] = str(sent_value)
+
+                    # Зберігаємо оновлений flip_notified_*.json
+            with open(flip_file, "w") as f:
+                json.dump(flip_notified, f, indent=2)
 
             with open(prev_file, "w") as f:
                 json.dump(data, f, indent=2)
