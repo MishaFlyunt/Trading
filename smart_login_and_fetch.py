@@ -337,15 +337,15 @@ async def main():
                         await send_telegram_message(msg)
                         flip_notified[symbol] = True
 
+                        # Зберігаємо оновлений flip_notified_*.json
+                with open(flip_file, "w") as f:
+                   json.dump(flip_notified, f, indent=2)
+
             for row in data["main"][1:]:
                 symbol = row[1]
                 sent_value = last_sent_map.get(symbol)
                 if sent_value is not None:
                     row[5] = str(sent_value)
-
-                    # Зберігаємо оновлений flip_notified_*.json
-            with open(flip_file, "w") as f:
-                json.dump(flip_notified, f, indent=2)
 
             with open(prev_file, "w") as f:
                 json.dump(data, f, indent=2)
