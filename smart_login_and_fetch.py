@@ -4,7 +4,8 @@ import json
 import requests
 import math
 import psutil
-import sys
+# import sys
+import random
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from selenium import webdriver
@@ -80,7 +81,10 @@ def get_adv_from_finviz(symbol, cache):
             "User-Agent": "Mozilla/5.0",
             "Accept-Language": "en-US,en;q=0.9",
         }
-        response = requests.get(url, headers=headers, timeout=20)
+        response = requests.get(url, headers=headers, timeout=15)
+
+        time.sleep(random.uniform(1.5, 3.5))
+
         if response.status_code == 429:
             print(f"🚫 Finviz заблокував: 429 для {symbol}")
             return cache.get(symbol, 0)  # повертаємо попереднє, якщо є
@@ -205,8 +209,8 @@ async def main():
                     break
                 except Exception:
                     print(
-                        f"⏳ Логін ще недоступний ({attempt+1}/20). Повтор через 30 сек...")
-                    await asyncio.sleep(30)
+                        f"⏳ Логін ще недоступний ({attempt+1}/20). Повтор через 60 сек...")
+                    await asyncio.sleep(60)
             else:
                 print("❌ Не вдалося залогінитись після 20 спроб. Вихід.")
                 return
@@ -293,7 +297,7 @@ async def main():
                         opposite_prev_symbols = {}
 
                 if percent > 10 and symbol in opposite_prev_symbols:
-                    direction = "BUY → SELL" if kind == "sell" else "SELL → BUY"
+                    direction = "🟢BUY → 🔴SELL" if kind == "sell" else "🔴SELL → 🟢BUY"
                     msg = f"🔄 Зміна сторони {direction} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
                     await send_telegram_message(msg)
 
