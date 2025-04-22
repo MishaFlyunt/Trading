@@ -286,7 +286,7 @@ async def main():
                 percent = int(row[5]) if row[5].isdigit() else 0
 
                 last_sent = last_sent_map.get(symbol, 0)
-                if percent >= 1 and (last_sent == 0 or percent >= last_sent + 1):
+                if percent >= 40 and (last_sent == 0 or percent >= last_sent + 1):
                     print(f"{symbol}: now={percent}%, last={last_sent} → відправляємо")
                     if kind == "buy":
                         arrow = "🟢⬆️"
@@ -295,7 +295,7 @@ async def main():
                         arrow = "🔴⬇️"
                         side = "SELL"
                     diff = percent - last_sent
-                    msg = f"{arrow} {side} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}% (+{diff}%)"
+                    msg = f"{arrow} {side}  |  {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}% (+{diff}%)"
                     await send_telegram_message(msg)
                     last_sent_map[symbol] = percent
 
@@ -314,7 +314,7 @@ async def main():
 
                 if percent > 1 and symbol in opposite_prev_symbols:
                     direction = "🟢BUY → 🔴SELL" if kind == "sell" else "🔴SELL → 🟢BUY"
-                    msg = f"🔄 Зміна сторони {direction} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
+                    msg = f"🔄 Зміна сторони {direction}  |  {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
                     await send_telegram_message(msg)
 
             for row in data["main"][1:]:
