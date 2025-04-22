@@ -267,55 +267,35 @@
           html += `<th onclick="sortTable(this.closest('table'), ${i})">${cell}</th>`;
         });
         html += "</tr></thead><tbody>";
-        let maxPercent = 0;
-        let leaderSymbol = null;
 
-        // Знаходимо символ з найбільшим %ImbADV
-        for (let i = 1; i < data.main.length; i++) {
-          const percent =
-            parseFloat(data.main[i][data.main[i].length - 1].replace("%", "")) || 0;
-          if (percent > maxPercent) {
-            maxPercent = percent;
-            leaderSymbol = data.main[i][1];
-          }
-        }
         for (let i = 1; i < data.main.length; i++) {
           const row = data.main[i];
           const symbol = row[1];
-          const finvizLink = `<a href="https://finviz.com/quote.ashx?t=${symbol}&p=d" target="_blank" title="Відкрити на Finviz">🔗</a>`;
           const percent = parseFloat(row[row.length - 1].replace("%", "")) || 0;
 
-          const isLeader = symbol === leaderSymbol;
-          const leaderClass = isLeader
-            ? id === "buy"
-              ? "buy-leader"
-              : "sell-leader"
-            : "";
-          const flashClass = isLeader ? "flash-change" : "";
+          const rowHasDash = symbol.includes("-");
+          const isHighImb = percent >= 90;
 
-          const classes = [
-            "expand-row",
-            percent > 90 ? "high-imbalance" : "",
-            symbol.includes("-") ? "dashed-symbol" : "",
-            leaderClass,
-            flashClass,
-          ]
-            .join(" ")
-            .trim();
+          let rowStyle = "";
+          if (rowHasDash) {
+            rowStyle = "background-color: #a5ad07; color: white;";
+          } else if (isHighImb) {
+            rowStyle = "background-color: #007366; color: white;";
+          }
 
-          html += `<tr class="${classes}" data-symbol="${symbol}">`;
+          const finvizLink = `<a href="https://finviz.com/quote.ashx?t=${symbol}&p=d" target="_blank" title="Відкрити на Finviz">🔗</a>`;
+
+          html += `<tr class="expand-row" data-symbol="${symbol}" style="${rowStyle}">`;
           row.forEach((cell, idx) => {
             let formatted =
               idx >= 2 && idx <= 4 && !isNaN(cell) ? Number(cell).toLocaleString() : cell;
             if (idx === 1) {
-              // символ + посилання
               formatted = `${cell} ${finvizLink}`;
             }
             html += `<td>${formatted}</td>`;
           });
           html += "</tr>";
 
-          // Архів як було
           if (data.archive && data.archive[symbol]) {
             html += `<tr class="archive-row hidden"><td colspan="${row.length}"><table class="archive-table"><thead><tr>`;
             html += data.archive[symbol][0].map((c) => `<th>${c}</th>`).join("");
@@ -331,13 +311,15 @@
             html += "</tbody></table></td></tr>";
           }
         }
+
         html += "</tbody></table>";
         container.innerHTML = html;
 
+        // відкривати архів лише якщо клік НЕ по символу (1-а колонка)
         document.querySelectorAll(`#${id} .expand-row`).forEach((row) => {
           row.addEventListener("click", (e) => {
             const clickedCellIndex = Array.from(row.children).indexOf(e.target);
-            if (clickedCellIndex === 1) return;
+            if (clickedCellIndex === 1) return; // не відкривати, якщо клік по символу
             const next = row.nextElementSibling;
             if (next && next.classList.contains("archive-row")) {
               next.classList.toggle("hidden");
@@ -364,7 +346,7 @@
 
       applyTheme();
       loadAll();
-      setInterval(loadAll, 60000);
+      setInterval(loadAll, 100000);
 
       function updateTimestamp() {
         const el = document.getElementById("update-time");
@@ -376,8 +358,8 @@
         });
         el.textContent = formatted;
       }
-      updateTimestamp(); // перше оновлення
-      setInterval(updateTimestamp, 60000); // щохвилини
+      updateTimestamp();
+      setInterval(updateTimestamp, 100000);
     </script>
   </body>
 </html>

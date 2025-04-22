@@ -72,7 +72,7 @@ def git_commit_and_push():
 
 
 def get_adv_from_finviz(symbol, cache):
-    if symbol in cache:
+    if symbol in cache and cache[symbol] != 0:
         return cache[symbol]
     try:
         url = f"https://finviz.com/quote.ashx?t={symbol}&p=d"
@@ -80,10 +80,13 @@ def get_adv_from_finviz(symbol, cache):
             "User-Agent": "Mozilla/5.0",
             "Accept-Language": "en-US,en;q=0.9",
         }
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, headers=headers, timeout=20)
+        if response.status_code == 429:
+            print(f"🚫 Finviz заблокував: 429 для {symbol}")
+            return cache.get(symbol, 0)  # повертаємо попереднє, якщо є
+
         if response.status_code != 200:
             print(f"⚠️ Finviz статус {response.status_code} для {symbol}")
-            cache[symbol] = 0
             return 0
         soup = BeautifulSoup(response.text, "html.parser")
         table = soup.find("table", class_="snapshot-table2")
@@ -186,7 +189,9 @@ async def main():
             for attempt in range(20):
                 try:
                     WebDriverWait(driver, 5).until(
-                        EC.presence_of_element_located((By.ID, "MainContent_UserName")))
+                        EC.presence_of_element_located(
+                            (By.ID, "MainContent_UserName"))
+                    )
                     driver.find_element(By.ID, "MainContent_UserName").clear()
                     driver.find_element(
                         By.ID, "MainContent_UserName").send_keys(USERNAME)
@@ -262,11 +267,15 @@ async def main():
 
                 last_sent = last_sent_map.get(symbol, 0)
                 if percent >= 20 and (last_sent == 0 or percent >= last_sent + 10):
-                    print(
-                        f"🔍 {symbol}: now={percent}%, last={last_sent} → відправляємо")
-                    side = "BUY" if kind == "buy" else "SELL"
+                    print(f"{symbol}: now={percent}%, last={last_sent} → відправляємо")
+                    if kind == "buy":
+                        arrow = "🟢⬆️"
+                        side = "BUY"
+                    else:
+                        arrow = "🔴⬇️"
+                        side = "SELL"
                     diff = percent - last_sent
-                    msg = f"🔥 {side} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}% (+{diff}%)"
+                    msg = f"{arrow} {side} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}% (+{diff}%)"
                     await send_telegram_message(msg)
                     last_sent_map[symbol] = percent
 
@@ -278,20 +287,21 @@ async def main():
                         with open(opposite_prev_file) as f:
                             opp_data = json.load(f)
                             opposite_prev_symbols = {
-                                r[1]: True for r in opp_data.get("main", [])[1:]}
+                                r[1]: True for r in opp_data.get("main", [])[1:]
+                            }
                     except Exception:
                         opposite_prev_symbols = {}
 
-                if percent > 16 and symbol in opposite_prev_symbols:
+                if percent > 10 and symbol in opposite_prev_symbols:
                     direction = "BUY → SELL" if kind == "sell" else "SELL → BUY"
-                    msg = f"🔄 {direction} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
+                    msg = f"🔄 Зміна сторони {direction} | {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
                     await send_telegram_message(msg)
 
             for row in data["main"][1:]:
                 symbol = row[1]
                 sent_value = last_sent_map.get(symbol)
                 if sent_value is not None:
-                     row[5] = str(sent_value)
+                    row[5] = str(sent_value)
 
             with open(prev_file, "w") as f:
                 json.dump(data, f, indent=2)
@@ -317,7 +327,7 @@ async def main():
                 print("❌ Файл reset_data.sh не знайдено!")
             break
 
-        time.sleep(40)
+        time.sleep(80)
 
 if __name__ == "__main__":
     asyncio.run(main())
