@@ -323,8 +323,11 @@
         // відкривати архів лише якщо клік НЕ по символу (1-а колонка)
         document.querySelectorAll(`#${id} .expand-row`).forEach((row) => {
           row.addEventListener("click", (e) => {
-            const clickedCellIndex = Array.from(row.children).indexOf(e.target);
-            if (clickedCellIndex === 1) return; // не відкривати, якщо клік по символу
+            const clickedCellIndex = Array.from(row.children).indexOf(
+              e.target.closest("td")
+            );
+            const clickedLink = e.target.closest("a");
+            if (clickedCellIndex === 1 || clickedLink) return;
             const next = row.nextElementSibling;
             if (next && next.classList.contains("archive-row")) {
               next.classList.toggle("hidden");
