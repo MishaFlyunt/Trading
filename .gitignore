@@ -1,5 +1,5 @@
 .env
-flip_notified_buy.json
-flip_notified_sell.json
+# flip_notified_buy.json
+# flip_notified_sell.json
 prev_buy.json
 prev_sell.json
