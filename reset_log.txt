@@ -12,3 +12,11 @@
 To https://github.com/MishaFlyunt/Trading.git
    c886793..738a618  main -> main
 ✅ Git push виконано
+
+🧹 Reset запущено: ср 23 кві 2025 23:01:14 EEST
+✅ Очищено файл: buy_data.json
+✅ Очищено файл: sell_data.json
+✅ Очищено файл: prev_buy.json
+✅ Очищено файл: prev_sell.json
+✅ Очищено файл: flip_notified_buy.json
+✅ Очищено файл: flip_notified_sell.json
