@@ -6,3 +6,9 @@
 ✅ Очищено файл: prev_sell.json
 ✅ Очищено файл: flip_notified_buy.json
 ✅ Очищено файл: flip_notified_sell.json
+[main 738a618] 🧹 Автоочищення JSON файлів о 23:00 за Києвом
+ 7 files changed, 8 insertions(+), 67508 deletions(-)
+ create mode 100644 reset_log.txt
+To https://github.com/MishaFlyunt/Trading.git
+   c886793..738a618  main -> main
+✅ Git push виконано
