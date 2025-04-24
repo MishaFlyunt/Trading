@@ -7,7 +7,28 @@
       "Paired",
       "ADV",
       "% ImbADV"
+    ],
+    [
+      "13:24:43",
+      "WFC",
+      1200000,
+      0,
+      "17960000",
+      "7"
     ]
   ],
-  "archive": {}
+  "archive": {
+    "WFC": [
+      [
+        "Update Time",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:24:43",
+        1200000,
+        0
+      ]
+    ]
+  }
 }
