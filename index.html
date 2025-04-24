@@ -238,11 +238,23 @@
           forceDesc !== null ? forceDesc : state?.col === colIndex ? !state.desc : true;
 
         rows.sort((a, b) => {
-          const aVal =
+          const aSymbol = a.dataset.symbol || "";
+          const bSymbol = b.dataset.symbol || "";
+
+          const aPercent =
             parseFloat(a.children[colIndex].innerText.replace(/[^0-9.\-]/g, "")) || 0;
-          const bVal =
+          const bPercent =
             parseFloat(b.children[colIndex].innerText.replace(/[^0-9.\-]/g, "")) || 0;
-          return desc ? bVal - aVal : aVal - bVal;
+
+          const aIsDash = aSymbol.includes("-");
+          const bIsDash = bSymbol.includes("-");
+          const aIsHigh = aPercent >= 95;
+          const bIsHigh = bPercent >= 95;
+
+          // Пріоритет: high % → дефіс → решта
+          if (aIsHigh !== bIsHigh) return desc ? (bIsHigh ? 1 : -1) : aIsHigh ? 1 : -1;
+          if (aIsDash !== bIsDash) return desc ? (bIsDash ? 1 : -1) : aIsDash ? 1 : -1;
+          return desc ? bPercent - aPercent : aPercent - bPercent;
         });
 
         rows.forEach((row) => {
