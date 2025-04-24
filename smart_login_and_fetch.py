@@ -340,7 +340,7 @@ async def main():
                     else:
                         arrow = "🔴⬇️"
                         side = "Sell"
-                    msg = f"{arrow} {side} ⚠️ДЕФІС  |  {symbol}\nImbalance: {imbalance:,}"
+                    msg = f"{arrow} {side} ⚠️ДЕФІС  |  {symbol}\nImbalance: {imbalance:,} {paired:,}\nPaired:"
                     await send_telegram_message(msg)
                     notified_dash_symbols.add(symbol)
 
