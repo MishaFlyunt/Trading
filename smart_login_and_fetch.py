@@ -289,6 +289,7 @@ async def main():
             for row in data["main"][1:]:
                 symbol = row[1]
                 imbalance = int(row[2])
+                paired = int(row[3]) if row[3].isdigit() else 0
                 adv = int(row[4]) if row[4].isdigit() else 0
                 percent = int(row[5]) if row[5].isdigit() else 0
 
