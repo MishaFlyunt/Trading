@@ -302,7 +302,7 @@ async def main():
                     else:
                         arrow = "🔴⬇️"
                         side = "Sell"
-                    msg = f"{arrow} {side}  |  {symbol}\nImbalance: {imbalance:,}\nADV: {paired:,}\nPaired: {adv:,}\n% ImbADV: {percent}%"
+                    msg = f"{arrow} {side}  |  {symbol}\nImbalance: {imbalance:,}\nPaired: {paired:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
 
                     if last_sent > 0:
                         diff = percent - last_sent
@@ -340,7 +340,7 @@ async def main():
                     else:
                         arrow = "🔴⬇️"
                         side = "Sell"
-                    msg = f"{arrow} {side} ⚠️ДЕФІС  |  {symbol}\nImbalance: {imbalance:,} {paired:,}\nPaired:"
+                    msg = f"{arrow} {side} ⚠️ДЕФІС  |  {symbol}\nImbalance: {imbalance:,}\nPaired: {paired:,}"
                     await send_telegram_message(msg)
                     notified_dash_symbols.add(symbol)
 
@@ -360,7 +360,7 @@ async def main():
                 if percent > 70 and symbol in opposite_prev_symbols:
                     if not flip_notified.get(symbol):
                         direction = "🟢BUY → 🔴SELL" if kind == "sell" else "🔴SELL → 🟢BUY"
-                        msg = f"🔄 Зміна сторони {direction}  |  {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
+                        msg = f"🔄 Зміна сторони {direction}  |  {symbol}\nImbalance: {imbalance:,}\nPaired: {paired:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
                         await send_telegram_message(msg)
                         flip_notified[symbol] = True
 
