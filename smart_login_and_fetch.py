@@ -322,6 +322,30 @@ async def main():
                     except Exception:
                         opposite_prev_symbols = {}
 
+                # Aкції з ДЕФІСОМ
+                dash_file = f"dash_notified_{kind}.json"
+                notified_dash_symbols = set()
+                if os.path.exists(dash_file):
+                    try:
+                        with open(dash_file) as f:
+                            notified_dash_symbols = set(json.load(f))
+                    except Exception as e:
+                        print(f"⚠️ Не вдалося зчитати {dash_file}: {e}")
+                
+                if "-" in symbol and symbol not in notified_dash_symbols:
+                    if kind == "buy":
+                        arrow = "🟢⬆️"
+                        side = "Buy"
+                    else:
+                        arrow = "🔴⬇️"
+                        side = "Sell"
+                    msg = f"{arrow} {side} (⚠️ дефіс)  |  {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
+                    await send_telegram_message(msg)
+                    notified_dash_symbols.add(symbol)
+
+                with open(dash_file, "w") as f:
+                     json.dump(list(notified_dash_symbols), f, indent=2)
+
                 # Зміна сторони BUY ↔ SELL з унікальністю
                 flip_file = f"flip_notified_{kind}.json"
                 flip_notified = {}

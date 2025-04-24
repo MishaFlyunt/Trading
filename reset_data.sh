@@ -8,7 +8,7 @@ SCRIPT_DIR="/Users/mihajloflunt/Desktop/Home/Навчання/GOIT/Trading"
 cd "$SCRIPT_DIR" || exit 1
 
 # Файли для очищення
-FILES=("buy_data.json" "sell_data.json" "prev_buy.json" "prev_sell.json" "flip_notified_buy.json" "flip_notified_sell.json")
+FILES=("buy_data.json" "sell_data.json" "prev_buy.json" "prev_sell.json" "flip_notified_buy.json" "flip_notified_sell.json" "dash_notified_buy.json" "dash_notified_sell.json")
 
 # Лог-файл
 LOGFILE="$SCRIPT_DIR/reset_log.txt"
