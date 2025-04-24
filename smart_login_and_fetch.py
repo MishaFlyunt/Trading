@@ -302,7 +302,7 @@ async def main():
                     else:
                         arrow = "🔴⬇️"
                         side = "Sell"
-                    msg = f"{arrow} {side}  |  {symbol}\nImbalance: {imbalance:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
+                    msg = f"{arrow} {side}  |  {symbol}\nImbalance: {imbalance:,}\nADV: {paired:,}\nPaired: {adv:,}\n% ImbADV: {percent}%"
 
                     if last_sent > 0:
                         diff = percent - last_sent
