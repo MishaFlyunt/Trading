@@ -363,7 +363,6 @@ async def main():
                         await send_telegram_message(msg)
                         flip_notified[symbol] = True
 
-                        # Зберігаємо оновлений flip_notified_*.json
                 with open(flip_file, "w") as f:
                    json.dump(flip_notified, f, indent=2)
 
