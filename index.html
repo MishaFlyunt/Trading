@@ -24,6 +24,7 @@
         transition: background 0.3s, color 0.3s;
       }
 
+      /* Верхній блок */
       .controls {
         display: flex;
         justify-content: space-between;
@@ -44,18 +45,25 @@
         cursor: pointer;
       }
 
+      /* Контейнер для таблиць */
       .tables {
         display: flex;
         flex-direction: column;
         gap: 1rem;
-        height: calc(100vh - 100px);
+        height: calc(100vh - 100px); /* 100px = висота controls + відступ */
         padding: 0 1rem 1rem 1rem;
         box-sizing: border-box;
-        overflow: hidden;
       }
 
+      @media (min-width: 900px) {
+        .tables {
+          flex-direction: row;
+        }
+      }
+
+      /* Блок окремої таблиці */
       .table-container {
-        flex: 1 1 auto;
+        flex: 1;
         background: var(--table-bg);
         border-radius: 8px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -63,8 +71,8 @@
         display: flex;
         flex-direction: column;
         border: 2px solid var(--header-bg);
-        height: 50%;
-        min-height: 0;
+        position: relative;
+        height: 100%;
       }
 
       .table-container h2 {
@@ -74,7 +82,7 @@
         z-index: 2;
         padding: 4px 0;
         margin: 0;
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         color: green;
       }
 
@@ -82,26 +90,24 @@
         color: red;
       }
 
+      /* Прокрутка лише для таблиць */
       .table-content {
-        flex: 1 1 auto;
+        flex-grow: 1;
         overflow-y: auto;
-        min-height: 0;
       }
 
+      /* Таблиця */
       table {
-        width: 100%;
-        table-layout: fixed;
         border-collapse: collapse;
+        width: 100%;
+        min-width: 600px;
       }
 
       th,
       td {
         border: 2px solid var(--header-bg);
-        padding: 4px 6px;
-        font-size: 0.85rem;
+        padding: 8px;
         text-align: center;
-        word-wrap: break-word;
-        word-break: break-word;
       }
 
       th {
@@ -112,20 +118,32 @@
         z-index: 1;
       }
 
-      tr.high-imbalance td,
+      /* Підсвітка умовна */
+      tr.high-imbalance td {
+        color: var(--alert-text);
+        font-weight: bold;
+      }
+
       tr.dashed-symbol td {
         color: var(--alert-text);
         font-weight: bold;
       }
 
+      .archive-row.hidden {
+        display: none;
+      }
+
+      /* Підсвітка лідера Buy */
       tr.buy-leader td {
-        background-color: #d3f9d8;
+        background-color: #d3f9d8; /* м’який зелений */
       }
 
+      /* Підсвітка лідера Sell */
       tr.sell-leader td {
-        background-color: #ffd6d6;
+        background-color: #ffd6d6; /* м’який рожевий */
       }
 
+      /* Анімація зміни */
       tr.flash-change {
         animation: flash 1s ease-in-out;
       }
@@ -139,15 +157,12 @@
         }
       }
 
-      .archive-row.hidden {
-        display: none;
-      }
-
       a.finviz-link {
         text-decoration: none;
         color: inherit;
       }
 
+      /* Темна тема */
       [data-theme="dark"] {
         --bg: #111;
         --text: #fff;
