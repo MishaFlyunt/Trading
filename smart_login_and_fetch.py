@@ -17,7 +17,7 @@ import asyncio
 from collections import defaultdict
 from datetime import datetime, timedelta
 
-
+# -----Функція перевірки коли були зміни по ADV------
 def is_adv_outdated(date_str, max_age_days=10):
     try:
         adv_date = datetime.strptime(date_str, "%Y-%m-%d")
@@ -27,7 +27,7 @@ def is_adv_outdated(date_str, max_age_days=10):
 
 load_dotenv()
 
-
+# ----------Автозапуск ГуглХром--------
 def is_chrome_running_with_debugging():
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
         try:
@@ -42,8 +42,8 @@ USERNAME = os.getenv("LOGIN")
 PASSWORD = os.getenv("PASSWORD")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-
 bot = telegram.Bot(token=TELEGRAM_TOKEN)
+
 
 if not is_chrome_running_with_debugging():
     print("🧭 Chrome не запущено з remote-debugging. Запускаємо...")
@@ -68,6 +68,7 @@ chrome_options.add_argument(
 chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
 
 
+# --------GIT PUSH---------
 def git_commit_and_push():
     try:
         subprocess.run(["git", "add", "."], check=True)
@@ -79,6 +80,7 @@ def git_commit_and_push():
         print(f"❌ Змін нема або Git помилка: {e}")
 
 
+# -----------Finviz--------
 def get_adv_from_finviz(symbol, cache):
     if any(char in symbol for char in ['.', '-', ' ']):
         print(f"⚠️ Символ {symbol} містить недопустимі символи. ADV = 0")
@@ -139,7 +141,7 @@ def get_adv_from_finviz(symbol, cache):
 
     return 0
 
-
+# -----------Парс сторінки---------
 def parse_table_from_message_table(soup, driver):
     while True:
         table = soup.find("table", id="MainContent_MessageTable")
@@ -190,7 +192,7 @@ def parse_table_from_message_table(soup, driver):
         "sell": {"main": main_sell, "archive": dict(archive_sell)}
     }
 
-
+# ----------Телеграм повідомлення----------
 async def send_telegram_message(message):
     try:
         await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
@@ -199,6 +201,43 @@ async def send_telegram_message(message):
         print(f"❌ Помилка надсилання в Telegram: {e}")
 
 
+# ---------Перевірка чи логін не втрачений підчас сесії---------
+def is_logged_in(driver):
+    return "Account/Login.aspx" not in driver.current_url
+
+async def perform_login(driver):
+    print("🔓 Сесія неактивна. Виконуємо логін...")
+    driver.get("http://www.amerxmocs.com/Account/Login.aspx")
+
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+
+    for attempt in range(20):
+        try:
+            WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located((By.ID, "MainContent_UserName"))
+            )
+            driver.find_element(By.ID, "MainContent_UserName").clear()
+            driver.find_element(
+                By.ID, "MainContent_UserName").send_keys(USERNAME)
+            driver.find_element(By.ID, "MainContent_Password").clear()
+            driver.find_element(
+                By.ID, "MainContent_Password").send_keys(PASSWORD)
+            driver.find_element(By.ID, "MainContent_LoginButton").click()
+            await asyncio.sleep(3)
+            print("✅ Логін виконано або обробляється...")
+            break
+        except Exception:
+            print(
+                f"⏳ Логін ще недоступний ({attempt+1}/20). Повтор через 60 сек...")
+            await asyncio.sleep(60)
+    else:
+        print("❌ Не вдалося залогінитись після 20 спроб. Вихід.")
+        return False
+    return True
+
+
+# ---------Логін на сайті www.amerxmocs.com----------
 async def main():
     from selenium.webdriver.support.ui import WebDriverWait
     from selenium.webdriver.support import expected_conditions as EC
@@ -242,6 +281,11 @@ async def main():
         return
 
     while True:
+        if not is_logged_in(driver):
+             print("ℹ️ Перевірка сесії...")
+             success = await perform_login(driver)
+             if not success:
+                 break
         html = driver.page_source
         with open("debug_page.html", "w", encoding="utf-8") as f:
             f.write(html)
@@ -379,12 +423,23 @@ async def main():
         with open("adv_cache.json", "w") as f:
             json.dump(adv_cache, f, indent=2)
 
+        # 👉 Git Push в кінці скрипту
         print("✅ Дані збережено у buy_data.json та sell_data.json")
         git_commit_and_push()
 
         now = datetime.now()
         if now.hour == 23:
             print("🛑 Завершення скрипта о 23:00")
+
+            # 👉 Розлогінення перед завершенням
+            try:
+                logout_btn = driver.find_element(By.ID, "MainContent_LogOut")
+                logout_btn.click()
+                print("🚪 Успішно розлогінено з сайту.")
+            except Exception as e:
+                print(f"⚠️ Не вдалося розлогінитися: {e}")
+
+            # 👉 Запуск reset_data
             reset_script = "/Users/mihajloflunt/Desktop/Home/Навчання/GOIT/Trading/reset_data.sh"
             if os.path.exists(reset_script):
                 try:
