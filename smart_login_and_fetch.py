@@ -421,14 +421,38 @@ async def main():
                 with open(flip_file, "w") as f:
                    json.dump(flip_notified, f, indent=2)
 
+    # 🔥 Формуємо нові prev_* тільки зі зміненими або актуальними акціями
+            new_prev_main = [["Update Time", "Symbol","Imbalance", "Paired", "ADV", "% ImbADV"]]
+
             for row in data["main"][1:]:
                 symbol = row[1]
-                sent_value = last_sent_map.get(symbol)
-                if sent_value is not None:
-                    row[5] = str(sent_value)
+                imbalance = int(row[2])
+                paired = int(row[3]) if isinstance(row[3], str) and row[3].isdigit() else int(row[3]) if isinstance(row[3], int) else 0
+                adv = int(row[4]) if isinstance(row[4], str) and row[4].isdigit() else int(row[4]) if isinstance(row[4], int) else 0
+                percent = int(row[5]) if isinstance(row[5], str) and row[5].isdigit() else int(row[5]) if isinstance(row[5], int) else 0
+
+                last_sent = last_sent_map.get(symbol, 0)
+
+                if percent != last_sent:
+                    last_sent_map[symbol] = percent
+                    new_prev_main.append([row[0], symbol, imbalance, paired, adv, percent])
+
+            prev_data = {
+                 "main": new_prev_main,
+                 "archive": {}
+            }
 
             with open(prev_file, "w") as f:
-                json.dump(data, f, indent=2)
+                json.dump(prev_data, f, indent=2)
+
+            # for row in data["main"][1:]:
+            #     symbol = row[1]
+            #     sent_value = last_sent_map.get(symbol)
+            #     if sent_value is not None:
+            #         row[5] = str(sent_value)
+
+            # with open(prev_file, "w") as f:
+            #     json.dump(data, f, indent=2)
 
         with open("adv_cache.json", "w") as f:
             json.dump(adv_cache, f, indent=2)
@@ -437,30 +461,30 @@ async def main():
         print("✅ Дані збережено у buy_data.json та sell_data.json")
         git_commit_and_push()
 
-        # now = datetime.now()
-        # if now.hour == 23:
-        #     print("🛑 Завершення скрипта о 23:00")
+        now = datetime.now()
+        if now.hour == 23:
+            print("🛑 Завершення скрипта о 23:00")
 
-        #     # 👉 Розлогінення перед завершенням
-        #     try:
-        #         logout_btn = driver.find_element(By.ID, "MainContent_LogOut")
-        #         logout_btn.click()
-        #         print("🚪 Успішно розлогінено з сайту.")
-        #     except Exception as e:
-        #         print(f"⚠️ Не вдалося розлогінитися: {e}")
+            # 👉 Розлогінення перед завершенням
+            try:
+                logout_btn = driver.find_element(By.ID, "MainContent_LogOut")
+                logout_btn.click()
+                print("🚪 Успішно розлогінено з сайту.")
+            except Exception as e:
+                print(f"⚠️ Не вдалося розлогінитися: {e}")
 
-        #     # 👉 Запуск reset_data
-        #     reset_script = "/Users/mihajloflunt/Desktop/Home/Навчання/GOIT/Trading/reset_data.sh"
-        #     if os.path.exists(reset_script):
-        #         try:
-        #             print("🚀 Запускаємо reset_data.sh...")
-        #             subprocess.run(["/bin/bash", reset_script], check=True)
-        #             print("✅ reset_data.sh виконано успішно.")
-        #         except subprocess.CalledProcessError as e:
-        #             print(f"❌ Помилка виконання reset_data.sh: {e}")
-        #     else:
-        #         print("❌ Файл reset_data.sh не знайдено!")
-        #     break
+            # 👉 Запуск reset_data
+            reset_script = "/Users/mihajloflunt/Desktop/Home/Навчання/GOIT/Trading/reset_data.sh"
+            if os.path.exists(reset_script):
+                try:
+                    print("🚀 Запускаємо reset_data.sh...")
+                    subprocess.run(["/bin/bash", reset_script], check=True)
+                    print("✅ reset_data.sh виконано успішно.")
+                except subprocess.CalledProcessError as e:
+                    print(f"❌ Помилка виконання reset_data.sh: {e}")
+            else:
+                print("❌ Файл reset_data.sh не знайдено!")
+            break
 
         await asyncio.sleep(90)
 
