@@ -293,11 +293,6 @@ async def main():
         soup = BeautifulSoup(html, "html.parser")
         parsed = parse_table_from_message_table(soup, driver)
 
-        # --- Додаємо це ---
-        current_buy_symbols = {row[1] for row in parsed["buy"]["main"][1:]}
-        current_sell_symbols = {row[1] for row in parsed["sell"]["main"][1:]}
-        # --- До цього моменту нічого більше не змінюємо ---
-
         adv_cache = {}
         if os.path.exists("adv_cache.json"):
             try:
@@ -308,9 +303,6 @@ async def main():
                 adv_cache = {}
 
         for kind in ("buy", "sell"):
-            prev_file = f"prev_{kind}.json"
-            if os.path.exists(prev_file):
-                os.remove(prev_file)
             data = parsed[kind]
             for i in range(1, len(data["main"])):
                 row = data["main"][i]
@@ -328,22 +320,20 @@ async def main():
 
             if os.path.exists(prev_file):
                 try:
-                   with open(prev_file) as f:
+                    with open(prev_file) as f:
                         prev_data = json.load(f)
                         for prev_row in prev_data.get("main", [])[1:]:
                             symbol = prev_row[1]
-                # Перевіряємо тільки актуальні символи
-                            if (kind == "buy" and symbol in current_buy_symbols) or (kind == "sell" and symbol in current_sell_symbols):
-                                sent_percent = int(prev_row[5]) if prev_row[5].isdigit() else 0
-                                last_sent_map[symbol] = sent_percent
+                            sent_percent = int(
+                                prev_row[5]) if prev_row[5].isdigit() else 0
+                            last_sent_map[symbol] = sent_percent
                 except Exception as e:
                     print(f"⚠️ Не вдалося зчитати {prev_file}: {e}")
 
             for row in data["main"][1:]:
                 symbol = row[1]
                 imbalance = int(row[2])
-                paired = int(row[3]) if isinstance(row[3], str) and row[3].isdigit() else int(
-                    row[3]) if isinstance(row[3], int) else 0
+                paired = int(row[3]) if isinstance(row[3], str) and row[3].isdigit() else int(row[3]) if isinstance(row[3], int) else 0
                 adv = int(row[4]) if row[4].isdigit() else 0
                 percent = int(row[5]) if row[5].isdigit() else 0
 
