@@ -142,6 +142,7 @@ def get_adv_from_finviz(symbol, cache):
     return 0
 
 # -----------Парс сторінки---------
+
 def parse_table_from_message_table(soup, driver):
     while True:
         table = soup.find("table", id="MainContent_MessageTable")
@@ -155,10 +156,6 @@ def parse_table_from_message_table(soup, driver):
     archive_buy = defaultdict(lambda: [["Update Time", "Imbalance", "Paired"]])
     archive_sell = defaultdict(
         lambda: [["Update Time", "Imbalance", "Paired"]])
-    main_buy = [["Update Time", "Symbol",
-                 "Imbalance", "Paired", "ADV", "% ImbADV"]]
-    main_sell = [["Update Time", "Symbol",
-                  "Imbalance", "Paired", "ADV", "% ImbADV"]]
     latest_buy = {}
     latest_sell = {}
 
@@ -176,14 +173,27 @@ def parse_table_from_message_table(soup, driver):
         paired = int(cells[4].text.strip().replace(
             ",", "")) if cells[4].text.strip() else 0
 
-        target_latest = latest_buy if side == "B" else latest_sell
+        # Додаємо в архів завжди
         target_archive = archive_buy if side == "B" else archive_sell
-
         target_archive[symbol].append([time_val, imbalance, paired])
-        target_latest[symbol] = (time_val, imbalance, paired)
 
+        # Тепер вибираємо найсвіжіший запис
+        target_latest = latest_buy if side == "B" else latest_sell
+        if symbol not in target_latest:
+            target_latest[symbol] = (time_val, imbalance, paired)
+        else:
+            old_time = target_latest[symbol][0]
+            if time_val > old_time:  # 🛠 Порівнюємо рядки часу напряму
+                target_latest[symbol] = (time_val, imbalance, paired)
+
+    # Формуємо основні таблиці тільки з найновішими записами
+    main_buy = [["Update Time", "Symbol",
+                 "Imbalance", "Paired", "ADV", "% ImbADV"]]
     for symbol, (t, imb, paired) in latest_buy.items():
         main_buy.append([t, symbol, imb, paired, "", ""])
+
+    main_sell = [["Update Time", "Symbol",
+                  "Imbalance", "Paired", "ADV", "% ImbADV"]]
     for symbol, (t, imb, paired) in latest_sell.items():
         main_sell.append([t, symbol, imb, paired, "", ""])
 
@@ -427,30 +437,30 @@ async def main():
         print("✅ Дані збережено у buy_data.json та sell_data.json")
         git_commit_and_push()
 
-        now = datetime.now()
-        if now.hour == 23:
-            print("🛑 Завершення скрипта о 23:00")
+        # now = datetime.now()
+        # if now.hour == 23:
+        #     print("🛑 Завершення скрипта о 23:00")
 
-            # 👉 Розлогінення перед завершенням
-            try:
-                logout_btn = driver.find_element(By.ID, "MainContent_LogOut")
-                logout_btn.click()
-                print("🚪 Успішно розлогінено з сайту.")
-            except Exception as e:
-                print(f"⚠️ Не вдалося розлогінитися: {e}")
+        #     # 👉 Розлогінення перед завершенням
+        #     try:
+        #         logout_btn = driver.find_element(By.ID, "MainContent_LogOut")
+        #         logout_btn.click()
+        #         print("🚪 Успішно розлогінено з сайту.")
+        #     except Exception as e:
+        #         print(f"⚠️ Не вдалося розлогінитися: {e}")
 
-            # 👉 Запуск reset_data
-            reset_script = "/Users/mihajloflunt/Desktop/Home/Навчання/GOIT/Trading/reset_data.sh"
-            if os.path.exists(reset_script):
-                try:
-                    print("🚀 Запускаємо reset_data.sh...")
-                    subprocess.run(["/bin/bash", reset_script], check=True)
-                    print("✅ reset_data.sh виконано успішно.")
-                except subprocess.CalledProcessError as e:
-                    print(f"❌ Помилка виконання reset_data.sh: {e}")
-            else:
-                print("❌ Файл reset_data.sh не знайдено!")
-            break
+        #     # 👉 Запуск reset_data
+        #     reset_script = "/Users/mihajloflunt/Desktop/Home/Навчання/GOIT/Trading/reset_data.sh"
+        #     if os.path.exists(reset_script):
+        #         try:
+        #             print("🚀 Запускаємо reset_data.sh...")
+        #             subprocess.run(["/bin/bash", reset_script], check=True)
+        #             print("✅ reset_data.sh виконано успішно.")
+        #         except subprocess.CalledProcessError as e:
+        #             print(f"❌ Помилка виконання reset_data.sh: {e}")
+        #     else:
+        #         print("❌ Файл reset_data.sh не знайдено!")
+        #     break
 
         await asyncio.sleep(90)
 
