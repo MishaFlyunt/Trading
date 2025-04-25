@@ -303,7 +303,9 @@ async def main():
                 adv_cache = {}
 
         for kind in ("buy", "sell"):
-            
+            prev_file = f"prev_{kind}.json"
+    if os.path.exists(prev_file):
+        os.remove(prev_file)
             data = parsed[kind]
             for i in range(1, len(data["main"])):
                 row = data["main"][i]
