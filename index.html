@@ -390,6 +390,26 @@
       }
       updateTimestamp();
       setInterval(updateTimestamp, 90000);
+
+      // ------Пошук-------
+      document.getElementById("search-symbol").addEventListener("input", function () {
+        const search = this.value.trim().toUpperCase();
+        document
+          .querySelectorAll(".tables .table-content table tbody tr")
+          .forEach((row) => {
+            const symbolCell = row.querySelector("td:nth-child(2)");
+            if (!symbolCell) return;
+
+            const text = symbolCell.textContent.toUpperCase();
+            row.style.display = text.includes(search) ? "" : "none";
+
+            // Підсвітка символу
+            symbolCell.style.fontWeight =
+              text.includes(search) && search !== "" ? "bold" : "";
+            symbolCell.style.background =
+              text.includes(search) && search !== "" ? "#ffff99" : "";
+          });
+      });
     </script>
   </body>
 </html>
