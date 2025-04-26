@@ -520,7 +520,7 @@ async def main():
                 print("❌ Файл reset_data.sh не знайдено!")
             break
 
-        await asyncio.sleep(40)
+        await asyncio.sleep(30)
 
 if __name__ == "__main__":
     asyncio.run(main())
