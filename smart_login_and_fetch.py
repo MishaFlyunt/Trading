@@ -57,7 +57,14 @@ if not is_chrome_running_with_debugging():
         "--new-window",
         target_url
     ])
-    time.sleep(5)
+    # Додаємо перевірку протягом 20 секунд
+    for _ in range(20):
+        if is_chrome_running_with_debugging():
+            break
+        time.sleep(1)
+    else:
+        print("❌ Chrome не стартував вчасно!")
+        exit(1)
 else:
     print("🟢 Chrome вже працює з remote-debugging.")
 
@@ -72,18 +79,25 @@ chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
 def git_commit_and_push():
     try:
         subprocess.run(["git", "add", "."], check=True)
+
+        # Перевіряємо чи є що комітити
+        result = subprocess.run(["git", "diff", "--cached", "--quiet"])
+        if result.returncode == 0:
+            print("ℹ️ Немає змін для коміту.")
+            return
+
         subprocess.run(
             ["git", "commit", "-m", "🔄 Автооновлення imbalance даних"], check=True)
         subprocess.run(["git", "push"], check=True)
         print("✅ Зміни запушено на GitHub.")
     except subprocess.CalledProcessError as e:
-        print(f"❌ Змін нема або Git помилка: {e}")
+        print(f"❌ Git помилка: {e}")
 
 
 # -----------Finviz--------
 def get_adv_from_finviz(symbol, cache):
     if any(char in symbol for char in ['.', '-', ' ']):
-        print(f"⚠️ Символ {symbol} містить недопустимі символи. ADV = 0")
+        # print(f"⚠️ Символ {symbol} містить недопустимі символи. ADV = 0")
         cache[symbol] = {
             "adv": 0,
             "date": datetime.now().strftime("%Y-%m-%d")
@@ -123,26 +137,29 @@ def get_adv_from_finviz(symbol, cache):
             cells = row.find_all("td")
             for i in range(len(cells)):
                 if cells[i].text.strip() == "Avg Volume":
-                    volume_str = cells[i+1].text.strip().replace(",", "")
-                    if volume_str.endswith("M"):
-                        adv = int(float(volume_str[:-1]) * 1_000_000)
-                    elif volume_str.endswith("K"):
-                        adv = int(float(volume_str[:-1]) * 1_000)
-                    else:
-                        adv = int(volume_str)
+                   volume_str = cells[i+1].text.strip().replace(",", "")
+                   try:
+                       if volume_str.endswith("M"):
+                           adv = int(float(volume_str[:-1]) * 1_000_000)
+                       elif volume_str.endswith("K"):
+                           adv = int(float(volume_str[:-1]) * 1_000)
+                       else:
+                           adv = int(volume_str)
 
-                    cache[symbol] = {
-                        "adv": adv,
-                        "date": datetime.now().strftime("%Y-%m-%d")
-                    }
-                    return adv
+                       cache[symbol] = {
+                           "adv": adv,
+                           "date": datetime.now().strftime("%Y-%m-%d")
+                       }
+                       return adv
+                   except ValueError:
+                       print(f"⚠️ Неможливо розпарсити обсяг для {symbol}: '{volume_str}'")
+                       return 0
     except Exception as e:
         print(f"⚠️ Не вдалося отримати ADV для {symbol}: {e}")
 
     return 0
 
 # -----------Парс сторінки---------
-
 def parse_table_from_message_table(soup, driver):
     while True:
         table = soup.find("table", id="MainContent_MessageTable")
@@ -185,6 +202,15 @@ def parse_table_from_message_table(soup, driver):
             old_time = target_latest[symbol][0]
             if time_val > old_time:  # 🛠 Порівнюємо рядки часу напряму
                 target_latest[symbol] = (time_val, imbalance, paired)
+
+    # 📚 Сортуємо архів за часом для кожного символу
+    for archive in (archive_buy, archive_sell):
+        for symbol, records in archive.items():
+            if len(records) > 1:
+                header, *data_rows = records
+                # сортування за time_val
+                sorted_rows = sorted(data_rows, key=lambda r: r[0])
+                archive[symbol] = [header] + sorted_rows
 
     # Формуємо основні таблиці тільки з найновішими записами
     main_buy = [["Update Time", "Symbol",
@@ -246,6 +272,24 @@ async def perform_login(driver):
         return False
     return True
 
+# ---------Хром драйвер----------
+async def start_driver_with_retry(max_retries=3):
+    for attempt in range(1, max_retries + 1):
+        try:
+            driver = webdriver.Chrome(
+                service=Service(), options=chrome_options)
+            # Обмеження на завантаження сторінки
+            driver.set_page_load_timeout(60)
+            print(f"🟢 Драйвер успішно підключено на спробі {attempt}.")
+            return driver
+        except Exception as e:
+            print(f"⚠️ Помилка підключення драйвера на спробі {attempt}: {e}")
+            if attempt < max_retries:
+                print("🔄 Повторна спроба через 10 секунд...")
+                await asyncio.sleep(10)
+            else:
+                print("❌ Всі спроби вичерпані. Завершення скрипта.")
+                raise e
 
 # ---------Логін на сайті www.amerxmocs.com----------
 async def main():
@@ -253,7 +297,7 @@ async def main():
     from selenium.webdriver.support import expected_conditions as EC
 
     try:
-        driver = webdriver.Chrome(service=Service(), options=chrome_options)
+        driver = await start_driver_with_retry()
         print("🔐 Перевіряємо статус сесії...")
         driver.get("http://www.amerxmocs.com/Default.aspx?index=")
         await asyncio.sleep(3)
@@ -433,7 +477,7 @@ async def main():
 
                 last_sent = last_sent_map.get(symbol, 0)
 
-                if percent != last_sent:
+                if (symbol not in last_sent_map) or (percent != last_sent_map.get(symbol)):
                     last_sent_map[symbol] = percent
                     new_prev_main.append([row[0], symbol, imbalance, paired, adv, percent])
 
@@ -444,15 +488,6 @@ async def main():
 
             with open(prev_file, "w") as f:
                 json.dump(prev_data, f, indent=2)
-
-            # for row in data["main"][1:]:
-            #     symbol = row[1]
-            #     sent_value = last_sent_map.get(symbol)
-            #     if sent_value is not None:
-            #         row[5] = str(sent_value)
-
-            # with open(prev_file, "w") as f:
-            #     json.dump(data, f, indent=2)
 
         with open("adv_cache.json", "w") as f:
             json.dump(adv_cache, f, indent=2)
