@@ -70,8 +70,7 @@ else:
 
 chrome_options = Options()
 chrome_options.add_argument("--remote-debugging-port=9222")
-chrome_options.add_argument(
-    f"--user-data-dir={os.path.expanduser('~')}/chrome-selenium")
+chrome_options.add_argument(f"--user-data-dir={os.path.expanduser('~')}/chrome-selenium")
 chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
 
 
@@ -465,7 +464,7 @@ async def main():
                 with open(flip_file, "w") as f:
                    json.dump(flip_notified, f, indent=2)
 
-    # 🔥 Формуємо нові prev_* тільки зі зміненими або актуальними акціями
+            # 🔥 Формуємо нові prev_* тільки зі зміненими або актуальними акціями
             new_prev_main = [["Update Time", "Symbol","Imbalance", "Paired", "ADV", "% ImbADV"]]
 
             for row in data["main"][1:]:
