@@ -6,5 +6,6 @@ prev_sell.json
 dash_notified_buy.json
 dash_notified_sell.json
 reset_log.txt
-debug_page.htmlflip_notified_buy.json
-
+debug_page.html
+reset_data.sh
+run_fetch_caffeinate.sh
