@@ -454,7 +454,7 @@ async def main():
                     except Exception:
                         flip_notified = {}
 
-                if percent > 70 and symbol in opposite_prev_symbols:
+                if percent > 80 and symbol in opposite_prev_symbols:
                     if not flip_notified.get(symbol):
                         direction = "🟢BUY → 🔴SELL" if kind == "sell" else "🔴SELL → 🟢BUY"
                         msg = f"🔄 Зміна сторони {direction}  |  {symbol}\nImbalance: {imbalance:,}\nPaired: {paired:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
