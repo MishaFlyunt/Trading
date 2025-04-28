@@ -476,14 +476,11 @@ async def main():
                 symbol = row[1]
                 imbalance = int(row[2])
                 paired = int(row[3]) if isinstance(row[3], str) and row[3].isdigit() else int(row[3]) if isinstance(row[3], int) else 0
-                adv = int(row[4]) if isinstance(row[4], str) and row[4].isdigit() else int(row[4]) if isinstance(row[4], int) else 0
-                percent = int(row[5]) if isinstance(row[5], str) and row[5].isdigit() else int(row[5]) if isinstance(row[5], int) else 0
+                adv = int(row[4]) if isinstance(row[4], str) and row[4].isdigit() else int(
+                row[4]) if isinstance(row[4], int) else 0
+                percent = last_sent_map.get(symbol, 0)
 
-                last_sent = last_sent_map.get(symbol, 0)
-
-                if (symbol not in last_sent_map) or (percent != last_sent_map.get(symbol)):
-                    last_sent_map[symbol] = percent
-                    new_prev_main.append([row[0], symbol, imbalance, paired, adv, percent])
+                new_prev_main.append([row[0], symbol, imbalance, paired, adv, percent])
 
             prev_data = {
                  "main": new_prev_main,
