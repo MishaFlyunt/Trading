@@ -372,15 +372,20 @@ async def main():
             last_sent_map = {}
 
             if os.path.exists(prev_file):
-                try:
-                    with open(prev_file) as f:
-                        prev_data = json.load(f)
-                        for prev_row in prev_data.get("main", [])[1:]:
-                            symbol = prev_row[1]
-                            sent_percent = int(
-                                prev_row[5]) if prev_row[5].isdigit() else 0
-                            last_sent_map[symbol] = sent_percent
-                except Exception as e:
+               try:
+                   with open(prev_file) as f:
+                       prev_data = json.load(f)
+                       for prev_row in prev_data.get("main", [])[1:]:
+                           symbol = prev_row[1]
+                           val = prev_row[5]
+                           if isinstance(val, int):
+                               sent_percent = val
+                           elif isinstance(val, str) and val.isdigit():
+                               sent_percent = int(val)
+                           else:
+                               sent_percent = 0
+                           last_sent_map[symbol] = sent_percent
+               except Exception as e:
                     print(f"⚠️ Не вдалося зчитати {prev_file}: {e}")
 
             for row in data["main"][1:]:
