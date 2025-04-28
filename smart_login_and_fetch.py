@@ -161,12 +161,12 @@ def get_adv_from_finviz(symbol, cache):
 
 # -----------Парс сторінки---------
 
-def safe_int(value):
+# ----- Безпечне перетворення рядка у int -----
+def safe_int(s):
     try:
-        return int(str(value).replace(",", "").strip())
-    except:
+        return int(str(s).replace(",", "").strip())
+    except (ValueError, TypeError):
         return 0
-
 
 def parse_table_from_message_table(soup, driver):
     while True:
@@ -178,11 +178,9 @@ def parse_table_from_message_table(soup, driver):
         soup = BeautifulSoup(driver.page_source, "html.parser")
 
     rows = table.find_all("tr")
-    archive_buy = defaultdict(lambda: [["Update Time", "Imbalance", "Paired"]])
-    archive_sell = defaultdict(
-        lambda: [["Update Time", "Imbalance", "Paired"]])
-    latest_buy = {}
-    latest_sell = {}
+    all_times = []
+
+    temp_data = []
 
     for row in rows[1:]:
         cells = row.find_all("td", recursive=False)
@@ -197,43 +195,37 @@ def parse_table_from_message_table(soup, driver):
         imbalance = safe_int(cells[3].get_text())
         paired = safe_int(cells[4].get_text())
 
-        # 🛡️ Фільтрація:
         if not symbol or imbalance == 0:
             continue
 
-        # Додаємо завжди до архіву
-        target_archive = archive_buy if side == "B" else archive_sell
-        target_archive[symbol].append([time_val, imbalance, paired])
+        temp_data.append((time_val, symbol, side, imbalance, paired))
+        all_times.append(time_val)
 
-        # Оновлюємо latest тільки якщо кращий час або більший imbalance
-        target_latest = latest_buy if side == "B" else latest_sell
-        current = target_latest.get(symbol)
+    # знайти останній час
+    if not all_times:
+        print("⚠️ Немає даних!")
+        return {"buy": {"main": [], "archive": {}}, "sell": {"main": [], "archive": {}}}
 
-        if not current:
-            target_latest[symbol] = (time_val, imbalance, paired)
-        else:
-            current_time, current_imbalance, _ = current
-            if time_val > current_time or (time_val == current_time and imbalance > current_imbalance):
-                target_latest[symbol] = (time_val, imbalance, paired)
+    latest_time = max(all_times)
+    print(f"🕒 Визначено найновіший час: {latest_time}")
 
-    # 📚 Сортуємо архіви за часом
-    for archive in (archive_buy, archive_sell):
-        for symbol, records in archive.items():
-            if len(records) > 1:
-                header, *data_rows = records
-                sorted_rows = sorted(data_rows, key=lambda r: r[0])
-                archive[symbol] = [header] + sorted_rows
-
-    # Формуємо основні таблиці
+    archive_buy = defaultdict(lambda: [["Update Time", "Imbalance", "Paired"]])
+    archive_sell = defaultdict(
+        lambda: [["Update Time", "Imbalance", "Paired"]])
     main_buy = [["Update Time", "Symbol",
                  "Imbalance", "Paired", "ADV", "% ImbADV"]]
-    for symbol, (t, imb, paired) in latest_buy.items():
-        main_buy.append([t, symbol, imb, paired, "", ""])
-
     main_sell = [["Update Time", "Symbol",
                   "Imbalance", "Paired", "ADV", "% ImbADV"]]
-    for symbol, (t, imb, paired) in latest_sell.items():
-        main_sell.append([t, symbol, imb, paired, "", ""])
+
+    for time_val, symbol, side, imbalance, paired in temp_data:
+        target_archive = archive_buy if side == "B" else archive_sell
+        target_main = main_buy if side == "B" else main_sell
+
+        target_archive[symbol].append([time_val, imbalance, paired])
+
+        # тільки якщо час свіжий
+        if time_val == latest_time:
+            target_main.append([time_val, symbol, imbalance, paired, "", ""])
 
     return {
         "buy": {"main": main_buy, "archive": dict(archive_buy)},
