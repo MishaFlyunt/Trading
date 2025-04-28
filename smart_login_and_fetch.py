@@ -1,3 +1,4 @@
+import re
 import os
 import time
 import json
@@ -161,6 +162,11 @@ def get_adv_from_finviz(symbol, cache):
 # -----------Парс сторінки---------
 
 
+def safe_int(text):
+    clean_text = re.sub(r"[^\d]", "", text)
+    return int(clean_text) if clean_text else 0
+
+
 def parse_table_from_message_table(soup, driver):
     while True:
         table = soup.find("table", id="MainContent_MessageTable")
@@ -170,71 +176,60 @@ def parse_table_from_message_table(soup, driver):
         time.sleep(60)
         soup = BeautifulSoup(driver.page_source, "html.parser")
 
-    rows = table.find_all("tr")
+    tbody = table.find("tbody")
+    if not tbody:
+        print("⚠️ Не знайдено <tbody> в таблиці.")
+        return {"buy": {"main": [], "archive": {}}, "sell": {"main": [], "archive": {}}}
+
+    rows = tbody.find_all("tr", recursive=False)
+
     archive_buy = defaultdict(lambda: [["Update Time", "Imbalance", "Paired"]])
     archive_sell = defaultdict(
         lambda: [["Update Time", "Imbalance", "Paired"]])
     latest_buy = {}
     latest_sell = {}
 
-    active_symbols_buy = set()
-    active_symbols_sell = set()
-
     for row in rows[1:]:
-        cells = row.find_all("td")
+        cells = row.find_all("td", recursive=False)
         if len(cells) < 5:
             continue
 
-        time_val = cells[0].text.strip()
+        time_val = cells[0].get_text(strip=True)
         symbol_tag = cells[1].find("a")
-        symbol = symbol_tag.text.strip(
-        ) if symbol_tag else cells[1].text.strip()
-        side = cells[2].text.strip()
-        imbalance = int(cells[3].text.strip().replace(
-            ",", "")) if cells[3].text.strip() else 0
-        paired = int(cells[4].text.strip().replace(
-            ",", "")) if cells[4].text.strip() else 0
+        symbol = symbol_tag.get_text(
+            strip=True) if symbol_tag else cells[1].get_text(strip=True)
+        side = cells[2].get_text(strip=True)
+        imbalance = safe_int(cells[3].get_text())
+        paired = safe_int(cells[4].get_text())
 
-        # Додаємо до архіву завжди
+        # Завжди додаємо до архіву
         target_archive = archive_buy if side == "B" else archive_sell
         target_archive[symbol].append([time_val, imbalance, paired])
 
-        # Запам'ятовуємо активні символи
-        if side == "B":
-            active_symbols_buy.add(symbol)
-            # Зберігаємо лише найновіший запис
-            if symbol not in latest_buy or time_val > latest_buy[symbol][0]:
-                latest_buy[symbol] = (time_val, imbalance, paired)
-        else:
-            active_symbols_sell.add(symbol)
-            if symbol not in latest_sell or time_val > latest_sell[symbol][0]:
-                latest_sell[symbol] = (time_val, imbalance, paired)
+        # Зберігаємо лише найновіший запис
+        target_latest = latest_buy if side == "B" else latest_sell
+        if symbol not in target_latest or time_val > target_latest[symbol][0]:
+            target_latest[symbol] = (time_val, imbalance, paired)
 
-    # 📚 Сортуємо архіви за часом для кожного символу
+    # Сортуємо архіви за часом
     for archive in (archive_buy, archive_sell):
         for symbol, records in archive.items():
             if len(records) > 1:
                 header, *data_rows = records
-                # сортуємо за часом
                 sorted_rows = sorted(data_rows, key=lambda r: r[0])
                 archive[symbol] = [header] + sorted_rows
 
-    # Формуємо основні таблиці лише для символів, які є зараз на сторінці
-    main_buy = [["Update Time", "Symbol",
-                 "Imbalance", "Paired", "ADV", "% ImbADV"]]
-    for symbol in active_symbols_buy:
-        t, imb, paired = latest_buy[symbol]
-        main_buy.append([t, symbol, imb, paired, "", ""])
-
-    main_sell = [["Update Time", "Symbol",
-                  "Imbalance", "Paired", "ADV", "% ImbADV"]]
-    for symbol in active_symbols_sell:
-        t, imb, paired = latest_sell[symbol]
-        main_sell.append([t, symbol, imb, paired, "", ""])
+    # Формуємо основні таблиці
+    main_buy = [["Update Time", "Symbol", "Imbalance", "Paired", "ADV", "% ImbADV"]] + [
+        [t, symbol, imb, paired, "", ""] for symbol, (t, imb, paired) in latest_buy.items()
+    ]
+    main_sell = [["Update Time", "Symbol", "Imbalance", "Paired", "ADV", "% ImbADV"]] + [
+        [t, symbol, imb, paired, "", ""] for symbol, (t, imb, paired) in latest_sell.items()
+    ]
 
     return {
         "buy": {"main": main_buy, "archive": dict(archive_buy)},
-        "sell": {"main": main_sell, "archive": dict(archive_sell)}
+        "sell": {"main": main_sell, "archive": dict(archive_sell)},
     }
 # ----------Телеграм повідомлення----------
 async def send_telegram_message(message):
