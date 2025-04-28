@@ -161,13 +161,6 @@ def get_adv_from_finviz(symbol, cache):
 
 # -----------Парс сторінки---------
 
-# ----- Безпечне перетворення рядка у int -----
-def safe_int(s):
-    try:
-        return int(str(s).replace(",", "").strip())
-    except (ValueError, TypeError):
-        return 0
-
 def parse_table_from_message_table(soup, driver):
     while True:
         table = soup.find("table", id="MainContent_MessageTable")
@@ -189,8 +182,7 @@ def parse_table_from_message_table(soup, driver):
 
         time_val = cells[0].get_text(strip=True)
         symbol_tag = cells[1].find("a")
-        symbol = symbol_tag.get_text(
-            strip=True) if symbol_tag else cells[1].get_text(strip=True)
+        symbol = symbol_tag.get_text(strip=True) if symbol_tag else cells[1].get_text(strip=True)
         side = cells[2].get_text(strip=True)
         imbalance = safe_int(cells[3].get_text())
         paired = safe_int(cells[4].get_text())
@@ -210,12 +202,9 @@ def parse_table_from_message_table(soup, driver):
     print(f"🕒 Визначено найновіший час: {latest_time}")
 
     archive_buy = defaultdict(lambda: [["Update Time", "Imbalance", "Paired"]])
-    archive_sell = defaultdict(
-        lambda: [["Update Time", "Imbalance", "Paired"]])
-    main_buy = [["Update Time", "Symbol",
-                 "Imbalance", "Paired", "ADV", "% ImbADV"]]
-    main_sell = [["Update Time", "Symbol",
-                  "Imbalance", "Paired", "ADV", "% ImbADV"]]
+    archive_sell = defaultdict(lambda: [["Update Time", "Imbalance", "Paired"]])
+    main_buy = [["Update Time", "Symbol", "Imbalance", "Paired", "ADV", "% ImbADV"]]
+    main_sell = [["Update Time", "Symbol", "Imbalance", "Paired", "ADV", "% ImbADV"]]
 
     for time_val, symbol, side, imbalance, paired in temp_data:
         target_archive = archive_buy if side == "B" else archive_sell
