@@ -162,9 +162,11 @@ def get_adv_from_finviz(symbol, cache):
 # -----------Парс сторінки---------
 
 
-def safe_int(text):
-    clean_text = re.sub(r"[^\d]", "", text)
-    return int(clean_text) if clean_text else 0
+def safe_int(value):
+    try:
+        return int(str(value).replace(",", "").strip())
+    except:
+        return 0
 
 
 def parse_table_from_message_table(soup, driver):
@@ -176,13 +178,7 @@ def parse_table_from_message_table(soup, driver):
         time.sleep(60)
         soup = BeautifulSoup(driver.page_source, "html.parser")
 
-    tbody = table.find("tbody")
-    if not tbody:
-        print("⚠️ Не знайдено <tbody> в таблиці.")
-        return {"buy": {"main": [], "archive": {}}, "sell": {"main": [], "archive": {}}}
-
-    rows = tbody.find_all("tr", recursive=False)
-
+    rows = table.find_all("tr")
     archive_buy = defaultdict(lambda: [["Update Time", "Imbalance", "Paired"]])
     archive_sell = defaultdict(
         lambda: [["Update Time", "Imbalance", "Paired"]])
@@ -202,16 +198,22 @@ def parse_table_from_message_table(soup, driver):
         imbalance = safe_int(cells[3].get_text())
         paired = safe_int(cells[4].get_text())
 
-        # Завжди додаємо до архіву
+        # Додаємо завжди до архіву
         target_archive = archive_buy if side == "B" else archive_sell
         target_archive[symbol].append([time_val, imbalance, paired])
 
-        # Зберігаємо лише найновіший запис
+        # Оновлюємо latest тільки якщо кращий час або більший imbalance
         target_latest = latest_buy if side == "B" else latest_sell
-        if symbol not in target_latest or time_val > target_latest[symbol][0]:
-            target_latest[symbol] = (time_val, imbalance, paired)
+        current = target_latest.get(symbol)
 
-    # Сортуємо архіви за часом
+        if not current:
+            target_latest[symbol] = (time_val, imbalance, paired)
+        else:
+            current_time, current_imbalance, _ = current
+            if time_val > current_time or (time_val == current_time and imbalance > current_imbalance):
+                target_latest[symbol] = (time_val, imbalance, paired)
+
+    # 📚 Сортуємо архіви за часом
     for archive in (archive_buy, archive_sell):
         for symbol, records in archive.items():
             if len(records) > 1:
@@ -220,17 +222,21 @@ def parse_table_from_message_table(soup, driver):
                 archive[symbol] = [header] + sorted_rows
 
     # Формуємо основні таблиці
-    main_buy = [["Update Time", "Symbol", "Imbalance", "Paired", "ADV", "% ImbADV"]] + [
-        [t, symbol, imb, paired, "", ""] for symbol, (t, imb, paired) in latest_buy.items()
-    ]
-    main_sell = [["Update Time", "Symbol", "Imbalance", "Paired", "ADV", "% ImbADV"]] + [
-        [t, symbol, imb, paired, "", ""] for symbol, (t, imb, paired) in latest_sell.items()
-    ]
+    main_buy = [["Update Time", "Symbol",
+                 "Imbalance", "Paired", "ADV", "% ImbADV"]]
+    for symbol, (t, imb, paired) in latest_buy.items():
+        main_buy.append([t, symbol, imb, paired, "", ""])
+
+    main_sell = [["Update Time", "Symbol",
+                  "Imbalance", "Paired", "ADV", "% ImbADV"]]
+    for symbol, (t, imb, paired) in latest_sell.items():
+        main_sell.append([t, symbol, imb, paired, "", ""])
 
     return {
         "buy": {"main": main_buy, "archive": dict(archive_buy)},
-        "sell": {"main": main_sell, "archive": dict(archive_sell)},
+        "sell": {"main": main_sell, "archive": dict(archive_sell)}
     }
+
 # ----------Телеграм повідомлення----------
 async def send_telegram_message(message):
     try:
