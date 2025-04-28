@@ -161,7 +161,6 @@ def get_adv_from_finviz(symbol, cache):
 
 # -----------Парс сторінки---------
 
-
 def safe_int(value):
     try:
         return int(str(value).replace(",", "").strip())
@@ -197,6 +196,10 @@ def parse_table_from_message_table(soup, driver):
         side = cells[2].get_text(strip=True)
         imbalance = safe_int(cells[3].get_text())
         paired = safe_int(cells[4].get_text())
+
+        # 🛡️ Фільтрація:
+        if not symbol or imbalance == 0:
+            continue
 
         # Додаємо завжди до архіву
         target_archive = archive_buy if side == "B" else archive_sell
