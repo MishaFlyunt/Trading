@@ -336,6 +336,7 @@ async def perform_login(driver, max_retries=5):
 
     for attempt in range(1, max_retries + 1):
         driver.get("http://www.amerxmocs.com/Account/Login.aspx")
+        await asyncio.sleep(2)  # Невелика пауза на завантаження
 
         from selenium.webdriver.support.ui import WebDriverWait
         from selenium.webdriver.support import expected_conditions as EC
