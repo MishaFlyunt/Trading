@@ -413,11 +413,11 @@ async def main():
             data = parsed[kind]
             for i in range(1, len(data["main"])):
                 row = data["main"][i]
-    raw_symbol = row[1]
-    clean_symbol = raw_symbol.replace(".", "-").replace(" ", "-").upper()
+                raw_symbol = row[1]
+                clean_symbol = raw_symbol.replace(".", "-").replace(" ", "-").upper()
 
-    imbalance = float(row[2])
-    adv = get_adv_from_finviz(clean_symbol, adv_cache)
+                imbalance = float(row[2])
+                adv = get_adv_from_finviz(clean_symbol, adv_cache)
 
                 
                 row[4] = str(adv)
