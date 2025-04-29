@@ -371,7 +371,7 @@ async def perform_login(driver, max_retries=5):
     print(f"❌ Всі {max_retries} спроби логіну вичерпані. Завершення роботи.")
     return False
 
-# ---------П----------
+# ---------Підтримка сесії і обробка повідомлень для Телеграм----------
 async def main():
    
     try:
