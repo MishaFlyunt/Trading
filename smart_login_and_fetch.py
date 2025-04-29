@@ -247,12 +247,13 @@ def parse_table_from_message_table(soup, driver):
                  "Imbalance", "Paired", "ADV", "% ImbADV"]]
     for _, (orig, t, imb, paired) in merged_latest_buy.items():
         clean_symbol = re.sub(r"[.\s]", "-", orig.upper())
-    main_buy.append([t, clean_symbol, imb, paired, "", ""])
+        main_buy.append([t, clean_symbol, imb, paired, "", ""])
 
     main_sell = [["Update Time", "Symbol",
                   "Imbalance", "Paired", "ADV", "% ImbADV"]]
-    for norm, (orig, t, imb, paired) in merged_latest_sell.items():
-        main_sell.append([t, orig, imb, paired, "", ""])
+    for _, (orig, t, imb, paired) in merged_latest_sell.items():
+        clean_symbol = re.sub(r"[.\s]", "-", orig.upper())
+        main_sell.append([t, clean_symbol, imb, paired, "", ""])
 
     return {
         "buy": {"main": main_buy, "archive": dict(archive_buy)},
