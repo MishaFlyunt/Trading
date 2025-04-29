@@ -96,7 +96,7 @@ def git_commit_and_push():
 
 # -----------Finviz--------
 def get_adv_from_finviz(symbol, cache):
-    if any(char in symbol for char in ['.', ' ']):
+    if any(char in symbol for char in ['.', '-', ' ']):
         # print(f"⚠️ Символ {symbol} містить недопустимі символи. ADV = 0")
         cache[symbol] = {
             "adv": 0,
@@ -162,105 +162,74 @@ def get_adv_from_finviz(symbol, cache):
 # -----------Парс сторінки---------
 
 
+def safe_int(val):
+    try:
+        return int(val.replace(",", "").strip())
+    except Exception:
+        return 0
+
+
 def parse_table_from_message_table(soup, driver):
     while True:
-        buy_table = soup.find("table", id="MainContent_BuyTable")
-        sell_table = soup.find("table", id="MainContent_SellTable")
-        if buy_table and sell_table:
+        table = soup.find("table", id="MainContent_MessageTable")
+        if table:
             break
-        print("🕒 Таблиці BUY/SELL ще не доступні, повторна перевірка через 60 сек...")
+        print("🕒 Таблиця ще не доступна, повторна перевірка через 60 сек...")
         time.sleep(60)
         soup = BeautifulSoup(driver.page_source, "html.parser")
 
-    def normalize_symbol(symbol):
-        return re.sub(r"[.\s]", "-", symbol.upper())
+    rows = table.find_all("tr")
 
-    def parse_span(span_text):
-        """ Парсить архів всередині <span> у форматі [(time, side, imbalance, paired)] """
-        records = []
-        lines = span_text.split("<br>")
-        for line in lines:
-            line = BeautifulSoup(line, "html.parser").text.strip()
-            match = re.search(
-                r'Time:(\d{2}:\d{2}:\d{2})\s+(Buy|Sell):([\d,]+)\s+PO:([\d,]+)', line)
-            if match:
-                time_val = match.group(1)
-                side = match.group(2).upper()
-                imbalance = int(match.group(3).replace(",", ""))
-                paired = int(match.group(4).replace(",", ""))
-                records.append((time_val, side, imbalance, paired))
-        return records
-
-    archive_buy = defaultdict(
-        lambda: [["Update Time", "Side", "Imbalance", "Paired"]])
+    archive_buy = defaultdict(lambda: [["Update Time", "Imbalance", "Paired"]])
     archive_sell = defaultdict(
-        lambda: [["Update Time", "Side", "Imbalance", "Paired"]])
-    merged_latest_buy = {}
-    merged_latest_sell = {}
-    # normalized_symbol → list of (original_symbol, time, imb, paired)
-    symbol_variants = defaultdict(list)
+        lambda: [["Update Time", "Imbalance", "Paired"]])
+    latest_buy = {}
+    latest_sell = {}
 
-    def process_table(table, is_buy):
-        rows = table.find_all("tr")[1:]
-        for row in rows:
-            cells = row.find_all("td")
-            if len(cells) < 7:
-                continue
+    for row in rows[1:]:
+        cells = row.find_all("td")
+        if len(cells) < 5:
+            continue
 
-            symbol_tag = cells[2].find("a")
-            if not symbol_tag:
-                continue
-            original_symbol = symbol_tag.text.strip()
-            normalized = normalize_symbol(original_symbol)
+        time_val = cells[0].get_text(strip=True)
+        symbol_tag = cells[1].find("a")
+        symbol = symbol_tag.get_text(
+            strip=True) if symbol_tag else cells[1].get_text(strip=True)
+        side = cells[2].get_text(strip=True)
 
-            span = symbol_tag.find("span")
-            if not span:
-                continue
+        imbalance = safe_int(cells[3].get_text())
+        paired = safe_int(cells[4].get_text())
 
-            update_time = cells[1].text.strip()
-            imbalance = int(cells[3].text.strip().replace(
-                ",", "")) if cells[3].text.strip() else 0
-            paired = int(cells[4].text.strip().replace(
-                ",", "")) if cells[4].text.strip() else 0
+        if not symbol or not side:
+            continue  # пропустити пусті рядки
 
-            archive = archive_buy if is_buy else archive_sell
-            merged_latest = merged_latest_buy if is_buy else merged_latest_sell
+        # Додаємо в архів
+        target_archive = archive_buy if side == "B" else archive_sell
+        target_archive[symbol].append([time_val, imbalance, paired])
 
-            archive[original_symbol].append(
-                [update_time, "BUY" if is_buy else "SELL", imbalance, paired])
-            span_records = parse_span(str(span))
-            for t, side, imb, p in span_records:
-                archive[original_symbol].append([t, side, imb, p])
+        # Оновлюємо найновіший запис
+        target_latest = latest_buy if side == "B" else latest_sell
+        if symbol not in target_latest or time_val > target_latest[symbol][0]:
+            target_latest[symbol] = (time_val, imbalance, paired)
 
-            symbol_variants[normalized].append(
-                (original_symbol, update_time, imbalance, paired))
-
-            # обираємо найсвіжішу з нормалізованих
-            if normalized not in merged_latest or update_time > merged_latest[normalized][1]:
-                merged_latest[normalized] = (
-                    original_symbol, update_time, imbalance, paired)
-
-    process_table(buy_table, is_buy=True)
-    process_table(sell_table, is_buy=False)
-
-    # Сортування архіву
+    # Сортуємо архіви по часу для кожного символу
     for archive in (archive_buy, archive_sell):
         for symbol, records in archive.items():
             if len(records) > 1:
-                header, *rows = records
-                sorted_rows = sorted(rows, key=lambda r: r[0], reverse=True)
+                header, *data_rows = records
+                sorted_rows = sorted(data_rows, key=lambda r: r[0])
                 archive[symbol] = [header] + sorted_rows
 
-    # Формуємо основні таблиці
+    # Основні таблиці
     main_buy = [["Update Time", "Symbol",
                  "Imbalance", "Paired", "ADV", "% ImbADV"]]
-    for norm, (orig, t, imb, paired) in merged_latest_buy.items():
-        main_buy.append([t, orig, imb, paired, "", ""])
+    for symbol, (t, imb, paired) in latest_buy.items():
+        main_buy.append([t, symbol, imb, paired, "", ""])
 
     main_sell = [["Update Time", "Symbol",
                   "Imbalance", "Paired", "ADV", "% ImbADV"]]
-    for norm, (orig, t, imb, paired) in merged_latest_sell.items():
-        main_sell.append([t, orig, imb, paired, "", ""])
+    for symbol, (t, imb, paired) in latest_sell.items():
+        main_sell.append([t, symbol, imb, paired, "", ""])
 
     return {
         "buy": {"main": main_buy, "archive": dict(archive_buy)},
@@ -331,60 +300,44 @@ async def start_driver_with_retry(max_retries=3):
                 raise e
 
 # ---------Логін на сайті www.amerxmocs.com----------
-async def perform_login(driver, max_retries=5):
-    print("🔓 Сесія неактивна. Виконуємо логін...")
-
-    for attempt in range(1, max_retries + 1):
-        driver.get("http://www.amerxmocs.com/Account/Login.aspx")
-        await asyncio.sleep(2)  # Невелика пауза на завантаження
-
-        from selenium.webdriver.support.ui import WebDriverWait
-        from selenium.webdriver.support import expected_conditions as EC
-
-        try:
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.ID, "MainContent_UserName"))
-            )
-            driver.find_element(By.ID, "MainContent_UserName").clear()
-            driver.find_element(
-                By.ID, "MainContent_UserName").send_keys(USERNAME)
-            driver.find_element(By.ID, "MainContent_Password").clear()
-            driver.find_element(
-                By.ID, "MainContent_Password").send_keys(PASSWORD)
-            driver.find_element(By.ID, "MainContent_LoginButton").click()
-
-            # Чекаємо після кліку до 20 сек чи залогінився
-            for _ in range(20):
-                await asyncio.sleep(1)
-                if is_logged_in(driver):
-                    print(f"✅ Логін успішний на спробі {attempt}!")
-                    return True
-
-            print(
-                f"⚠️ Логін не спрацював на спробі {attempt}. Повтор через 10 секунд...")
-            await asyncio.sleep(10)
-
-        except Exception as e:
-            print(f"❌ Помилка при логіні на спробі {attempt}: {e}")
-            await asyncio.sleep(10)
-
-    print(f"❌ Всі {max_retries} спроби логіну вичерпані. Завершення роботи.")
-    return False
-
-# ---------Підтримка сесії і обробка повідомлень для Телеграм----------
 async def main():
-   
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+
     try:
         driver = await start_driver_with_retry()
         print("🔐 Перевіряємо статус сесії...")
         driver.get("http://www.amerxmocs.com/Default.aspx?index=")
         await asyncio.sleep(3)
 
-        if not is_logged_in(driver):
-             success = await perform_login(driver)
-             if not success:
-                return
+        if "Account/Login.aspx" in driver.current_url:
+            print("🔓 Сесія неактивна. Виконуємо логін...")
+            driver.get("http://www.amerxmocs.com/Account/Login.aspx")
 
+            for attempt in range(20):
+                try:
+                    WebDriverWait(driver, 5).until(
+                        EC.presence_of_element_located(
+                            (By.ID, "MainContent_UserName"))
+                    )
+                    driver.find_element(By.ID, "MainContent_UserName").clear()
+                    driver.find_element(
+                        By.ID, "MainContent_UserName").send_keys(USERNAME)
+                    driver.find_element(By.ID, "MainContent_Password").clear()
+                    driver.find_element(
+                        By.ID, "MainContent_Password").send_keys(PASSWORD)
+                    driver.find_element(
+                        By.ID, "MainContent_LoginButton").click()
+                    await asyncio.sleep(3)
+                    print("✅ Логін виконано або обробляється...")
+                    break
+                except Exception:
+                    print(
+                        f"⏳ Логін ще недоступний ({attempt+1}/20). Повтор через 60 сек...")
+                    await asyncio.sleep(60)
+            else:
+                print("❌ Не вдалося залогінитись після 20 спроб. Вихід.")
+                return
     except Exception as e:
         print(f"❌ Помилка ініціалізації драйвера або логіну: {e}")
         return
