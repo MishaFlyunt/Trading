@@ -330,10 +330,50 @@ async def start_driver_with_retry(max_retries=3):
                 print("❌ Всі спроби вичерпані. Завершення скрипта.")
                 raise e
 
+
+async def perform_login(driver, max_retries=5):
+    print("🔓 Сесія неактивна. Виконуємо логін...")
+
+    for attempt in range(1, max_retries + 1):
+        driver.get("http://www.amerxmocs.com/Account/Login.aspx")
+
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
+
+        try:
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, "MainContent_UserName"))
+            )
+            driver.find_element(By.ID, "MainContent_UserName").clear()
+            driver.find_element(
+                By.ID, "MainContent_UserName").send_keys(USERNAME)
+            driver.find_element(By.ID, "MainContent_Password").clear()
+            driver.find_element(
+                By.ID, "MainContent_Password").send_keys(PASSWORD)
+            driver.find_element(By.ID, "MainContent_LoginButton").click()
+
+            # Чекаємо після кліку до 20 сек чи залогінився
+            for _ in range(20):
+                await asyncio.sleep(1)
+                if is_logged_in(driver):
+                    print(f"✅ Логін успішний на спробі {attempt}!")
+                    return True
+
+            print(
+                f"⚠️ Логін не спрацював на спробі {attempt}. Повтор через 10 секунд...")
+            await asyncio.sleep(10)
+
+        except Exception as e:
+            print(f"❌ Помилка при логіні на спробі {attempt}: {e}")
+            await asyncio.sleep(10)
+
+    print(f"❌ Всі {max_retries} спроби логіну вичерпані. Завершення роботи.")
+    return False
+
 # ---------Логін на сайті www.amerxmocs.com----------
 async def main():
-    from selenium.webdriver.support.ui import WebDriverWait
-    from selenium.webdriver.support import expected_conditions as EC
+    # from selenium.webdriver.support.ui import WebDriverWait
+    # from selenium.webdriver.support import expected_conditions as EC
 
     try:
         driver = await start_driver_with_retry()
@@ -341,34 +381,39 @@ async def main():
         driver.get("http://www.amerxmocs.com/Default.aspx?index=")
         await asyncio.sleep(3)
 
-        if "Account/Login.aspx" in driver.current_url:
-            print("🔓 Сесія неактивна. Виконуємо логін...")
-            driver.get("http://www.amerxmocs.com/Account/Login.aspx")
-
-            for attempt in range(23):
-                try:
-                    WebDriverWait(driver, 5).until(
-                        EC.presence_of_element_located(
-                            (By.ID, "MainContent_UserName"))
-                    )
-                    driver.find_element(By.ID, "MainContent_UserName").clear()
-                    driver.find_element(
-                        By.ID, "MainContent_UserName").send_keys(USERNAME)
-                    driver.find_element(By.ID, "MainContent_Password").clear()
-                    driver.find_element(
-                        By.ID, "MainContent_Password").send_keys(PASSWORD)
-                    driver.find_element(
-                        By.ID, "MainContent_LoginButton").click()
-                    await asyncio.sleep(3)
-                    print("✅ Логін виконано або обробляється...")
-                    break
-                except Exception:
-                    print(
-                        f"⏳ Логін ще недоступний ({attempt+1}/20). Повтор через 60 сек...")
-                    await asyncio.sleep(60)
-            else:
-                print("❌ Не вдалося залогінитись після 20 спроб. Вихід.")
+        if not is_logged_in(driver):
+             success = await perform_login(driver)
+             if not success:
                 return
+
+        # if "Account/Login.aspx" in driver.current_url:
+        #     print("🔓 Сесія неактивна. Виконуємо логін...")
+        #     driver.get("http://www.amerxmocs.com/Account/Login.aspx")
+
+        #     for attempt in range(23):
+        #         try:
+        #             WebDriverWait(driver, 5).until(
+        #                 EC.presence_of_element_located(
+        #                     (By.ID, "MainContent_UserName"))
+        #             )
+        #             driver.find_element(By.ID, "MainContent_UserName").clear()
+        #             driver.find_element(
+        #                 By.ID, "MainContent_UserName").send_keys(USERNAME)
+        #             driver.find_element(By.ID, "MainContent_Password").clear()
+        #             driver.find_element(
+        #                 By.ID, "MainContent_Password").send_keys(PASSWORD)
+        #             driver.find_element(
+        #                 By.ID, "MainContent_LoginButton").click()
+        #             await asyncio.sleep(3)
+        #             print("✅ Логін виконано або обробляється...")
+        #             break
+        #         except Exception:
+        #             print(
+        #                 f"⏳ Логін ще недоступний ({attempt+1}/20). Повтор через 60 сек...")
+        #             await asyncio.sleep(60)
+        #     else:
+        #         print("❌ Не вдалося залогінитись після 20 спроб. Вихід.")
+        #         return
     except Exception as e:
         print(f"❌ Помилка ініціалізації драйвера або логіну: {e}")
         return
