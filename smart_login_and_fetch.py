@@ -373,9 +373,7 @@ async def perform_login(driver, max_retries=5):
 
 # ---------Логін на сайті www.amerxmocs.com----------
 async def main():
-    # from selenium.webdriver.support.ui import WebDriverWait
-    # from selenium.webdriver.support import expected_conditions as EC
-
+   
     try:
         driver = await start_driver_with_retry()
         print("🔐 Перевіряємо статус сесії...")
@@ -387,34 +385,6 @@ async def main():
              if not success:
                 return
 
-        # if "Account/Login.aspx" in driver.current_url:
-        #     print("🔓 Сесія неактивна. Виконуємо логін...")
-        #     driver.get("http://www.amerxmocs.com/Account/Login.aspx")
-
-        #     for attempt in range(23):
-        #         try:
-        #             WebDriverWait(driver, 5).until(
-        #                 EC.presence_of_element_located(
-        #                     (By.ID, "MainContent_UserName"))
-        #             )
-        #             driver.find_element(By.ID, "MainContent_UserName").clear()
-        #             driver.find_element(
-        #                 By.ID, "MainContent_UserName").send_keys(USERNAME)
-        #             driver.find_element(By.ID, "MainContent_Password").clear()
-        #             driver.find_element(
-        #                 By.ID, "MainContent_Password").send_keys(PASSWORD)
-        #             driver.find_element(
-        #                 By.ID, "MainContent_LoginButton").click()
-        #             await asyncio.sleep(3)
-        #             print("✅ Логін виконано або обробляється...")
-        #             break
-        #         except Exception:
-        #             print(
-        #                 f"⏳ Логін ще недоступний ({attempt+1}/20). Повтор через 60 сек...")
-        #             await asyncio.sleep(60)
-        #     else:
-        #         print("❌ Не вдалося залогінитись після 20 спроб. Вихід.")
-        #         return
     except Exception as e:
         print(f"❌ Помилка ініціалізації драйвера або логіну: {e}")
         return
