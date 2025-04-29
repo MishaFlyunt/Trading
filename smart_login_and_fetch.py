@@ -96,7 +96,7 @@ def git_commit_and_push():
 
 # -----------Finviz--------
 def get_adv_from_finviz(symbol, cache):
-    if any(char in symbol for char in ['.', '-', ' ']):
+    if any(char in symbol for char in ['.', ' ']):
         # print(f"⚠️ Символ {symbol} містить недопустимі символи. ADV = 0")
         cache[symbol] = {
             "adv": 0,
@@ -162,74 +162,105 @@ def get_adv_from_finviz(symbol, cache):
 # -----------Парс сторінки---------
 
 
-def safe_int(val):
-    try:
-        return int(val.replace(",", "").strip())
-    except Exception:
-        return 0
-
-
 def parse_table_from_message_table(soup, driver):
     while True:
-        table = soup.find("table", id="MainContent_MessageTable")
-        if table:
+        buy_table = soup.find("table", id="MainContent_BuyTable")
+        sell_table = soup.find("table", id="MainContent_SellTable")
+        if buy_table and sell_table:
             break
-        print("🕒 Таблиця ще не доступна, повторна перевірка через 60 сек...")
+        print("🕒 Таблиці BUY/SELL ще не доступні, повторна перевірка через 60 сек...")
         time.sleep(60)
         soup = BeautifulSoup(driver.page_source, "html.parser")
 
-    rows = table.find_all("tr")
+    def normalize_symbol(symbol):
+        return re.sub(r"[.\s]", "-", symbol.upper())
 
-    archive_buy = defaultdict(lambda: [["Update Time", "Imbalance", "Paired"]])
+    def parse_span(span_text):
+        """ Парсить архів всередині <span> у форматі [(time, side, imbalance, paired)] """
+        records = []
+        lines = span_text.split("<br>")
+        for line in lines:
+            line = BeautifulSoup(line, "html.parser").text.strip()
+            match = re.search(
+                r'Time:(\d{2}:\d{2}:\d{2})\s+(Buy|Sell):([\d,]+)\s+PO:([\d,]+)', line)
+            if match:
+                time_val = match.group(1)
+                side = match.group(2).upper()
+                imbalance = int(match.group(3).replace(",", ""))
+                paired = int(match.group(4).replace(",", ""))
+                records.append((time_val, side, imbalance, paired))
+        return records
+
+    archive_buy = defaultdict(
+        lambda: [["Update Time", "Side", "Imbalance", "Paired"]])
     archive_sell = defaultdict(
-        lambda: [["Update Time", "Imbalance", "Paired"]])
-    latest_buy = {}
-    latest_sell = {}
+        lambda: [["Update Time", "Side", "Imbalance", "Paired"]])
+    merged_latest_buy = {}
+    merged_latest_sell = {}
+    # normalized_symbol → list of (original_symbol, time, imb, paired)
+    symbol_variants = defaultdict(list)
 
-    for row in rows[1:]:
-        cells = row.find_all("td")
-        if len(cells) < 5:
-            continue
+    def process_table(table, is_buy):
+        rows = table.find_all("tr")[1:]
+        for row in rows:
+            cells = row.find_all("td")
+            if len(cells) < 7:
+                continue
 
-        time_val = cells[0].get_text(strip=True)
-        symbol_tag = cells[1].find("a")
-        symbol = symbol_tag.get_text(
-            strip=True) if symbol_tag else cells[1].get_text(strip=True)
-        side = cells[2].get_text(strip=True)
+            symbol_tag = cells[2].find("a")
+            if not symbol_tag:
+                continue
+            original_symbol = symbol_tag.text.strip()
+            normalized = normalize_symbol(original_symbol)
 
-        imbalance = safe_int(cells[3].get_text())
-        paired = safe_int(cells[4].get_text())
+            span = symbol_tag.find("span")
+            if not span:
+                continue
 
-        if not symbol or not side:
-            continue  # пропустити пусті рядки
+            update_time = cells[1].text.strip()
+            imbalance = int(cells[3].text.strip().replace(
+                ",", "")) if cells[3].text.strip() else 0
+            paired = int(cells[4].text.strip().replace(
+                ",", "")) if cells[4].text.strip() else 0
 
-        # Додаємо в архів
-        target_archive = archive_buy if side == "B" else archive_sell
-        target_archive[symbol].append([time_val, imbalance, paired])
+            archive = archive_buy if is_buy else archive_sell
+            merged_latest = merged_latest_buy if is_buy else merged_latest_sell
 
-        # Оновлюємо найновіший запис
-        target_latest = latest_buy if side == "B" else latest_sell
-        if symbol not in target_latest or time_val > target_latest[symbol][0]:
-            target_latest[symbol] = (time_val, imbalance, paired)
+            archive[original_symbol].append(
+                [update_time, "BUY" if is_buy else "SELL", imbalance, paired])
+            span_records = parse_span(str(span))
+            for t, side, imb, p in span_records:
+                archive[original_symbol].append([t, side, imb, p])
 
-    # Сортуємо архіви по часу для кожного символу
+            symbol_variants[normalized].append(
+                (original_symbol, update_time, imbalance, paired))
+
+            # обираємо найсвіжішу з нормалізованих
+            if normalized not in merged_latest or update_time > merged_latest[normalized][1]:
+                merged_latest[normalized] = (
+                    original_symbol, update_time, imbalance, paired)
+
+    process_table(buy_table, is_buy=True)
+    process_table(sell_table, is_buy=False)
+
+    # Сортування архіву
     for archive in (archive_buy, archive_sell):
         for symbol, records in archive.items():
             if len(records) > 1:
-                header, *data_rows = records
-                sorted_rows = sorted(data_rows, key=lambda r: r[0])
+                header, *rows = records
+                sorted_rows = sorted(rows, key=lambda r: r[0], reverse=True)
                 archive[symbol] = [header] + sorted_rows
 
-    # Основні таблиці
+    # Формуємо основні таблиці
     main_buy = [["Update Time", "Symbol",
                  "Imbalance", "Paired", "ADV", "% ImbADV"]]
-    for symbol, (t, imb, paired) in latest_buy.items():
-        main_buy.append([t, symbol, imb, paired, "", ""])
+    for norm, (orig, t, imb, paired) in merged_latest_buy.items():
+        main_buy.append([t, orig, imb, paired, "", ""])
 
     main_sell = [["Update Time", "Symbol",
                   "Imbalance", "Paired", "ADV", "% ImbADV"]]
-    for symbol, (t, imb, paired) in latest_sell.items():
-        main_sell.append([t, symbol, imb, paired, "", ""])
+    for norm, (orig, t, imb, paired) in merged_latest_sell.items():
+        main_sell.append([t, orig, imb, paired, "", ""])
 
     return {
         "buy": {"main": main_buy, "archive": dict(archive_buy)},
@@ -507,7 +538,7 @@ async def main():
         git_commit_and_push()
 
         now = datetime.now()
-        if now.hour == 23:
+        if now.hour == 16:
             print("🛑 Завершення скрипта о 23:00")
 
             # 👉 Розлогінення перед завершенням
