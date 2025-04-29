@@ -330,7 +330,7 @@ async def start_driver_with_retry(max_retries=3):
                 print("❌ Всі спроби вичерпані. Завершення скрипта.")
                 raise e
 
-
+# ---------Логін на сайті www.amerxmocs.com----------
 async def perform_login(driver, max_retries=5):
     print("🔓 Сесія неактивна. Виконуємо логін...")
 
@@ -371,7 +371,7 @@ async def perform_login(driver, max_retries=5):
     print(f"❌ Всі {max_retries} спроби логіну вичерпані. Завершення роботи.")
     return False
 
-# ---------Логін на сайті www.amerxmocs.com----------
+# ---------П----------
 async def main():
    
     try:
