@@ -396,12 +396,11 @@
                   formatted = Number(c).toLocaleString();
                 }
 
-                // Підсвітка рядка залежно від Buy/Sell
-                if (idx === 1) {
-                  // Side колонка
-                  if (c === "Buy") {
+                if (idx === 1 && typeof c === "string") {
+                  const val = c.trim().toUpperCase();
+                  if (val === "BUY") {
                     formatted = "🟢 Buy";
-                  } else if (c === "Sell") {
+                  } else if (val === "SELL") {
                     formatted = "🔴 Sell";
                   }
                 }
