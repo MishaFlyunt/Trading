@@ -245,8 +245,9 @@ def parse_table_from_message_table(soup, driver):
     # Формуємо основні таблиці
     main_buy = [["Update Time", "Symbol",
                  "Imbalance", "Paired", "ADV", "% ImbADV"]]
-    for norm, (orig, t, imb, paired) in merged_latest_buy.items():
-        main_buy.append([t, orig, imb, paired, "", ""])
+    for _, (orig, t, imb, paired) in merged_latest_buy.items():
+        clean_symbol = re.sub(r"[.\s]", "-", orig.upper())
+    main_buy.append([t, clean_symbol, imb, paired, "", ""])
 
     main_sell = [["Update Time", "Symbol",
                   "Imbalance", "Paired", "ADV", "% ImbADV"]]
