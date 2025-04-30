@@ -164,6 +164,13 @@
         color: inherit;
       }
 
+      .archive-scroll {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #aaa;
+        margin-top: 5px;
+      }
+
       /* Темна тема */
       [data-theme="dark"] {
         --bg: #111;
@@ -389,7 +396,7 @@
           html += "</tr>";
 
           if (data.archive && data.archive[symbol]) {
-            html += `<tr class="archive-row hidden"><td colspan="${row.length}"><table class="archive-table"><thead><tr>`;
+            html += `<tr class="archive-row hidden"><td colspan="${row.length}"><div class="archive-scroll"><table class="archive-table"><thead><tr>`;
             data.archive[symbol][0].forEach((c) => {
               html += `<th>${c}</th>`;
             });
@@ -429,7 +436,7 @@
               html += "</tr>";
             });
 
-            html += "</tbody></table></td></tr>";
+            html += "</tbody></table></div></td></tr>";
           }
         }
 
