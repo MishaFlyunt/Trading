@@ -9,3 +9,5 @@ reset_log.txt
 debug_page.html
 reset_data.sh
 run_fetch_caffeinate.sh
+adv_cache.json
+smart_login_and_fetch.py
