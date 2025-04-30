@@ -216,12 +216,12 @@ def parse_table_from_message_table(soup, driver):
             archive = archive_buy if is_buy else archive_sell
             merged_latest = merged_latest_buy if is_buy else merged_latest_sell
 
-            archive[original_symbol].append(
+            archive[normalized].append(
                 [update_time, "BUY" if is_buy else "SELL", imbalance, paired])
             
             span_records = parse_span(str(span))
             for t, side, imb, p in span_records:
-                archive[original_symbol].append([t, side, imb, p])
+                archive[normalized].append([t, side, imb, p])
 
             symbol_variants[normalized].append(
                 (original_symbol, update_time, imbalance, paired))
@@ -234,30 +234,48 @@ def parse_table_from_message_table(soup, driver):
     process_table(buy_table, is_buy=True)
     process_table(sell_table, is_buy=False)
 
-    # Сортування архіву
-    for archive in (archive_buy, archive_sell):
-        for symbol, records in archive.items():
-            if len(records) > 1:
-                header, *rows = records
-                sorted_rows = sorted(rows, key=lambda r: r[0], reverse=True)
-                archive[symbol] = [header] + sorted_rows
+    # 🧹 Нормалізуємо archive — об’єднуємо за нормалізованим символом
+    def merge_archives_by_normalized(archive_raw):
+        normalized_map = defaultdict(list)
+        for symbol, records in archive_raw.items():
+            normalized = normalize_symbol(symbol)
+            normalized_map[normalized].extend(records[1:])  # skip header
+
+        result = {}
+        for norm, entries in normalized_map.items():
+            # Видаляємо повні дублікати
+            seen = set()
+            unique_entries = []
+            for row in entries:
+                key = tuple(row)
+                if key not in seen:
+                    unique_entries.append(row)
+                    seen.add(key)
+
+            # Сортуємо за часом
+            sorted_rows = sorted(
+                unique_entries, key=lambda r: r[0], reverse=True)
+            result[norm] = [["Update Time", "Side",
+                             "Imbalance", "Paired"]] + sorted_rows
+        return result
+
+    archive_buy = merge_archives_by_normalized(archive_buy)
+    archive_sell = merge_archives_by_normalized(archive_sell)
 
     # Формуємо основні таблиці
     main_buy = [["Update Time", "Symbol",
                  "Imbalance", "Paired", "ADV", "% ImbADV"]]
     for _, (orig, t, imb, paired) in merged_latest_buy.items():
-        clean_symbol = re.sub(r"[.\s]", "-", orig.upper())
-        main_buy.append([t, clean_symbol, imb, paired, "", ""])
+        main_buy.append([t, orig, imb, paired, "", ""])
 
     main_sell = [["Update Time", "Symbol",
                   "Imbalance", "Paired", "ADV", "% ImbADV"]]
     for _, (orig, t, imb, paired) in merged_latest_sell.items():
-        clean_symbol = re.sub(r"[.\s]", "-", orig.upper())
-        main_sell.append([t, clean_symbol, imb, paired, "", ""])
+        main_sell.append([t, orig, imb, paired, "", ""])
 
     return {
-        "buy": {"main": main_buy, "archive": dict(archive_buy)},
-        "sell": {"main": main_sell, "archive": dict(archive_sell)}
+        "buy": {"main": main_buy, "archive": archive_buy},
+        "sell": {"main": main_sell, "archive": archive_sell}
     }
 
 # ----------Телеграм повідомлення----------
@@ -495,7 +513,7 @@ async def main():
                     else:
                         arrow = "🔴⬇️"
                         side = "Sell"
-                    msg = f"{arrow} {side} ⚠️ДЕФІС  |  {symbol}\nImbalance: {imbalance:,}\nPaired: {paired:,}"
+                    msg = f"{arrow} {side} ⚠️ДЕФІС  |  {symbol}\nImbalance: {imbalance:,}\nPaired: {paired:,}\nADV: {adv:,}\n% ImbADV: {percent}%"
                     await send_telegram_message(msg)
                     notified_dash_symbols.add(symbol)
 
@@ -512,7 +530,7 @@ async def main():
                     except Exception:
                         flip_notified = {}
 
-                if percent > 80 and symbol in opposite_prev_symbols:
+                if percent > 95 and symbol in opposite_prev_symbols:
                     if not flip_notified.get(symbol):
                         direction = "🟢BUY → 🔴SELL" if kind == "sell" else "🔴SELL → 🟢BUY"
                         msg = f"🔄 Зміна сторони {direction}  |  {symbol}\nImbalance: {imbalance:,}\nPaired: {paired:,}\nADV: {adv:,}\n% ImbADV: {percent}%"

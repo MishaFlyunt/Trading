@@ -356,12 +356,30 @@
           const archive = data.archive && data.archive[symbol];
           let symbolCellStyle = "";
 
+          let flipMarker = "";
+          if (archive) {
+            const sides = new Set();
+            for (const entry of archive.slice(1)) {
+              if (
+                entry[1] === "Buy" ||
+                entry[1] === "SELL" ||
+                entry[1] === "BUY" ||
+                entry[1] === "Sell"
+              ) {
+                sides.add(entry[1].toUpperCase());
+              }
+            }
+            if (sides.has("BUY") && sides.has("SELL")) {
+              flipMarker = " 🟢↔️🔴";
+            }
+          }
+
           row.forEach((cell, idx) => {
             let formatted =
               idx >= 2 && idx <= 4 && !isNaN(cell) ? Number(cell).toLocaleString() : cell;
 
             if (idx === 1) {
-              formatted = `${cell} ${finvizLink}`;
+              formatted = `${cell}${flipMarker} ${finvizLink}`;
               html += `<td style="${symbolCellStyle}">${formatted}</td>`;
             } else {
               html += `<td>${formatted}</td>`;
