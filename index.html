@@ -356,7 +356,8 @@
             rowStyle = "background-color: #007366; color: white;";
           }
 
-          
+          const cleanSymbol = symbol.replace(" (PR)", "");
+          const finvizLink = `<a class="finviz-link" href="https://finviz.com/quote.ashx?t=${cleanSymbol}&p=d" target="_blank" title="Відкрити на Finviz">🔗</a>`;
 
           html += `<tr class="expand-row" data-symbol="${symbol}" style="${rowStyle}">`;
 
