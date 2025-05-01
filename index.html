@@ -344,6 +344,7 @@
         for (let i = 1; i < data.main.length; i++) {
           const row = data.main[i];
           const symbol = row[1];
+          const displaySymbol = row.length > 6 ? row[6] : symbol;
           const percent = parseFloat(row[row.length - 1].replace("%", "")) || 0;
 
           const rowHasDash = symbol.includes("-");
@@ -358,7 +359,7 @@
 
           const cleanSymbol = symbol.replace(/\s*\(PR\)\s*$/, "").replace(/-+$/, "");
           const finvizLink = `<a class="finviz-link" href="https://finviz.com/quote.ashx?t=${cleanSymbol}&p=d" target="_blank" title="Відкрити на Finviz">🔗</a>`;
-          
+
           html += `<tr class="expand-row" data-symbol="${symbol}" style="${rowStyle}">`;
 
           const archive = data.archive && data.archive[symbol];
