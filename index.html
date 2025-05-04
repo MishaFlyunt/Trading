@@ -361,8 +361,9 @@
 
           html += `<tr class="expand-row" data-symbol="${symbol}" style="${rowStyle}">`;
 
-          // const lookupSymbol = symbol.replace(/\s*\(PR\)\s*$/, "");
-          const archive = data.archive && data.archive[lookupSymbol];
+          // const archive = data.archive && data.archive[symbol];
+          const lookupSymbol = symbol.replace(/\s*\(PR\)\s*$/, "").replace(/-+$/, "");
+          const archive = data.archive[lookupSymbol];
           let symbolCellStyle = "";
 
           let flipMarker = "";
@@ -397,15 +398,15 @@
 
           html += "</tr>";
 
-          if (data.archive && data.archive[symbol]) {
+          if (data.archive && archive) {
             html += `<tr class="archive-row hidden"><td colspan="${row.length}"><div class="archive-scroll"><table class="archive-table"><thead><tr>`;
-            data.archive[symbol][0].forEach((c) => {
+            archive[0].forEach((c) => {
               html += `<th>${c}</th>`;
             });
             html += "</tr></thead><tbody>";
 
             // Сортування архіву за часом від нового до старого
-            const archiveData = data.archive[symbol].slice(1).sort((a, b) => {
+            const archiveData = archive.slice(1).sort((a, b) => {
               const timeA = a[0];
               const timeB = b[0];
               return timeB.localeCompare(timeA);
