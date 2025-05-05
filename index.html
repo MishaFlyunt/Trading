@@ -292,19 +292,19 @@
       let scrollPositions = {};
 
       function saveUIState() {
-        lastSearch = document.getElementById("search-symbol").value.trim().toUpperCase();
-        expandedSymbols.clear();
-        document.querySelectorAll(".expand-row.expanded").forEach((row) => {
-          expandedSymbols.add(row.dataset.symbol);
-        });
+  lastSearch = document.getElementById("search-symbol").value.trim().toUpperCase();
+  expandedSymbols.clear();
+  document.querySelectorAll(".expand-row.expanded").forEach((row) => {
+    expandedSymbols.add(row.dataset.symbol);
+  });
 
-        scrollPositions = {};
-        document.querySelectorAll(".table-content").forEach((container) => {
-          if (container.id) {
-            scrollPositions[container.id] = container.scrollTop;
-          }
-        });
-      }
+  scrollPositions = {};
+  document.querySelectorAll(".table-content").forEach((container) => {
+    if (container.id) {
+      scrollPositions[container.id] = container.scrollTop;
+    }
+  });
+}
 
       function restoreUIState() {
         document.getElementById("search-symbol").value = lastSearch;
@@ -361,6 +361,9 @@
           const cleanSymbol = symbol.replace(/\s*\(PR\)\s*$/, "").replace(/-+$/, "");
           const finvizLink = `<a class="finviz-link" href="https://finviz.com/quote.ashx?t=${cleanSymbol}&p=d" target="_blank" title="Відкрити на Finviz">🔗</a>`;
 
+          html += `<tr class="expand-row" data-symbol="${symbol}" style="${rowStyle}">`;
+
+          // const archive = data.archive && data.archive[symbol];
           const lookupSymbol = symbol.replace(/\s*\(PR\)\s*$/, "").replace(/-+$/, "");
           const archive = data.archive[lookupSymbol];
           let symbolCellStyle = "";
