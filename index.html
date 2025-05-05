@@ -361,7 +361,9 @@
           const cleanSymbol = symbol.replace(/\s*\(PR\)\s*$/, "").replace(/-+$/, "");
           const finvizLink = `<a class="finviz-link" href="https://finviz.com/quote.ashx?t=${cleanSymbol}&p=d" target="_blank" title="Відкрити на Finviz">🔗</a>`;
 
-          html += `<tr class="expand-row" data-symbol="${symbol}" style="${rowStyle}">`;
+          const rawSymbol = row[1];
+          const cleanSymbol = rawSymbol.replace(/\s*\(PR\)\s*$/, "");
+          html += `<tr class="expand-row" data-symbol="${cleanSymbol}" style="${rowStyle}">`;
 
           // const archive = data.archive && data.archive[symbol];
           const lookupSymbol = symbol.replace(/\s*\(PR\)\s*$/, "").replace(/-+$/, "");
