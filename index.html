@@ -362,7 +362,7 @@
           const finvizLink = `<a class="finviz-link" href="https://finviz.com/quote.ashx?t=${cleanSymbol}&p=d" target="_blank" title="Відкрити на Finviz">🔗</a>`;
 
           const rawSymbol = row[1];
-          const cleanSymbol = rawSymbol.replace(/\s*\(PR\)\s*$/, "");
+          // const cleanSymbol = rawSymbol.replace(/\s*\(PR\)\s*$/, "");
           html += `<tr class="expand-row" data-symbol="${cleanSymbol}" style="${rowStyle}">`;
 
           // const archive = data.archive && data.archive[symbol];
