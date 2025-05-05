@@ -300,7 +300,9 @@
 
         scrollPositions = {};
         document.querySelectorAll(".table-content").forEach((container) => {
-          scrollPositions[container.id] = container.scrollTop;
+          if (container.id) {
+            scrollPositions[container.id] = container.scrollTop;
+          }
         });
       }
 
