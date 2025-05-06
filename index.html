@@ -482,10 +482,13 @@
           loadTable("buy_data.json", "buy"),
           loadTable("sell_data.json", "sell"),
         ]);
-        // Вставляємо restore лише після DOM оновлення
-        setTimeout(() => {
-          restoreUIState();
-        }, 0);
+
+        // Гарантовано після DOM вставки — через requestAnimationFrame
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            restoreUIState();
+          });
+        });
       }
 
       applyTheme();
