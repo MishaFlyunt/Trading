@@ -335,8 +335,6 @@
         const res = await fetch(json + "?t=" + new Date().getTime());
         const data = await res.json();
         const container = document.querySelector(`#${id} .table-content`);
-        // ЗБЕРЕЖЕННЯ СТАНУ ДО ОНОВЛЕННЯ
-        saveUIState();
         if (!data.main || data.main.length === 0) {
           container.innerText = "📭 Дані наразі недоступні";
           return;
@@ -447,10 +445,7 @@
               html += "</tr>";
             });
 
-            // html += "</tbody></table></div></td></tr>";
-
-            html += "</tbody></table>";
-            container.innerHTML = html;
+            html += "</tbody></table></div></td></tr>";
           }
         }
 
