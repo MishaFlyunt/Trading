@@ -448,6 +448,7 @@
 
         html += "</tbody></table>";
         container.innerHTML = html;
+        return true;
 
         // відкривати архів лише якщо клік НЕ по символу (1-а колонка)
         document.querySelectorAll(`#${id} .expand-row`).forEach((row) => {
