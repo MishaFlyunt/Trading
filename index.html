@@ -294,8 +294,11 @@
       function saveUIState() {
         lastSearch = document.getElementById("search-symbol").value.trim().toUpperCase();
         expandedSymbols.clear();
-        document.querySelectorAll(".expand-row.expanded").forEach((row) => {
-          expandedSymbols.add(row.dataset.symbol);
+        document.querySelectorAll(".expand-row").forEach((row) => {
+          const next = row.nextElementSibling;
+          if (next && !next.classList.contains("hidden")) {
+            expandedSymbols.add(row.dataset.symbol);
+          }
         });
 
         scrollPositions = {};
