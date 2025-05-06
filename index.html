@@ -480,14 +480,18 @@
       }
 
       async function loadAll() {
+        // 🔐 ЗБЕРЕЖЕННЯ СТАНУ до перерендеру
+        saveUIState();
+
         await Promise.all([
           loadTable("buy_data.json", "buy"),
           loadTable("sell_data.json", "sell"),
         ]);
 
+        // ⏳ Дати DOM оновитися
         setTimeout(() => {
           restoreUIState();
-        }, 50);
+        }, 0); // 0 або 50
       }
 
       applyTheme();
