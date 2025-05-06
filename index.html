@@ -473,51 +473,51 @@
         }
       }
 
-      // let lastSearch = "";
-      // let expandedSymbols = new Set();
-      // let scrollPositions = {};
+      lastSearch = "";
+      expandedSymbols = new Set();
+      scrollPositions = {};
 
-      // function saveUIState() {
-      //   // Пошук
-      //   lastSearch = document.getElementById("search-symbol").value.trim().toUpperCase();
+      function saveUIState() {
+        // Пошук
+        lastSearch = document.getElementById("search-symbol").value.trim().toUpperCase();
 
-      //   // Розгорнуті архіви
-      //   expandedSymbols.clear();
-      //   document.querySelectorAll(".expand-row.expanded").forEach((row) => {
-      //     expandedSymbols.add(row.dataset.symbol);
-      //   });
+        // Розгорнуті архіви
+        expandedSymbols.clear();
+        document.querySelectorAll(".expand-row.expanded").forEach((row) => {
+          expandedSymbols.add(row.dataset.symbol);
+        });
 
-      //   // Скрол таблиць
-      //   scrollPositions = {};
-      //   document.querySelectorAll(".table-content").forEach((container) => {
-      //     scrollPositions[container.id] = container.scrollTop;
-      //   });
-      // }
+        // Скрол таблиць
+        scrollPositions = {};
+        document.querySelectorAll(".table-content").forEach((container) => {
+          scrollPositions[container.id] = container.scrollTop;
+        });
+      }
 
-      // function restoreUIState() {
-      //   // Відновлюємо пошук
-      //   const searchInput = document.getElementById("search-symbol");
-      //   searchInput.value = lastSearch;
-      //   searchInput.dispatchEvent(new Event("input"));
+      function restoreUIState() {
+        // Відновлюємо пошук
+        const searchInput = document.getElementById("search-symbol");
+        searchInput.value = lastSearch;
+        searchInput.dispatchEvent(new Event("input"));
 
-      //   // Відновлюємо розгорнуті архіви
-      //   document.querySelectorAll(".expand-row").forEach((row) => {
-      //     const symbol = row.dataset.symbol;
-      //     if (expandedSymbols.has(symbol)) {
-      //       const next = row.nextElementSibling;
-      //       if (next && next.classList.contains("archive-row")) {
-      //         next.classList.remove("hidden");
-      //         row.classList.add("expanded");
-      //       }
-      //     }
-      //   });
+        // Відновлюємо розгорнуті архіви
+        document.querySelectorAll(".expand-row").forEach((row) => {
+          const symbol = row.dataset.symbol;
+          if (expandedSymbols.has(symbol)) {
+            const next = row.nextElementSibling;
+            if (next && next.classList.contains("archive-row")) {
+              next.classList.remove("hidden");
+              row.classList.add("expanded");
+            }
+          }
+        });
 
-      //   // Відновлюємо scroll
-      //   for (const [id, top] of Object.entries(scrollPositions)) {
-      //     const container = document.getElementById(id);
-      //     if (container) container.scrollTop = top;
-      //   }
-      // }
+        // Відновлюємо scroll
+        for (const [id, top] of Object.entries(scrollPositions)) {
+          const container = document.getElementById(id);
+          if (container) container.scrollTop = top;
+        }
+      }
 
       async function loadAll() {
         saveUIState();
