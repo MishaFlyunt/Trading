@@ -473,26 +473,26 @@
         }
       }
 
-      let lastSearch = "";
-      let expandedSymbols = new Set();
-      let scrollPositions = {};
+      // let lastSearch = "";
+      // let expandedSymbols = new Set();
+      // let scrollPositions = {};
 
-      function saveUIState() {
-        // Пошук
-        lastSearch = document.getElementById("search-symbol").value.trim().toUpperCase();
+      // function saveUIState() {
+      //   // Пошук
+      //   lastSearch = document.getElementById("search-symbol").value.trim().toUpperCase();
 
-        // Розгорнуті архіви
-        expandedSymbols.clear();
-        document.querySelectorAll(".expand-row.expanded").forEach((row) => {
-          expandedSymbols.add(row.dataset.symbol);
-        });
+      //   // Розгорнуті архіви
+      //   expandedSymbols.clear();
+      //   document.querySelectorAll(".expand-row.expanded").forEach((row) => {
+      //     expandedSymbols.add(row.dataset.symbol);
+      //   });
 
-        // Скрол таблиць
-        scrollPositions = {};
-        document.querySelectorAll(".table-content").forEach((container) => {
-          scrollPositions[container.id] = container.scrollTop;
-        });
-      }
+      //   // Скрол таблиць
+      //   scrollPositions = {};
+      //   document.querySelectorAll(".table-content").forEach((container) => {
+      //     scrollPositions[container.id] = container.scrollTop;
+      //   });
+      // }
 
       // function restoreUIState() {
       //   // Відновлюємо пошук
