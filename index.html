@@ -478,17 +478,16 @@
 
       async function loadAll() {
         saveUIState();
-        await Promise.all([
+
+        const [buyLoaded, sellLoaded] = await Promise.all([
           loadTable("buy_data.json", "buy"),
           loadTable("sell_data.json", "sell"),
         ]);
 
-        // Гарантовано після DOM вставки — через requestAnimationFrame
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            restoreUIState();
-          });
-        });
+        // Чекаємо завершення рендеру + ще 50мс
+        setTimeout(() => {
+          restoreUIState();
+        }, 100);
       }
 
       applyTheme();
