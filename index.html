@@ -492,7 +492,7 @@
 
       applyTheme();
       loadAll();
-      // setInterval(loadAll, 30000);
+      setInterval(loadAll, 30000);
 
       function updateTimestamp() {
         const el = document.getElementById("update-time");
@@ -504,8 +504,8 @@
         });
         el.textContent = formatted;
       }
-      // updateTimestamp();
-      // setInterval(updateTimestamp, 30000);
+      updateTimestamp();
+      setInterval(updateTimestamp, 30000);
 
       // ------Пошук-------
       document.getElementById("search-symbol").addEventListener("input", function () {
