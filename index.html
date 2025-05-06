@@ -308,9 +308,12 @@
       }
 
       function restoreUIState() {
-        document.getElementById("search-symbol").value = lastSearch;
-        document.getElementById("search-symbol").dispatchEvent(new Event("input"));
+        // Відновлюємо пошук
+        const searchInput = document.getElementById("search-symbol");
+        searchInput.value = lastSearch;
+        searchInput.dispatchEvent(new Event("input"));
 
+        // Відновлюємо розгортання
         document.querySelectorAll(".expand-row").forEach((row) => {
           if (expandedSymbols.has(row.dataset.symbol)) {
             const next = row.nextElementSibling;
@@ -321,6 +324,7 @@
           }
         });
 
+        // Відновлюємо скрол позиції
         for (const [id, top] of Object.entries(scrollPositions)) {
           const container = document.getElementById(id);
           if (container) container.scrollTop = top;
