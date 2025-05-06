@@ -370,7 +370,6 @@
 
           html += `<tr class="expand-row" data-symbol="${symbol}" style="${rowStyle}">`;
 
-          // const archive = data.archive && data.archive[symbol];
           const lookupSymbol = symbol.replace(/\s*\(PR\)\s*$/, "").replace(/-+$/, "");
           const archive = data.archive[lookupSymbol];
           let symbolCellStyle = "";
