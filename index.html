@@ -171,6 +171,12 @@
         margin-top: 5px;
       }
 
+      .table-content.updating {
+        opacity: 0.5;
+        transition: opacity 1.2s ease-in-out;
+        /* transition: opacity 2s ease; */
+      }
+
       /* Темна тема */
       [data-theme="dark"] {
         --bg: #111;
@@ -480,23 +486,21 @@
       }
 
       async function loadAll() {
-        // 🔐 ЗБЕРЕЖЕННЯ СТАНУ до перерендеру
         saveUIState();
+
+        const containers = document.querySelectorAll(".table-content");
+        containers.forEach((c) => c.classList.add("updating"));
 
         await Promise.all([
           loadTable("buy_data.json", "buy"),
           loadTable("sell_data.json", "sell"),
         ]);
 
-        // ⏳ Дати DOM оновитися
         setTimeout(() => {
+          containers.forEach((c) => c.classList.remove("updating"));
           restoreUIState();
-        }, 0); // 0 або 50
+        }, 100); // даємо DOM оновитися перед відновленням
       }
-
-      applyTheme();
-      loadAll();
-      setInterval(loadAll, 30000);
 
       function updateTimestamp() {
         const el = document.getElementById("update-time");
@@ -508,26 +512,42 @@
         });
         el.textContent = formatted;
       }
+
+      applyTheme();
+      loadAll();
       updateTimestamp();
-      setInterval(updateTimestamp, 30000);
+
+      setInterval(() => {
+        requestAnimationFrame(() => {
+          updateTimestamp();
+          loadAll(); // loadAll сам викликає restoreUIState всередині
+        });
+      }, 30000);
 
       // ------Пошук-------
       document.getElementById("search-symbol").addEventListener("input", function () {
         const search = this.value.trim().toUpperCase();
         document
-          .querySelectorAll(".tables .table-content table tbody tr")
+          .querySelectorAll(".tables .table-content table tbody tr.expand-row")
           .forEach((row) => {
             const symbolCell = row.querySelector("td:nth-child(2)");
             if (!symbolCell) return;
 
             const text = symbolCell.textContent.toUpperCase();
-            row.style.display = text.includes(search) ? "" : "none";
+            const match = text.includes(search);
+
+            // головний рядок
+            row.style.display = match ? "" : "none";
+
+            // архівний рядок
+            const archive = row.nextElementSibling;
+            if (archive && archive.classList.contains("archive-row")) {
+              archive.style.display = match ? "" : "none";
+            }
 
             // Підсвітка символу
-            symbolCell.style.fontWeight =
-              text.includes(search) && search !== "" ? "bold" : "";
-            symbolCell.style.background =
-              text.includes(search) && search !== "" ? "#57abf4" : "";
+            symbolCell.style.fontWeight = match && search !== "" ? "bold" : "";
+            symbolCell.style.background = match && search !== "" ? "#57abf4" : "";
           });
       });
     </script>
