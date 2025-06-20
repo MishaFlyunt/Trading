@@ -105,6 +105,49 @@
         /* color: #57abf4; */
       }
 
+      /* Стиль тумблера */
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+      }
+
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        inset: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 34px;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+
+      input:checked + .slider {
+        background-color: #9bbedb;
+      }
+
+      input:checked + .slider:before {
+        transform: translateX(26px);
+      }
+
       th,
       td {
         border: 2px solid var(--header-bg);
@@ -137,12 +180,12 @@
 
       /* Підсвітка лідера Buy */
       tr.buy-leader td {
-        background-color: #d3f9d8; 
+        background-color: #d3f9d8;
       }
 
       /* Підсвітка лідера Sell */
       tr.sell-leader td {
-        background-color: #ffd6d6; 
+        background-color: #ffd6d6;
       }
 
       /* Анімація зміни */
@@ -203,7 +246,10 @@
       <div id="last-update" style="font-weight: bold">
         Last update: <span id="update-time">—</span>
       </div>
-      <button onclick="toggleTheme()">🌓 Change Topic</button>
+      <label class="switch">
+        <input type="checkbox" id="themeToggle" onclick="toggleTheme()" />
+        <span class="slider"></span>
+      </label>
     </div>
 
     <div class="tables">
@@ -341,8 +387,8 @@
         const res = await fetch(json + "?t=" + new Date().getTime());
         const data = await res.json();
         const container = document.querySelector(`#${id} .table-content`);
-        if (!data.main || data.main.length === 0) {
-          container.innerText = "📭 Дані наразі недоступні";
+        if (!data.main || data.main.length <= 1) {
+          container.innerText = "📭 Data is currently unavailable";
           return;
         }
 
