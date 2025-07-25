@@ -7,7 +7,30 @@
       "Paired",
       "ADV",
       "% ImbADV"
+    ],
+    [
+      "13:29:11",
+      "CRM",
+      50000,
+      20000,
+      "7290000",
+      "1"
     ]
   ],
-  "archive": {}
+  "archive": {
+    "CRM": [
+      [
+        "Update Time",
+        "Side",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:29:11",
+        "SELL",
+        50000,
+        20000
+      ]
+    ]
+  }
 }
