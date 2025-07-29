@@ -1,0 +1,58 @@
+{
+  "main": [
+    [
+      "Update Time",
+      "Symbol",
+      "Imbalance",
+      "Paired",
+      "ADV",
+      "% ImbADV"
+    ],
+    [
+      "13:27:41",
+      "ORCL",
+      50000,
+      80000,
+      "12660000",
+      "1"
+    ],
+    [
+      "13:27:27",
+      "COP",
+      300000,
+      120000,
+      "7840000",
+      "4"
+    ]
+  ],
+  "archive": {
+    "ORCL": [
+      [
+        "Update Time",
+        "Side",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:27:41",
+        "SELL",
+        50000,
+        80000
+      ]
+    ],
+    "COP": [
+      [
+        "Update Time",
+        "Side",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:27:27",
+        "SELL",
+        300000,
+        120000
+      ]
+    ]
+  }
+}
