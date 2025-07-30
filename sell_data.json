@@ -7,7 +7,30 @@
       "Paired",
       "ADV",
       "% ImbADV"
+    ],
+    [
+      "13:29:08",
+      "ORCL",
+      70000,
+      90000,
+      "12660000",
+      "1"
     ]
   ],
-  "archive": {}
+  "archive": {
+    "ORCL": [
+      [
+        "Update Time",
+        "Side",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:29:08",
+        "SELL",
+        70000,
+        90000
+      ]
+    ]
+  }
 }
