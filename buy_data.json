@@ -7,7 +7,30 @@
       "Paired",
       "ADV",
       "% ImbADV"
+    ],
+    [
+      "13:27:19",
+      "USB",
+      200000,
+      80000,
+      "10490000",
+      "2"
     ]
   ],
-  "archive": {}
+  "archive": {
+    "USB": [
+      [
+        "Update Time",
+        "Side",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:27:19",
+        "BUY",
+        200000,
+        80000
+      ]
+    ]
+  }
 }
