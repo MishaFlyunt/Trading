@@ -1,1 +1,25 @@
-{}
+{
+  "date": "2025-09-08T11:31:02.352614",
+  "rows": [
+    {
+      "symbol": "MS-O",
+      "adv": 0,
+      "price": 0.0
+    },
+    {
+      "symbol": "VNO-O",
+      "adv": 0,
+      "price": 0.0
+    },
+    {
+      "symbol": "T-C",
+      "adv": 0,
+      "price": 0.0
+    },
+    {
+      "symbol": "BA-A",
+      "adv": 0,
+      "price": 0.0
+    }
+  ]
+}
