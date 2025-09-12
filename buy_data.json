@@ -7,7 +7,52 @@
       "Paired",
       "ADV",
       "% ImbADV"
+    ],
+    [
+      "13:34:56",
+      "WMT",
+      50000,
+      0,
+      "16379999",
+      "1"
+    ],
+    [
+      "13:34:52",
+      "ORCL",
+      90000,
+      0,
+      "17150000",
+      "1"
     ]
   ],
-  "archive": {}
+  "archive": {
+    "WMT": [
+      [
+        "Update Time",
+        "Side",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:34:56",
+        "BUY",
+        50000,
+        0
+      ]
+    ],
+    "ORCL": [
+      [
+        "Update Time",
+        "Side",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:34:52",
+        "BUY",
+        90000,
+        0
+      ]
+    ]
+  }
 }
