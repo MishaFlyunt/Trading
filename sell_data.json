@@ -7,7 +7,30 @@
       "Paired",
       "ADV",
       "% ImbADV"
+    ],
+    [
+      "13:30:38",
+      "GE",
+      100000,
+      40000,
+      "5810000",
+      "2"
     ]
   ],
-  "archive": {}
+  "archive": {
+    "GE": [
+      [
+        "Update Time",
+        "Side",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:30:38",
+        "SELL",
+        100000,
+        40000
+      ]
+    ]
+  }
 }
