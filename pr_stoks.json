@@ -246,5 +246,61 @@
       "current_price": 0.0,
       "imb": "sell"
     }
+  },
+  "CIM-C": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "buy"
+    }
+  },
+  "WFC-Y": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "buy"
+    }
+  },
+  "TRTN-C": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "buy"
+    }
+  },
+  "NEE-T": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "TRTN-D": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "NEE-S": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "COF-I": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "APO-A": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
   }
 }
