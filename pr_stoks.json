@@ -29,5 +29,222 @@
       "imb": "sell",
       "prev_close": 0.0
     }
+  },
+  "PSA-K": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "buy"
+    }
+  },
+  "WRB-H": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "buy"
+    }
+  },
+  "TFC-I": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "buy"
+    }
+  },
+  "SCE-J": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "buy"
+    }
+  },
+  "SLG-I": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "JXN-A": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "SNV-D": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "GS-C": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "BOH-B": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "DLR-K": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "BA-A": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "JPM-K": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "BAC-B": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "CFG-H": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "WFC-Z": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "SYF-B": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "GL-D": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "USB-R": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "JPM-L": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "WRB-E": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "COF-L": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "SF-C": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "SCHW-J": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "ALB-A": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "USB-S": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "VNO-L": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "HPP-C": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "JPM-M": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "JPM-D": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "C-N": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "JPM-C": {
+    "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
   }
 }
