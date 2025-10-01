@@ -157,9 +157,9 @@
       "imb": "buy"
     },
     "2025-10-01": {
-      "adv": 317100,
-      "current_price": 69.57,
-      "imb": "buy"
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
     }
   },
   "JPM-K": {
@@ -181,8 +181,8 @@
       "imb": "sell"
     },
     "2025-10-01": {
-      "adv": 68030,
-      "current_price": 25.26,
+      "adv": 0,
+      "current_price": 0.0,
       "imb": "sell"
     }
   },
@@ -711,8 +711,8 @@
       "imb": "sell"
     },
     "2025-10-01": {
-      "adv": 81050,
-      "current_price": 22.86,
+      "adv": 0,
+      "current_price": 0.0,
       "imb": "sell"
     }
   },
@@ -785,6 +785,27 @@
     "2025-10-01": {
       "adv": 114360,
       "current_price": 18.44,
+      "imb": "sell"
+    }
+  },
+  "WFC-N": {
+    "2025-10-01": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "buy"
+    }
+  },
+  "BAC-N": {
+    "2025-10-01": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    }
+  },
+  "JPM-J": {
+    "2025-10-01": {
+      "adv": 0,
+      "current_price": 0.0,
       "imb": "sell"
     }
   }
