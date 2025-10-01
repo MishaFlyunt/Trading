@@ -18,3 +18,4 @@ smart_test.py
 smart_login_old.py
 pr_stoks.json
 .venv
+geckodriver.tar.gz

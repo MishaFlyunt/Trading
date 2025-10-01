@@ -35,12 +35,22 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "buy"
+    },
+    "2025-10-01": {
+      "adv": 19560,
+      "current_price": 20.44,
+      "imb": "buy"
     }
   },
   "WRB-H": {
     "2025-09-30": {
       "adv": 0,
       "current_price": 0.0,
+      "imb": "buy"
+    },
+    "2025-10-01": {
+      "adv": 16530,
+      "current_price": 18.75,
       "imb": "buy"
     }
   },
@@ -49,12 +59,22 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "buy"
+    },
+    "2025-10-01": {
+      "adv": 31910,
+      "current_price": 22.75,
+      "imb": "buy"
     }
   },
   "SCE-J": {
     "2025-09-30": {
       "adv": 0,
       "current_price": 0.0,
+      "imb": "buy"
+    },
+    "2025-10-01": {
+      "adv": 47540,
+      "current_price": 23.39,
       "imb": "buy"
     }
   },
@@ -63,6 +83,11 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 15320,
+      "current_price": 21.98,
+      "imb": "sell"
     }
   },
   "JXN-A": {
@@ -70,10 +95,20 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 33280,
+      "current_price": 26.05,
+      "imb": "sell"
     }
   },
   "SNV-D": {
     "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
@@ -84,12 +119,22 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 31690,
+      "current_price": 21.06,
+      "imb": "sell"
     }
   },
   "BOH-B": {
     "2025-09-30": {
       "adv": 0,
       "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 15780,
+      "current_price": 26.15,
       "imb": "sell"
     }
   },
@@ -98,6 +143,11 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 24530,
+      "current_price": 23.67,
+      "imb": "sell"
     }
   },
   "BA-A": {
@@ -105,10 +155,20 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "buy"
+    },
+    "2025-10-01": {
+      "adv": 317100,
+      "current_price": 69.57,
+      "imb": "buy"
     }
   },
   "JPM-K": {
     "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
@@ -119,10 +179,20 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 68030,
+      "current_price": 25.26,
+      "imb": "sell"
     }
   },
   "CFG-H": {
     "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
@@ -133,12 +203,22 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 161200,
+      "current_price": 19.74,
+      "imb": "sell"
     }
   },
   "SYF-B": {
     "2025-09-30": {
       "adv": 0,
       "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 31190,
+      "current_price": 25.88,
       "imb": "sell"
     }
   },
@@ -217,6 +297,11 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
     }
   },
   "JPM-M": {
@@ -245,12 +330,22 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
     }
   },
   "CIM-C": {
     "2025-09-30": {
       "adv": 0,
       "current_price": 0.0,
+      "imb": "buy"
+    },
+    "2025-10-01": {
+      "adv": 22530,
+      "current_price": 23.1,
       "imb": "buy"
     }
   },
@@ -259,6 +354,11 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "buy"
+    },
+    "2025-10-01": {
+      "adv": 53180,
+      "current_price": 24.8,
+      "imb": "buy"
     }
   },
   "TRTN-C": {
@@ -266,10 +366,20 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "buy"
+    },
+    "2025-10-01": {
+      "adv": 16140,
+      "current_price": 25.12,
+      "imb": "buy"
     }
   },
   "NEE-T": {
     "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
@@ -280,10 +390,20 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 14070,
+      "current_price": 22.55,
+      "imb": "sell"
     }
   },
   "NEE-S": {
     "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
@@ -293,6 +413,11 @@
     "2025-09-30": {
       "adv": 0,
       "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 99280,
+      "current_price": 20.18,
       "imb": "sell"
     }
   },
@@ -308,12 +433,22 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 63690,
+      "current_price": 24.88,
+      "imb": "sell"
     }
   },
   "COF-J": {
     "2025-09-30": {
       "adv": 0,
       "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 132730,
+      "current_price": 19.27,
       "imb": "sell"
     }
   },
@@ -322,12 +457,22 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 46380,
+      "current_price": 22.4,
+      "imb": "sell"
     }
   },
   "MET-F": {
     "2025-09-30": {
       "adv": 0,
       "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 87730,
+      "current_price": 20.86,
       "imb": "sell"
     }
   },
@@ -336,12 +481,22 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 44430,
+      "current_price": 23.92,
+      "imb": "sell"
     }
   },
   "NLY-F": {
     "2025-09-30": {
       "adv": 0,
       "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 69770,
+      "current_price": 25.29,
       "imb": "sell"
     }
   },
@@ -350,12 +505,22 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 48400,
+      "current_price": 22.03,
+      "imb": "sell"
     }
   },
   "T-C": {
     "2025-09-30": {
       "adv": 0,
       "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 164380,
+      "current_price": 19.92,
       "imb": "sell"
     }
   },
@@ -364,10 +529,20 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 52300,
+      "current_price": 24.31,
+      "imb": "sell"
     }
   },
   "T-A": {
     "2025-09-30": {
+      "adv": 0,
+      "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
@@ -378,12 +553,22 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "buy"
+    },
+    "2025-10-01": {
+      "adv": 45260,
+      "current_price": 26.71,
+      "imb": "buy"
     }
   },
   "TWO-A": {
     "2025-09-30": {
       "adv": 0,
       "current_price": 0.0,
+      "imb": "buy"
+    },
+    "2025-10-01": {
+      "adv": 23810,
+      "current_price": 24.0,
       "imb": "buy"
     }
   },
@@ -392,12 +577,22 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "buy"
+    },
+    "2025-10-01": {
+      "adv": 97530,
+      "current_price": 17.77,
+      "imb": "buy"
     }
   },
   "SCE-G": {
     "2025-09-30": {
       "adv": 0,
       "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 37980,
+      "current_price": 17.15,
       "imb": "sell"
     }
   },
@@ -406,12 +601,22 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 11770,
+      "current_price": 25.4,
+      "imb": "sell"
     }
   },
   "PSA-J": {
     "2025-09-30": {
       "adv": 0,
       "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 25610,
+      "current_price": 19.94,
       "imb": "sell"
     }
   },
@@ -420,12 +625,22 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 33960,
+      "current_price": 19.37,
+      "imb": "sell"
     }
   },
   "CIM-B": {
     "2025-09-30": {
       "adv": 0,
       "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 43190,
+      "current_price": 24.09,
       "imb": "sell"
     }
   },
@@ -434,12 +649,22 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 54210,
+      "current_price": 17.28,
+      "imb": "sell"
     }
   },
   "NLY-I": {
     "2025-09-30": {
       "adv": 0,
       "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 31320,
+      "current_price": 25.34,
       "imb": "sell"
     }
   },
@@ -448,12 +673,22 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 50400,
+      "current_price": 17.04,
+      "imb": "sell"
     }
   },
   "BAC-O": {
     "2025-09-30": {
       "adv": 0,
       "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 81980,
+      "current_price": 18.58,
       "imb": "sell"
     }
   },
@@ -462,12 +697,22 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 45230,
+      "current_price": 24.04,
+      "imb": "sell"
     }
   },
   "BAC-M": {
     "2025-09-30": {
       "adv": 0,
       "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 81050,
+      "current_price": 22.86,
       "imb": "sell"
     }
   },
@@ -476,12 +721,22 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 44180,
+      "current_price": 23.29,
+      "imb": "sell"
     }
   },
   "ALL-H": {
     "2025-09-30": {
       "adv": 0,
       "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 63800,
+      "current_price": 22.24,
       "imb": "sell"
     }
   },
@@ -490,12 +745,22 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 23670,
+      "current_price": 16.75,
+      "imb": "sell"
     }
   },
   "BML-J": {
     "2025-09-30": {
       "adv": 0,
       "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 14850,
+      "current_price": 20.99,
       "imb": "sell"
     }
   },
@@ -504,12 +769,22 @@
       "adv": 0,
       "current_price": 0.0,
       "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 335630,
+      "current_price": 25.22,
+      "imb": "sell"
     }
   },
   "MS-O": {
     "2025-09-30": {
       "adv": 0,
       "current_price": 0.0,
+      "imb": "sell"
+    },
+    "2025-10-01": {
+      "adv": 114360,
+      "current_price": 18.44,
       "imb": "sell"
     }
   }
