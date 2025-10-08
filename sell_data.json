@@ -7,7 +7,30 @@
       "Paired",
       "ADV",
       "% ImbADV"
+    ],
+    [
+      "13:29:27",
+      "BMY",
+      350000,
+      300000,
+      "13140000",
+      "3"
     ]
   ],
-  "archive": {}
+  "archive": {
+    "BMY": [
+      [
+        "Update Time",
+        "Side",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:29:27",
+        "SELL",
+        350000,
+        300000
+      ]
+    ]
+  }
 }
