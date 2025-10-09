@@ -7,7 +7,30 @@
       "Paired",
       "ADV",
       "% ImbADV"
+    ],
+    [
+      "13:30:55",
+      "TMO",
+      110000,
+      10000,
+      "2510000",
+      "5"
     ]
   ],
-  "archive": {}
+  "archive": {
+    "TMO": [
+      [
+        "Update Time",
+        "Side",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:30:55",
+        "BUY",
+        110000,
+        10000
+      ]
+    ]
+  }
 }
