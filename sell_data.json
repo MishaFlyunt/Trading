@@ -7,7 +7,30 @@
       "Paired",
       "ADV",
       "% ImbADV"
+    ],
+    [
+      "13:33:55",
+      "DIS",
+      60000,
+      110000,
+      "8090000",
+      "1"
     ]
   ],
-  "archive": {}
+  "archive": {
+    "DIS": [
+      [
+        "Update Time",
+        "Side",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:33:55",
+        "SELL",
+        60000,
+        110000
+      ]
+    ]
+  }
 }
