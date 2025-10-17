@@ -3,28 +3,32 @@
     "2025-10-17": {
       "adv": 0,
       "current_price": 5.78,
-      "imb": "buy"
+      "imb": "buy",
+      "prev_close": 51.0
     }
   },
   "BW-PRA": {
     "2025-10-17": {
       "adv": 0,
       "current_price": 5.49,
-      "imb": "sell"
+      "imb": "sell",
+      "prev_close": 5.11
     }
   },
   "PSA-PRK": {
     "2025-10-17": {
       "adv": 0,
       "current_price": 5.59,
-      "imb": "sell"
+      "imb": "sell",
+      "prev_close": 5.11
     }
   },
   "DBRG-PRI": {
     "2025-10-17": {
       "adv": 0,
       "current_price": 5.59,
-      "imb": "sell"
+      "imb": "sell",
+      "prev_close": 5.11
     }
   }
 }
