@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trading — приватна сторінка</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#0b1220; color:#e6e9ef; }
+    #app, #login { display:none; }
+    .center { min-height: 100dvh; display:grid; place-items:center; }
+    .card { width:360px; max-width:92vw; background:#131b2e; padding:24px; border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,.4); }
+    h1 { margin:0 0 12px; font-size:22px; }
+    label { display:block; margin:14px 0 6px; font-size:13px; color:#b7c0d5; }
+    input { width:92%; padding:10px 12px; border-radius:10px; border:1px solid #2b3550; background:#0e1526; color:#e6e9ef; }
+    button { width:100%; padding:12px; border:0; border-radius:10px; margin-top:16px; font-weight:600; cursor:pointer; background:#2f6fed; color:#fff; }
+    .row { display:flex; gap:8px; align-items:center; }
+    .muted { color:#9aabc7; font-size:12px; margin-top:10px; text-align:center; }
+    .msg { min-height:22px; margin-top:10px; font-size:13px; color:#ffb4b4; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:#111a2c; border-bottom:1px solid #223; }
+    .topbar .right { display:flex; gap:8px; align-items:center; }
+    .pill { padding:6px 10px; border-radius:999px; border:1px solid #2b3550; }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <section id="login" class="center">
+    <div class="card">
+      <h1>Вхід</h1>
+      <form id="loginForm">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="username" required />
+        <label for="password">Пароль</label>
+        <input id="password" type="password" autocomplete="current-password" required />
+        <button type="submit">Увійти</button>
+        <div id="msg" class="msg"></div>
+        <div class="muted">Доступ видає адміністратор.</div>
+      </form>
+    </div>
+  </section>
+
+  <!-- APP -->
+  <section id="app">
+    <div class="topbar">
+      <div class="left">🔒 Приватна сторінка Trading</div>
+      <div class="right">
+        <span id="who" class="pill"></span>
+        <button id="signout" class="pill" style="background:#2b3550;">Вийти</button>
+      </div>
+    </div>
+
+    <!-- ТВОЯ СТОРІНКА ТУТ -->
+    <iframe src="buy_data.json" width="100%" height="800" style="border:none;background:#0b1220;color:white;"></iframe>
+  </section>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script>
+    // 🔧 Твій firebaseConfig
+    const firebaseConfig = {
+      apiKey: "AIzaSyBIQ06AVmsPc1i1gbq2YlQtVcgvMD9akSA",
+      authDomain: "imbalance-monitor.firebaseapp.com",
+      projectId: "imbalance-monitor",
+      storageBucket: "imbalance-monitor.firebasestorage.app",
+      messagingSenderId: "731994156123",
+      appId: "1:731994156123:web:46f8ff25c8baffe9d2237e",
+      measurementId: "G-M5WYYMS3T7"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    const elApp   = document.getElementById('app');
+    const elLogin = document.getElementById('login');
+    const elForm  = document.getElementById('loginForm');
+    const elMsg   = document.getElementById('msg');
+    const elWho   = document.getElementById('who');
+    const elOut   = document.getElementById('signout');
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        elLogin.style.display = 'none';
+        elApp.style.display = 'block';
+        elWho.textContent = user.email || 'Користувач';
+      } else {
+        elApp.style.display = 'none';
+        elLogin.style.display = 'grid';
+        elWho.textContent = '';
+      }
+    });
+
+    elForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      elMsg.textContent = '';
+      const email = document.getElementById('email').value.trim();
+      const pass  = document.getElementById('password').value;
+      try {
+        await auth.signInWithEmailAndPassword(email, pass);
+      } catch (err) {
+        elMsg.textContent = err.message || 'Помилка входу';
+      }
+    });
+
+    elOut.addEventListener('click', () => auth.signOut());
+  </script>
+</body>
+</html>
