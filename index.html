@@ -6,47 +6,261 @@
     <title>Imbalance Monitor</title>
     <link rel="icon" type="image/png" href="./img/fv.png" />
     <style>
-      :root { --bg:#f4f4f4; --text:#000; --table-bg:#fff; --header-bg:#ccc; --alert-text:red; }
-      html,body{height:100%;margin:0;padding:0;font-family:sans-serif;background:var(--bg);color:var(--text);transition:background .3s,color .3s;}
-      .controls{display:flex;justify-content:space-between;flex-wrap:wrap;align-items:center;padding:1rem;}
-      h1,h2{margin:.3rem 0;} button{padding:8px 12px;border-radius:10px;font-size:1rem;cursor:pointer;}
-      .tables{display:flex;flex-direction:column;gap:1rem;height:calc(100vh - 100px);padding:0 1rem 1rem 1rem;box-sizing:border-box;}
-      @media (min-width: 900px){.tables{flex-direction:row;}}
-      .table-container{flex:1;background:var(--table-bg);border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,.1);padding:1rem;display:flex;flex-direction:column;border:2px solid var(--header-bg);position:relative;height:100%;}
-      .table-container h2{position:sticky;top:0;background:var(--table-bg);z-index:2;padding:4px 0;margin:0;font-size:1.2rem;color:green;}
-      .table-container#sell h2{color:red;}
-      .table-content{flex-grow:1;overflow-y:auto;}
-      table{border-collapse:collapse;width:100%;min-width:600px;}
-      .switch{position:relative;display:inline-block;width:60px;height:34px;}
-      .switch input{opacity:0;width:0;height:0;}
-      .slider{position:absolute;cursor:pointer;inset:0;background:#ccc;transition:.4s;border-radius:34px;}
-      .slider:before{position:absolute;content:"";height:26px;width:26px;left:4px;bottom:4px;background:#fff;transition:.4s;border-radius:50%;}
-      input:checked + .slider{background:#9bbedb;} input:checked + .slider:before{transform:translateX(26px);}
-      th,td{border:2px solid var(--header-bg);padding:8px;text-align:center;}
-      th{background:var(--header-bg);cursor:pointer;position:sticky;top:0;z-index:1;}
-      tr.high-imbalance td, tr.dashed-symbol td{color:var(--alert-text);font-weight:bold;}
-      .archive-row.hidden{display:none;}
-      tr.buy-leader td{background:#d3f9d8;} tr.sell-leader td{background:#ffd6d6;}
-      tr.flash-change{animation:flash 1s ease-in-out;}
-      @keyframes flash{from{background:#ffff99;} to{background:transparent;}}
-      a.finviz-link{text-decoration:none;color:inherit;}
-      .archive-scroll{max-height:400px;overflow-y:auto;border:1px solid #aaa;margin-top:5px;}
-      .table-content.updating{opacity:.5;transition:opacity 2s ease;}
-      [data-theme="dark"]{--bg:#111;--text:#fff;--table-bg:#222;--header-bg:#333;--alert-text:lightcoral;}
+      :root {
+        --bg: #f4f4f4;
+        --text: #000;
+        --table-bg: #fff;
+        --header-bg: #ccc;
+        --alert-text: red;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        font-family: sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        transition: background 0.3s, color 0.3s;
+      }
+      .controls {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 1rem;
+      }
+      h1,
+      h2 {
+        margin: 0.3rem 0;
+      }
+      button {
+        padding: 8px 12px;
+        border-radius: 10px;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+      .tables {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        height: calc(100vh - 100px);
+        padding: 0 1rem 1rem 1rem;
+        box-sizing: border-box;
+      }
+      @media (min-width: 900px) {
+        .tables {
+          flex-direction: row;
+        }
+      }
+      .table-container {
+        flex: 1;
+        background: var(--table-bg);
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        border: 2px solid var(--header-bg);
+        position: relative;
+        height: 100%;
+      }
+      .table-container h2 {
+        position: sticky;
+        top: 0;
+        background: var(--table-bg);
+        z-index: 2;
+        padding: 4px 0;
+        margin: 0;
+        font-size: 1.2rem;
+        color: green;
+      }
+      .table-container#sell h2 {
+        color: red;
+      }
+      .table-content {
+        flex-grow: 1;
+        overflow-y: auto;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        min-width: 600px;
+      }
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        inset: 0;
+        background: #ccc;
+        transition: 0.4s;
+        border-radius: 34px;
+      }
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background: #fff;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+      input:checked + .slider {
+        background: #9bbedb;
+      }
+      input:checked + .slider:before {
+        transform: translateX(26px);
+      }
+      th,
+      td {
+        border: 2px solid var(--header-bg);
+        padding: 8px;
+        text-align: center;
+      }
+      th {
+        background: var(--header-bg);
+        cursor: pointer;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+      tr.high-imbalance td,
+      tr.dashed-symbol td {
+        color: var(--alert-text);
+        font-weight: bold;
+      }
+      .archive-row.hidden {
+        display: none;
+      }
+      tr.buy-leader td {
+        background: #d3f9d8;
+      }
+      tr.sell-leader td {
+        background: #ffd6d6;
+      }
+      tr.flash-change {
+        animation: flash 1s ease-in-out;
+      }
+      @keyframes flash {
+        from {
+          background: #ffff99;
+        }
+        to {
+          background: transparent;
+        }
+      }
+      a.finviz-link {
+        text-decoration: none;
+        color: inherit;
+      }
+      .archive-scroll {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #aaa;
+        margin-top: 5px;
+      }
+      .table-content.updating {
+        opacity: 0.5;
+        transition: opacity 2s ease;
+      }
+      [data-theme="dark"] {
+        --bg: #111;
+        --text: #fff;
+        --table-bg: #222;
+        --header-bg: #333;
+        --alert-text: lightcoral;
+      }
 
       /* ===== Login card ===== */
-      #login, #app { display:none; }
-      .center{min-height:100dvh;display:grid;place-items:center;}
-      .card{width:360px;max-width:92vw;background:#131b2e;color:#e6e9ef;padding:24px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.4);}
-      .card h1{margin:0 0 12px;font-size:22px;}
-      .card label{display:block;margin:14px 0 6px;font-size:13px;color:#b7c0d5;}
-      .card input{width:92%;padding:10px 12px;border-radius:10px;border:1px solid #2b3550;background:#0e1526;color:#e6e9ef;}
-      .card button{width:100%;padding:12px;border:0;border-radius:10px;margin-top:16px;font-weight:600;cursor:pointer;background:#2f6fed;color:#fff;}
-      .muted{color:#9aabc7;font-size:12px;margin-top:10px;text-align:center;}
-      .msg{min-height:22px;margin-top:10px;font-size:13px;color:#ffb4b4;}
-      .topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#111a2c;border-bottom:1px solid #223;}
-      .topbar .right{display:flex;gap:8px;align-items:center;}
-      .pill{padding:6px 10px;border-radius:999px;border:1px solid #2b3550;}
+      #login,
+      #app {
+        display: none;
+      }
+      .center {
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+      }
+      .card {
+        width: 360px;
+        max-width: 92vw;
+        background: #131b2e;
+        color: #e6e9ef;
+        padding: 24px;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+      }
+      .card h1 {
+        margin: 0 0 12px;
+        font-size: 22px;
+      }
+      .card label {
+        display: block;
+        margin: 14px 0 6px;
+        font-size: 13px;
+        color: #b7c0d5;
+      }
+      .card input {
+        width: 92%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid #2b3550;
+        background: #0e1526;
+        color: #e6e9ef;
+      }
+      .card button {
+        width: 100%;
+        padding: 12px;
+        border: 0;
+        border-radius: 10px;
+        margin-top: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        background: #2f6fed;
+        color: #fff;
+      }
+      .muted {
+        color: #9aabc7;
+        font-size: 12px;
+        margin-top: 10px;
+        text-align: center;
+      }
+      .msg {
+        min-height: 22px;
+        margin-top: 10px;
+        font-size: 13px;
+        color: #ffb4b4;
+      }
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 12px;
+        background: #111a2c;
+        border-bottom: 1px solid #223;
+      }
+      .topbar .right {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .pill {
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid #58627d;
+      }
     </style>
   </head>
   <body>
@@ -72,14 +286,25 @@
         <div class="left">🔒 Приватна сторінка Trading</div>
         <div class="right">
           <span id="who" class="pill"></span>
-          <button id="signout" class="pill" style="background:#2b3550;">Вийти</button>
+          <button id="signout" class="pill" style="background: #2b3550">Вийти</button>
         </div>
       </div>
 
       <div class="controls">
         <h1>📊 Imbalance Monitor</h1>
-        <input type="text" id="search-symbol" placeholder="🔍 Search..." style="padding:6px 3px;font-size:1rem;border-radius:8px;border:1px solid #ccc;" />
-        <div id="last-update" style="font-weight: bold">Last update: <span id="update-time">—</span></div>
+        <input
+          type="text"
+          id="search-symbol"
+          placeholder="🔍 Search..."
+          style="
+            padding: 6px 3px;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+          " />
+        <div id="last-update" style="font-weight: bold">
+          Last update: <span id="update-time">—</span>
+        </div>
         <label class="switch">
           <input type="checkbox" id="themeToggle" onclick="toggleTheme()" />
           <span class="slider"></span>
@@ -101,19 +326,266 @@
     <!-- ======= Твій існуючий JS (без змін у логіці) ======= -->
     <script>
       let theme = localStorage.getItem("theme") || "light";
-      function applyTheme(){const r=document.documentElement;r.setAttribute("data-theme",theme);if(theme==="dark"){r.style.setProperty("--bg","#111");r.style.setProperty("--text","#fff");r.style.setProperty("--table-bg","#222");r.style.setProperty("--header-bg","#333");}else{r.style.setProperty("--bg","#f4f4f4");r.style.setProperty("--text","#000");r.style.setProperty("--table-bg","#fff");r.style.setProperty("--header-bg","#ccc");}}
-      function toggleTheme(){theme=theme==="dark"?"light":"dark";localStorage.setItem("theme",theme);applyTheme();}
-      function saveSortState(id,col,desc){localStorage.setItem(`sort_${id}`,JSON.stringify({col,desc}));}
-      function getSortState(id){const s=localStorage.getItem(`sort_${id}`);return s?JSON.parse(s):null;}
-      function sortTable(table,colIndex,forceDesc=null){const tbody=table.querySelector("tbody");const rows=Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.classList.contains("archive-row")&&!r.closest(".archive-table"));const tableId=table.closest(".table-container")?.id||"default";const state=getSortState(tableId);let desc=forceDesc!==null?forceDesc:state?.col===colIndex?!state.desc:true;rows.sort((a,b)=>{const aSymbol=a.dataset.symbol||"";const bSymbol=b.dataset.symbol||"";const aPercent=parseFloat(a.children[colIndex].innerText.replace(/[^0-9.\-]/g,""))||0;const bPercent=parseFloat(b.children[colIndex].innerText.replace(/[^0-9.\-]/g,""))||0;const aIsDash=aSymbol.includes("-");const bIsDash=bSymbol.includes("-");const aIsHigh=aPercent>=95;const bIsHigh=bPercent>=95;if(aIsHigh!==bIsHigh)return desc?(bIsHigh?1:-1):aIsHigh?1:-1;if(aIsDash!==bIsDash)return desc?(bIsDash?1:-1):aIsDash?1:-1;return desc?bPercent-aPercent:aPercent-bPercent;});rows.forEach(row=>{const archiveRow=row.nextElementSibling?.classList.contains("archive-row")?row.nextElementSibling:null;tbody.appendChild(row);if(archiveRow)tbody.appendChild(archiveRow);});saveSortState(tableId,colIndex,desc);}
-      let lastSearch="",expandedSymbols=new Set(),scrollPositions={};
-      function saveUIState(){lastSearch=document.getElementById("search-symbol").value.trim().toUpperCase();expandedSymbols.clear();document.querySelectorAll(".expand-row").forEach(row=>{const next=row.nextElementSibling;if(next&&!next.classList.contains("hidden")){expandedSymbols.add(row.dataset.symbol);}});scrollPositions={};document.querySelectorAll(".table-content").forEach(c=>{scrollPositions[c.id]=c.scrollTop;});}
-      function restoreUIState(){const input=document.getElementById("search-symbol");input.value=lastSearch;input.dispatchEvent(new Event("input"));document.querySelectorAll(".expand-row").forEach(row=>{if(expandedSymbols.has(row.dataset.symbol)){const next=row.nextElementSibling;if(next&&next.classList.contains("archive-row")){next.classList.remove("hidden");row.classList.add("expanded");}}});for(const [id,top] of Object.entries(scrollPositions)){const c=document.getElementById(id);if(c)c.scrollTop=top;}}
-      async function loadTable(json,id){const res=await fetch(json+"?t="+new Date().getTime());const data=await res.json();const container=document.querySelector(`#${id} .table-content`);if(!data.main||data.main.length<=1){container.innerText="📭 Data is currently unavailable";return;}document.getElementById(`${id}-count`).textContent=data.main.length-1;let html="<table><thead><tr>";data.main[0].forEach((cell,i)=>{html+=`<th onclick="sortTable(this.closest('table'), ${i})">${cell}</th>`;});html+="</tr></thead><tbody>";for(let i=1;i<data.main.length;i++){const row=data.main[i];const symbol=row[1];const percent=parseFloat(row[row.length-1].replace("%",""))||0;const rowHasDash=symbol.includes("-");const isHighImb=percent>=95;let rowStyle="";if(rowHasDash){rowStyle="background-color:#c39005;color:white;";}else if(isHighImb){rowStyle="background-color:#007366;color:white;";}const cleanSymbol=symbol.replace(/\s*\(PR\)\s*$/,"").replace(/-+$/,"");const finvizLink=`<a class="finviz-link" href="https://finviz.com/quote.ashx?t=${cleanSymbol}&p=d" target="_blank" title="Відкрити на Finviz">🔗</a>`;html+=`<tr class="expand-row" data-symbol="${symbol}" style="${rowStyle}">`;const lookupSymbol=symbol.replace(/\s*\(PR\)\s*$/,"").replace(/-+$/,"");const archive=data.archive[lookupSymbol];let flipMarker="";if(archive){const sides=new Set();for(const entry of archive.slice(1)){if(entry[1]==="Buy"||entry[1]==="SELL"||entry[1]==="BUY"||entry[1]==="Sell"){sides.add(entry[1].toUpperCase());}}if(sides.has("BUY")&&sides.has("SELL")){flipMarker=" 🟢↔️🔴";}}row.forEach((cell,idx)=>{let formatted=idx>=2&&idx<=4&&!isNaN(cell)?Number(cell).toLocaleString():cell;if(idx===1){formatted=`${cell}${flipMarker} ${finvizLink}`;html+=`<td>${formatted}</td>`;}else{html+=`<td>${formatted}</td>`;}});html+="</tr>";if(data.archive&&archive){html+=`<tr class="archive-row hidden"><td colspan="${row.length}"><div class="archive-scroll"><table class="archive-table"><thead><tr>`;archive[0].forEach(c=>{html+=`<th>${c}</th>`;});html+="</tr></thead><tbody>";const archiveData=archive.slice(1).sort((a,b)=>b[0].localeCompare(a[0]));archiveData.forEach(r=>{html+="<tr>";r.forEach((c,idx)=>{let formatted=c;if((idx===2||idx===3)&&!isNaN(c)){formatted=Number(c).toLocaleString();}if(idx===1&&typeof c==="string"){const v=c.trim().toUpperCase();if(v==="BUY"){formatted="🟢 Buy";}else if(v==="SELL"){formatted="🔴 Sell";}}html+=`<td>${formatted}</td>`;});html+="</tr>";});html+="</tbody></table></div></td></tr>";}}html+="</tbody></table>";container.innerHTML=html;document.querySelectorAll(`#${id} .expand-row`).forEach(row=>{row.addEventListener("click",(e)=>{const idx=Array.from(row.children).indexOf(e.target.closest("td"));const link=e.target.closest("a");if(idx===1||link)return;const next=row.nextElementSibling;if(next&&next.classList.contains("archive-row")){next.classList.toggle("hidden");row.classList.toggle("expanded");}});});const table=container.querySelector("table");const saved=getSortState(id);if(saved){sortTable(table,saved.col,saved.desc);}else{const lastCol=data.main[0].length-1;sortTable(table,lastCol,true);}}
-      async function loadAll(){saveUIState();document.querySelectorAll(".table-content").forEach(c=>c.classList.add("updating"));await Promise.all([loadTable("buy_data.json","buy"),loadTable("sell_data.json","sell")]);setTimeout(()=>{document.querySelectorAll(".table-content").forEach(c=>c.classList.remove("updating"));restoreUIState();},100);}
-      function updateTimestamp(){const el=document.getElementById("update-time");const now=new Date();const formatted=now.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false});el.textContent=formatted;}
-      function initAppUI(){applyTheme();loadAll();updateTimestamp();setInterval(()=>{requestAnimationFrame(()=>{updateTimestamp();loadAll();});},20000);
-        document.getElementById("search-symbol").addEventListener("input",function(){const search=this.value.trim().toUpperCase();document.querySelectorAll(".tables .table-content table tbody tr.expand-row").forEach(row=>{const cell=row.querySelector("td:nth-child(2)");if(!cell)return;const text=cell.textContent.toUpperCase();const match=text.includes(search);row.style.display=match?"":"none";const archive=row.nextElementSibling;if(archive&&archive.classList.contains("archive-row")){archive.style.display=match?"":"none";}cell.style.fontWeight=match&&search!==""?"bold":"";cell.style.background=match&&search!==""?"#57abf4":"";});});
+      function applyTheme() {
+        const r = document.documentElement;
+        r.setAttribute("data-theme", theme);
+        if (theme === "dark") {
+          r.style.setProperty("--bg", "#111");
+          r.style.setProperty("--text", "#fff");
+          r.style.setProperty("--table-bg", "#222");
+          r.style.setProperty("--header-bg", "#333");
+        } else {
+          r.style.setProperty("--bg", "#f4f4f4");
+          r.style.setProperty("--text", "#000");
+          r.style.setProperty("--table-bg", "#fff");
+          r.style.setProperty("--header-bg", "#ccc");
+        }
+      }
+      function toggleTheme() {
+        theme = theme === "dark" ? "light" : "dark";
+        localStorage.setItem("theme", theme);
+        applyTheme();
+      }
+      function saveSortState(id, col, desc) {
+        localStorage.setItem(`sort_${id}`, JSON.stringify({ col, desc }));
+      }
+      function getSortState(id) {
+        const s = localStorage.getItem(`sort_${id}`);
+        return s ? JSON.parse(s) : null;
+      }
+      function sortTable(table, colIndex, forceDesc = null) {
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.querySelectorAll("tr")).filter(
+          (r) => !r.classList.contains("archive-row") && !r.closest(".archive-table")
+        );
+        const tableId = table.closest(".table-container")?.id || "default";
+        const state = getSortState(tableId);
+        let desc =
+          forceDesc !== null ? forceDesc : state?.col === colIndex ? !state.desc : true;
+        rows.sort((a, b) => {
+          const aSymbol = a.dataset.symbol || "";
+          const bSymbol = b.dataset.symbol || "";
+          const aPercent =
+            parseFloat(a.children[colIndex].innerText.replace(/[^0-9.\-]/g, "")) || 0;
+          const bPercent =
+            parseFloat(b.children[colIndex].innerText.replace(/[^0-9.\-]/g, "")) || 0;
+          const aIsDash = aSymbol.includes("-");
+          const bIsDash = bSymbol.includes("-");
+          const aIsHigh = aPercent >= 95;
+          const bIsHigh = bPercent >= 95;
+          if (aIsHigh !== bIsHigh) return desc ? (bIsHigh ? 1 : -1) : aIsHigh ? 1 : -1;
+          if (aIsDash !== bIsDash) return desc ? (bIsDash ? 1 : -1) : aIsDash ? 1 : -1;
+          return desc ? bPercent - aPercent : aPercent - bPercent;
+        });
+        rows.forEach((row) => {
+          const archiveRow = row.nextElementSibling?.classList.contains("archive-row")
+            ? row.nextElementSibling
+            : null;
+          tbody.appendChild(row);
+          if (archiveRow) tbody.appendChild(archiveRow);
+        });
+        saveSortState(tableId, colIndex, desc);
+      }
+      let lastSearch = "",
+        expandedSymbols = new Set(),
+        scrollPositions = {};
+      function saveUIState() {
+        lastSearch = document.getElementById("search-symbol").value.trim().toUpperCase();
+        expandedSymbols.clear();
+        document.querySelectorAll(".expand-row").forEach((row) => {
+          const next = row.nextElementSibling;
+          if (next && !next.classList.contains("hidden")) {
+            expandedSymbols.add(row.dataset.symbol);
+          }
+        });
+        scrollPositions = {};
+        document.querySelectorAll(".table-content").forEach((c) => {
+          scrollPositions[c.id] = c.scrollTop;
+        });
+      }
+      function restoreUIState() {
+        const input = document.getElementById("search-symbol");
+        input.value = lastSearch;
+        input.dispatchEvent(new Event("input"));
+        document.querySelectorAll(".expand-row").forEach((row) => {
+          if (expandedSymbols.has(row.dataset.symbol)) {
+            const next = row.nextElementSibling;
+            if (next && next.classList.contains("archive-row")) {
+              next.classList.remove("hidden");
+              row.classList.add("expanded");
+            }
+          }
+        });
+        for (const [id, top] of Object.entries(scrollPositions)) {
+          const c = document.getElementById(id);
+          if (c) c.scrollTop = top;
+        }
+      }
+      async function loadTable(json, id) {
+        const res = await fetch(json + "?t=" + new Date().getTime());
+        const data = await res.json();
+        const container = document.querySelector(`#${id} .table-content`);
+        if (!data.main || data.main.length <= 1) {
+          container.innerText = "📭 Data is currently unavailable";
+          return;
+        }
+        document.getElementById(`${id}-count`).textContent = data.main.length - 1;
+        let html = "<table><thead><tr>";
+        data.main[0].forEach((cell, i) => {
+          html += `<th onclick="sortTable(this.closest('table'), ${i})">${cell}</th>`;
+        });
+        html += "</tr></thead><tbody>";
+        for (let i = 1; i < data.main.length; i++) {
+          const row = data.main[i];
+          const symbol = row[1];
+          const percent = parseFloat(row[row.length - 1].replace("%", "")) || 0;
+          const rowHasDash = symbol.includes("-");
+          const isHighImb = percent >= 95;
+          let rowStyle = "";
+          if (rowHasDash) {
+            rowStyle = "background-color:#c39005;color:white;";
+          } else if (isHighImb) {
+            rowStyle = "background-color:#007366;color:white;";
+          }
+          const cleanSymbol = symbol.replace(/\s*\(PR\)\s*$/, "").replace(/-+$/, "");
+          const finvizLink = `<a class="finviz-link" href="https://finviz.com/quote.ashx?t=${cleanSymbol}&p=d" target="_blank" title="Відкрити на Finviz">🔗</a>`;
+          html += `<tr class="expand-row" data-symbol="${symbol}" style="${rowStyle}">`;
+          const lookupSymbol = symbol.replace(/\s*\(PR\)\s*$/, "").replace(/-+$/, "");
+          const archive = data.archive[lookupSymbol];
+          let flipMarker = "";
+          if (archive) {
+            const sides = new Set();
+            for (const entry of archive.slice(1)) {
+              if (
+                entry[1] === "Buy" ||
+                entry[1] === "SELL" ||
+                entry[1] === "BUY" ||
+                entry[1] === "Sell"
+              ) {
+                sides.add(entry[1].toUpperCase());
+              }
+            }
+            if (sides.has("BUY") && sides.has("SELL")) {
+              flipMarker = " 🟢↔️🔴";
+            }
+          }
+          row.forEach((cell, idx) => {
+            let formatted =
+              idx >= 2 && idx <= 4 && !isNaN(cell) ? Number(cell).toLocaleString() : cell;
+            if (idx === 1) {
+              formatted = `${cell}${flipMarker} ${finvizLink}`;
+              html += `<td>${formatted}</td>`;
+            } else {
+              html += `<td>${formatted}</td>`;
+            }
+          });
+          html += "</tr>";
+          if (data.archive && archive) {
+            html += `<tr class="archive-row hidden"><td colspan="${row.length}"><div class="archive-scroll"><table class="archive-table"><thead><tr>`;
+            archive[0].forEach((c) => {
+              html += `<th>${c}</th>`;
+            });
+            html += "</tr></thead><tbody>";
+            const archiveData = archive.slice(1).sort((a, b) => b[0].localeCompare(a[0]));
+            archiveData.forEach((r) => {
+              html += "<tr>";
+              r.forEach((c, idx) => {
+                let formatted = c;
+                if ((idx === 2 || idx === 3) && !isNaN(c)) {
+                  formatted = Number(c).toLocaleString();
+                }
+                if (idx === 1 && typeof c === "string") {
+                  const v = c.trim().toUpperCase();
+                  if (v === "BUY") {
+                    formatted = "🟢 Buy";
+                  } else if (v === "SELL") {
+                    formatted = "🔴 Sell";
+                  }
+                }
+                html += `<td>${formatted}</td>`;
+              });
+              html += "</tr>";
+            });
+            html += "</tbody></table></div></td></tr>";
+          }
+        }
+        html += "</tbody></table>";
+        container.innerHTML = html;
+        document.querySelectorAll(`#${id} .expand-row`).forEach((row) => {
+          row.addEventListener("click", (e) => {
+            const idx = Array.from(row.children).indexOf(e.target.closest("td"));
+            const link = e.target.closest("a");
+            if (idx === 1 || link) return;
+            const next = row.nextElementSibling;
+            if (next && next.classList.contains("archive-row")) {
+              next.classList.toggle("hidden");
+              row.classList.toggle("expanded");
+            }
+          });
+        });
+        const table = container.querySelector("table");
+        const saved = getSortState(id);
+        if (saved) {
+          sortTable(table, saved.col, saved.desc);
+        } else {
+          const lastCol = data.main[0].length - 1;
+          sortTable(table, lastCol, true);
+        }
+      }
+      async function loadAll() {
+        saveUIState();
+        document
+          .querySelectorAll(".table-content")
+          .forEach((c) => c.classList.add("updating"));
+        await Promise.all([
+          loadTable("buy_data.json", "buy"),
+          loadTable("sell_data.json", "sell"),
+        ]);
+        setTimeout(() => {
+          document
+            .querySelectorAll(".table-content")
+            .forEach((c) => c.classList.remove("updating"));
+          restoreUIState();
+        }, 100);
+      }
+      function updateTimestamp() {
+        const el = document.getElementById("update-time");
+        const now = new Date();
+        const formatted = now.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        });
+        el.textContent = formatted;
+      }
+      function initAppUI() {
+        applyTheme();
+        loadAll();
+        updateTimestamp();
+        setInterval(() => {
+          requestAnimationFrame(() => {
+            updateTimestamp();
+            loadAll();
+          });
+        }, 20000);
+        document.getElementById("search-symbol").addEventListener("input", function () {
+          const search = this.value.trim().toUpperCase();
+          document
+            .querySelectorAll(".tables .table-content table tbody tr.expand-row")
+            .forEach((row) => {
+              const cell = row.querySelector("td:nth-child(2)");
+              if (!cell) return;
+              const text = cell.textContent.toUpperCase();
+              const match = text.includes(search);
+              row.style.display = match ? "" : "none";
+              const archive = row.nextElementSibling;
+              if (archive && archive.classList.contains("archive-row")) {
+                archive.style.display = match ? "" : "none";
+              }
+              cell.style.fontWeight = match && search !== "" ? "bold" : "";
+              cell.style.background = match && search !== "" ? "#57abf4" : "";
+            });
+        });
       }
     </script>
 
@@ -129,46 +601,46 @@
         storageBucket: "imbalance-monitor.firebasestorage.app",
         messagingSenderId: "731994156123",
         appId: "1:731994156123:web:46f8ff25c8baffe9d2237e",
-        measurementId: "G-M5WYYMS3T7"
+        measurementId: "G-M5WYYMS3T7",
       };
       firebase.initializeApp(firebaseConfig);
       const auth = firebase.auth();
 
-      const elApp   = document.getElementById('app');
-      const elLogin = document.getElementById('login');
-      const elForm  = document.getElementById('loginForm');
-      const elMsg   = document.getElementById('msg');
-      const elWho   = document.getElementById('who');
-      const elOut   = document.getElementById('signout');
+      const elApp = document.getElementById("app");
+      const elLogin = document.getElementById("login");
+      const elForm = document.getElementById("loginForm");
+      const elMsg = document.getElementById("msg");
+      const elWho = document.getElementById("who");
+      const elOut = document.getElementById("signout");
 
       // перемикач екрану за станом авторизації
-      auth.onAuthStateChanged(user => {
+      auth.onAuthStateChanged((user) => {
         if (user) {
-          elLogin.style.display = 'none';
-          elApp.style.display   = 'block';
-          elWho.textContent = user.email || 'Користувач';
+          elLogin.style.display = "none";
+          elApp.style.display = "block";
+          elWho.textContent = user.email || "Користувач";
           // запускаємо твою сторінку тільки після входу
           initAppUI();
         } else {
-          elApp.style.display   = 'none';
-          elLogin.style.display = 'grid';
-          elWho.textContent = '';
+          elApp.style.display = "none";
+          elLogin.style.display = "grid";
+          elWho.textContent = "";
         }
       });
 
-      elForm.addEventListener('submit', async (e) => {
+      elForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        elMsg.textContent = '';
-        const email = document.getElementById('email').value.trim();
-        const pass  = document.getElementById('password').value;
+        elMsg.textContent = "";
+        const email = document.getElementById("email").value.trim();
+        const pass = document.getElementById("password").value;
         try {
           await auth.signInWithEmailAndPassword(email, pass);
         } catch (err) {
-          elMsg.textContent = err.message || 'Помилка входу';
+          elMsg.textContent = err.message || "Помилка входу";
         }
       });
 
-      elOut.addEventListener('click', () => auth.signOut());
+      elOut.addEventListener("click", () => auth.signOut());
     </script>
   </body>
 </html>
