@@ -22,3 +22,4 @@ geckodriver.tar.gz
 package.json
 package-lock.json
 login.html
+node_modules
