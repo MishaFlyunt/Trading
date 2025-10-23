@@ -24,3 +24,8 @@ package-lock.json
 login.html
 node_modules
 index2.html
+.firebaserc
+firebase.json
+firestore.rules
+functions
+firebase-debug.log
