@@ -1236,55 +1236,127 @@
         }
       });
 
-      elForm.addEventListener("submit", async (e) => {
+      // ------
+
+      let heartbeatTimer = null;
+
+      // 👇 Функція "пульсу" для оновлення lastPing
+      async function heartbeat() {
+        try {
+          const acquire = firebase.functions().httpsCallable("acquireSessionIfFree");
+          await acquire(); // просто оновлює час для поточного uid
+        } catch (e) {
+          console.warn("heartbeat error:", e);
+        }
+      }
+
+      function startHeartbeat() {
+        if (heartbeatTimer) return;
+        heartbeat(); // одразу
+        heartbeatTimer = setInterval(heartbeat, 30000); // кожні 30 сек
+      }
+
+      function stopHeartbeat() {
+        if (heartbeatTimer) {
+          clearInterval(heartbeatTimer);
+          heartbeatTimer = null;
+        }
+      }
+
+      // 👇 Обробник логіну
+      loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        elMsg.textContent = "";
-        const email = document.getElementById("email").value.trim();
-        const pass = document.getElementById("password").value;
+        msgBox.textContent = "";
+
+        const email = emailInput.value.trim();
+        const pass = passwordInput.value;
 
         try {
-          const cred = await auth.signInWithEmailAndPassword(email, pass);
+          await auth.signInWithEmailAndPassword(email, pass);
 
-          // Після входу — перевіряємо/захоплюємо "замок"
           const acquire = firebase.functions().httpsCallable("acquireSessionIfFree");
           const { data } = await acquire();
 
           if (!data?.ok) {
-            // Уже активний десь — миттєво розлогінюємо і показуємо повідомлення
             await auth.signOut();
-            elMsg.textContent =
+            stopHeartbeat();
+            msgBox.textContent =
               "Цей акаунт уже активний на іншому пристрої. Спершу вийдіть там.";
             return;
           }
 
-          // Інакше все добре: показуємо app (далі спрацює onAuthStateChanged)
+          // якщо все гаразд — стартуємо heartbeat
+          startHeartbeat();
+          msgBox.textContent = "";
         } catch (err) {
           console.warn("login error:", err);
-
-          // Firebase викидає код помилки типу "auth/invalid-login-credentials"
-          const code = err?.code || "";
-
-          if (code === "auth/invalid-login-credentials") {
-            elMsg.textContent = "Невірний email або пароль.";
-          } else if (code === "auth/too-many-requests") {
-            elMsg.textContent = "Забагато спроб входу. Спробуйте пізніше.";
-          } else {
-            elMsg.textContent = "Помилка входу. Зверніться до адміністратора.";
-          }
+          msgBox.textContent = "Помилка входу. Перевірте email або пароль.";
+          stopHeartbeat();
         }
       });
 
-      // elOut.addEventListener("click", () => auth.signOut());
-      elOut.addEventListener("click", async () => {
+      // 👇 Обробник виходу
+      logoutBtn.addEventListener("click", async () => {
         try {
           const release = firebase.functions().httpsCallable("releaseSession");
-          await release(); // 🔓 зняли замок
+          await release();
         } catch (e) {
-          // ок
+          console.warn("releaseSession error:", e);
         } finally {
-          await auth.signOut(); // ↩️ вийшли
+          stopHeartbeat();
+          await auth.signOut();
         }
       });
+
+      // elForm.addEventListener("submit", async (e) => {
+      //   e.preventDefault();
+      //   elMsg.textContent = "";
+      //   const email = document.getElementById("email").value.trim();
+      //   const pass = document.getElementById("password").value;
+
+      //   try {
+      //     const cred = await auth.signInWithEmailAndPassword(email, pass);
+
+      //     // Після входу — перевіряємо/захоплюємо "замок"
+      //     const acquire = firebase.functions().httpsCallable("acquireSessionIfFree");
+      //     const { data } = await acquire();
+
+      //     if (!data?.ok) {
+      //       // Уже активний десь — миттєво розлогінюємо і показуємо повідомлення
+      //       await auth.signOut();
+      //       elMsg.textContent =
+      //         "Цей акаунт уже активний на іншому пристрої. Спершу вийдіть там.";
+      //       return;
+      //     }
+
+      //     // Інакше все добре: показуємо app (далі спрацює onAuthStateChanged)
+      //   } catch (err) {
+      //     console.warn("login error:", err);
+
+      //     // Firebase викидає код помилки типу "auth/invalid-login-credentials"
+      //     const code = err?.code || "";
+
+      //     if (code === "auth/invalid-login-credentials") {
+      //       elMsg.textContent = "Невірний email або пароль.";
+      //     } else if (code === "auth/too-many-requests") {
+      //       elMsg.textContent = "Забагато спроб входу. Спробуйте пізніше.";
+      //     } else {
+      //       elMsg.textContent = "Помилка входу. Зверніться до адміністратора.";
+      //     }
+      //   }
+      // });
+
+      // // elOut.addEventListener("click", () => auth.signOut());
+      // elOut.addEventListener("click", async () => {
+      //   try {
+      //     const release = firebase.functions().httpsCallable("releaseSession");
+      //     await release(); // 🔓 зняли замок
+      //   } catch (e) {
+      //     // ок
+      //   } finally {
+      //     await auth.signOut(); // ↩️ вийшли
+      //   }
+      // });
     </script>
   </body>
 </html>
