@@ -1236,17 +1236,6 @@
         }
       });
 
-      // elForm.addEventListener("submit", async (e) => {
-      //   e.preventDefault();
-      //   elMsg.textContent = "";
-      //   const email = document.getElementById("email").value.trim();
-      //   const pass = document.getElementById("password").value;
-      //   try {
-      //     await auth.signInWithEmailAndPassword(email, pass);
-      //   } catch (err) {
-      //     elMsg.textContent = err.message || "Помилка входу";
-      //   }
-      // });
       elForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         elMsg.textContent = "";
@@ -1270,7 +1259,18 @@
 
           // Інакше все добре: показуємо app (далі спрацює onAuthStateChanged)
         } catch (err) {
-          elMsg.textContent = err?.message || "Помилка входу";
+          console.warn("login error:", err);
+
+          // Firebase викидає код помилки типу "auth/invalid-login-credentials"
+          const code = err?.code || "";
+
+          if (code === "auth/invalid-login-credentials") {
+            elMsg.textContent = "Невірний email або пароль.";
+          } else if (code === "auth/too-many-requests") {
+            elMsg.textContent = "Забагато спроб входу. Спробуйте пізніше.";
+          } else {
+            elMsg.textContent = "Помилка входу. Зверніться до адміністратора.";
+          }
         }
       });
 
