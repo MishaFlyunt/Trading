@@ -1023,108 +1023,262 @@
           if (c) c.scrollTop = top;
         }
       }
+      // async function loadTable(json, id) {
+      //   const res = await fetch(json + "?t=" + new Date().getTime());
+      //   const data = await res.json();
+      //   const container = document.querySelector(`#${id} .table-content`);
+      //   if (!data.main || data.main.length <= 1) {
+      //     container.innerText = "📭 Data is currently unavailable";
+      //     return;
+      //   }
+      //   document.getElementById(`${id}-count`).textContent = data.main.length - 1;
+      //   let html = "<table><thead><tr>";
+      //   data.main[0].forEach((cell, i) => {
+      //     html += `<th onclick="sortTable(this.closest('table'), ${i})">${cell}</th>`;
+      //   });
+      //   html += "</tr></thead><tbody>";
+      //   for (let i = 1; i < data.main.length; i++) {
+      //     const row = data.main[i];
+      //     const symbol = row[1];
+      //     const percent = parseFloat(row[row.length - 1].replace("%", "")) || 0;
+      //     const rowHasDash = symbol.includes("-");
+      //     const isHighImb = percent >= 95;
+      //     let rowStyle = "";
+      //     if (rowHasDash) {
+      //       rowStyle = "background-color:#c39005;color:white;";
+      //     } else if (isHighImb) {
+      //       rowStyle = "background-color:#007366;color:white;";
+      //     }
+      //     const cleanSymbol = symbol.replace(/\s*\(PR\)\s*$/, "").replace(/-+$/, "");
+      //     const finvizLink = `<a class="finviz-link" href="https://finviz.com/quote.ashx?t=${cleanSymbol}&p=d" target="_blank" title="Відкрити на Finviz">🔗</a>`;
+      //     html += `<tr class="expand-row" data-symbol="${symbol}" style="${rowStyle}">`;
+      //     const lookupSymbol = symbol.replace(/\s*\(PR\)\s*$/, "").replace(/-+$/, "");
+      //     const archive = data.archive[lookupSymbol];
+      //     let flipMarker = "";
+      //     if (archive) {
+      //       const sides = new Set();
+      //       for (const entry of archive.slice(1)) {
+      //         if (
+      //           entry[1] === "Buy" ||
+      //           entry[1] === "SELL" ||
+      //           entry[1] === "BUY" ||
+      //           entry[1] === "Sell"
+      //         ) {
+      //           sides.add(entry[1].toUpperCase());
+      //         }
+      //       }
+      //       if (sides.has("BUY") && sides.has("SELL")) {
+      //         flipMarker = " 🟢↔️🔴";
+      //       }
+      //     }
+      //     row.forEach((cell, idx) => {
+      //       let formatted =
+      //         idx >= 2 && idx <= 4 && !isNaN(cell) ? Number(cell).toLocaleString() : cell;
+      //       if (idx === 1) {
+      //         formatted = `${cell}${flipMarker} ${finvizLink}`;
+      //         html += `<td>${formatted}</td>`;
+      //       } else {
+      //         html += `<td>${formatted}</td>`;
+      //       }
+      //     });
+      //     html += "</tr>";
+      //     if (data.archive && archive) {
+      //       html += `<tr class="archive-row hidden"><td colspan="${row.length}"><div class="archive-scroll"><table class="archive-table"><thead><tr>`;
+      //       archive[0].forEach((c) => {
+      //         html += `<th>${c}</th>`;
+      //       });
+      //       html += "</tr></thead><tbody>";
+      //       const archiveData = archive.slice(1).sort((a, b) => b[0].localeCompare(a[0]));
+      //       archiveData.forEach((r) => {
+      //         html += "<tr>";
+      //         r.forEach((c, idx) => {
+      //           let formatted = c;
+      //           if ((idx === 2 || idx === 3) && !isNaN(c)) {
+      //             formatted = Number(c).toLocaleString();
+      //           }
+      //           if (idx === 1 && typeof c === "string") {
+      //             const v = c.trim().toUpperCase();
+      //             if (v === "BUY") {
+      //               formatted = "🟢 Buy";
+      //             } else if (v === "SELL") {
+      //               formatted = "🔴 Sell";
+      //             }
+      //           }
+      //           html += `<td>${formatted}</td>`;
+      //         });
+      //         html += "</tr>";
+      //       });
+      //       html += "</tbody></table></div></td></tr>";
+      //     }
+      //   }
+      //   html += "</tbody></table>";
+      //   container.innerHTML = html;
+      //   document.querySelectorAll(`#${id} .expand-row`).forEach((row) => {
+      //     row.addEventListener("click", (e) => {
+      //       const idx = Array.from(row.children).indexOf(e.target.closest("td"));
+      //       const link = e.target.closest("a");
+      //       if (idx === 1 || link) return;
+      //       const next = row.nextElementSibling;
+      //       if (next && next.classList.contains("archive-row")) {
+      //         next.classList.toggle("hidden");
+      //         row.classList.toggle("expanded");
+      //       }
+      //     });
+      //   });
+      //   const table = container.querySelector("table");
+      //   const saved = getSortState(id);
+      //   if (saved) {
+      //     sortTable(table, saved.col, saved.desc);
+      //   } else {
+      //     const lastCol = data.main[0].length - 1;
+      //     sortTable(table, lastCol, true);
+      //   }
+      // }
       async function loadTable(json, id) {
-        const res = await fetch(json + "?t=" + new Date().getTime());
-        const data = await res.json();
+        let data;
+        try {
+          const res = await fetch(json + "?t=" + new Date().getTime(), {
+            cache: "no-store",
+          });
+
+          // якщо файл не існує або не 200 -> кинемо самі
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status} for ${json}`);
+          }
+
+          // пробуємо парсити
+          data = await res.json();
+
+          // без main? вважаємо, що пусто
+          if (!data || !data.main) {
+            throw new Error(`bad json shape for ${json}`);
+          }
+        } catch (err) {
+          console.warn("loadTable fail for", json, err);
+
+          // показуємо заглушку замість падіння всього коду
+          const container = document.querySelector(`#${id} .table-content`);
+          container.innerText = "📭 Data is currently unavailable";
+          document.getElementById(`${id}-count`).textContent = "0";
+          return; // важливо: просто вийти і не продовжувати
+        }
+
+        // ---- далі твоя стара логіка рендеру таблиці ----
         const container = document.querySelector(`#${id} .table-content`);
+
+        document.getElementById(`${id}-count`).textContent =
+          data.main.length > 1 ? data.main.length - 1 : 0;
+
         if (!data.main || data.main.length <= 1) {
           container.innerText = "📭 Data is currently unavailable";
           return;
         }
-        document.getElementById(`${id}-count`).textContent = data.main.length - 1;
+
         let html = "<table><thead><tr>";
         data.main[0].forEach((cell, i) => {
           html += `<th onclick="sortTable(this.closest('table'), ${i})">${cell}</th>`;
         });
         html += "</tr></thead><tbody>";
+
         for (let i = 1; i < data.main.length; i++) {
           const row = data.main[i];
           const symbol = row[1];
           const percent = parseFloat(row[row.length - 1].replace("%", "")) || 0;
+
           const rowHasDash = symbol.includes("-");
           const isHighImb = percent >= 95;
+
           let rowStyle = "";
           if (rowHasDash) {
             rowStyle = "background-color:#c39005;color:white;";
           } else if (isHighImb) {
             rowStyle = "background-color:#007366;color:white;";
           }
+
           const cleanSymbol = symbol.replace(/\s*\(PR\)\s*$/, "").replace(/-+$/, "");
+
           const finvizLink = `<a class="finviz-link" href="https://finviz.com/quote.ashx?t=${cleanSymbol}&p=d" target="_blank" title="Відкрити на Finviz">🔗</a>`;
+
           html += `<tr class="expand-row" data-symbol="${symbol}" style="${rowStyle}">`;
-          const lookupSymbol = symbol.replace(/\s*\(PR\)\s*$/, "").replace(/-+$/, "");
-          const archive = data.archive[lookupSymbol];
+
+          const lookupSymbol = cleanSymbol;
+          const archive = data.archive ? data.archive[lookupSymbol] : undefined;
+
           let flipMarker = "";
           if (archive) {
             const sides = new Set();
             for (const entry of archive.slice(1)) {
-              if (
-                entry[1] === "Buy" ||
-                entry[1] === "SELL" ||
-                entry[1] === "BUY" ||
-                entry[1] === "Sell"
-              ) {
-                sides.add(entry[1].toUpperCase());
+              const sideVal = (entry[1] || "").toUpperCase();
+              if (sideVal === "BUY" || sideVal === "SELL") {
+                sides.add(sideVal);
               }
             }
             if (sides.has("BUY") && sides.has("SELL")) {
               flipMarker = " 🟢↔️🔴";
             }
           }
+
           row.forEach((cell, idx) => {
             let formatted =
               idx >= 2 && idx <= 4 && !isNaN(cell) ? Number(cell).toLocaleString() : cell;
             if (idx === 1) {
               formatted = `${cell}${flipMarker} ${finvizLink}`;
-              html += `<td>${formatted}</td>`;
-            } else {
-              html += `<td>${formatted}</td>`;
             }
+            html += `<td>${formatted}</td>`;
           });
+
           html += "</tr>";
-          if (data.archive && archive) {
+
+          if (archive) {
             html += `<tr class="archive-row hidden"><td colspan="${row.length}"><div class="archive-scroll"><table class="archive-table"><thead><tr>`;
+
             archive[0].forEach((c) => {
               html += `<th>${c}</th>`;
             });
+
             html += "</tr></thead><tbody>";
+
             const archiveData = archive.slice(1).sort((a, b) => b[0].localeCompare(a[0]));
+
             archiveData.forEach((r) => {
               html += "<tr>";
-              r.forEach((c, idx) => {
+              r.forEach((c, idx2) => {
                 let formatted = c;
-                if ((idx === 2 || idx === 3) && !isNaN(c)) {
+                if ((idx2 === 2 || idx2 === 3) && !isNaN(c)) {
                   formatted = Number(c).toLocaleString();
                 }
-                if (idx === 1 && typeof c === "string") {
+                if (idx2 === 1 && typeof c === "string") {
                   const v = c.trim().toUpperCase();
-                  if (v === "BUY") {
-                    formatted = "🟢 Buy";
-                  } else if (v === "SELL") {
-                    formatted = "🔴 Sell";
-                  }
+                  if (v === "BUY") formatted = "🟢 Buy";
+                  if (v === "SELL") formatted = "🔴 Sell";
                 }
                 html += `<td>${formatted}</td>`;
               });
               html += "</tr>";
             });
+
             html += "</tbody></table></div></td></tr>";
           }
         }
+
         html += "</tbody></table>";
         container.innerHTML = html;
-        document.querySelectorAll(`#${id} .expand-row`).forEach((row) => {
-          row.addEventListener("click", (e) => {
-            const idx = Array.from(row.children).indexOf(e.target.closest("td"));
+
+        // клік по рядку щоб розкрити архів
+        document.querySelectorAll(`#${id} .expand-row`).forEach((rowEl) => {
+          rowEl.addEventListener("click", (e) => {
+            const idx = Array.from(rowEl.children).indexOf(e.target.closest("td"));
             const link = e.target.closest("a");
             if (idx === 1 || link) return;
-            const next = row.nextElementSibling;
+            const next = rowEl.nextElementSibling;
             if (next && next.classList.contains("archive-row")) {
               next.classList.toggle("hidden");
-              row.classList.toggle("expanded");
+              rowEl.classList.toggle("expanded");
             }
           });
         });
+
+        // відновити сортування
         const table = container.querySelector("table");
         const saved = getSortState(id);
         if (saved) {
