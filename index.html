@@ -1197,6 +1197,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script>
+      // 1. Firebase config (цей у тебе вже є, лишаєм твій)
       const firebaseConfig = {
         apiKey: "AIzaSyBIQ06AVmsPc1i1gbq2YlQtVcgvMD9akSA",
         authDomain: "imbalance-monitor.firebaseapp.com",
@@ -1206,11 +1207,11 @@
         appId: "1:731994156123:web:46f8ff25c8baffe9d2237e",
         measurementId: "G-M5WYYMS3T7",
       };
-
       firebase.initializeApp(firebaseConfig);
       const auth = firebase.auth();
       const functions = firebase.functions();
 
+      // 2. HTML refs
       const elApp = document.getElementById("app");
       const elLogin = document.getElementById("login");
       const elForm = document.getElementById("loginForm");
@@ -1218,90 +1219,166 @@
       const elWho = document.getElementById("who");
       const elOut = document.getElementById("signout");
 
-      // ------------------- Автоматичний logout -------------------
-      let lastUserActivity = Date.now();
-      let heartbeatTimer;
-      const HEARTBEAT_INTERVAL = 30000; // 30 сек
-      const AUTO_LOGOUT_IDLE = 2 * 60 * 60 * 1000; // 2 год
+      // 3. Таймінги (тут ти можеш міняти для тесту)
+      // через скільки без активності (клік/клавіатура/мишка) викидаємо юзера
+      const AUTO_LOGOUT_IDLE = 2 * 60 * 60 * 1000; // 2 години (для тесту можеш зробити 2 * 60 * 1000)
 
-      function markActivity() {
-        lastUserActivity = Date.now();
+      // як часто шлемо heartbeat на бекенд
+      const HEARTBEAT_INTERVAL = 30 * 1000; // 30 сек (для тесту можеш 5000)
+
+      // 4. Локальні змінні стану
+      let lastActivityTs = Date.now(); // останній рух миші/клави
+      let heartbeatTimer = null;
+      let currentUser = null; // firebase user
+      let forcedLogout = false; // щоб не робити зайвих викликів якщо вже логаутнули
+
+      // 5. Відслідковувати активність користувача
+      function bumpActivity() {
+        lastActivityTs = Date.now();
       }
-      ["click", "mousemove", "keydown", "wheel", "touchstart"].forEach((ev) =>
-        window.addEventListener(ev, markActivity)
-      );
+      window.addEventListener("mousemove", bumpActivity);
+      window.addEventListener("keydown", bumpActivity);
+      window.addEventListener("click", bumpActivity);
+      window.addEventListener("scroll", bumpActivity);
 
-      async function safeLogout() {
-        clearInterval(heartbeatTimer);
-        try {
-          await functions.httpsCallable("releaseSession")();
-        } catch {}
-        await auth.signOut();
-      }
-
+      // 6. Функція HEARTBEAT → викликається постійно поки юзер залогінений
       async function sendHeartbeat() {
-        const idle = Date.now() - lastUserActivity;
-        if (idle > AUTO_LOGOUT_IDLE) {
-          console.log("⏰ Idle 2h → logout");
-          await safeLogout();
-          return;
-        }
+        if (!currentUser || forcedLogout) return;
+
+        const idleMs = Date.now() - lastActivityTs;
+        const idleTooLong = idleMs > AUTO_LOGOUT_IDLE;
+
         try {
-          await functions.httpsCallable("heartbeat")();
-        } catch {
-          await safeLogout();
+          const beatFn = functions.httpsCallable("heartbeat");
+          const res = await beatFn({ idleTooLong });
+
+          if (res.data && res.data.kicked) {
+            // сервер сказав "ти занадто довго афк" -> локально розлогінюємось
+            console.log("⚠️ idle too long, server kicked session");
+            forcedLogout = true;
+            await doLogout();
+          }
+        } catch (err) {
+          console.warn("heartbeat error:", err);
+          // якщо тут помилка - просто лог, не падаємо
         }
       }
 
-      function startHeartbeats() {
-        clearInterval(heartbeatTimer);
+      // 7. Старт / стоп heartbeat таймера
+      function startHeartbeatLoop() {
+        stopHeartbeatLoop();
         heartbeatTimer = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL);
       }
+      function stopHeartbeatLoop() {
+        if (heartbeatTimer) {
+          clearInterval(heartbeatTimer);
+          heartbeatTimer = null;
+        }
+      }
 
-      // при закритті вкладки
-      window.addEventListener("beforeunload", () => {
-        functions
-          .httpsCallable("releaseSession")()
-          .catch(() => {});
-      });
+      // 8. Вихід (натискання кнопки Log out або автологаут)
+      async function doLogout() {
+        if (!currentUser) {
+          // нічого робити
+          return;
+        }
 
-      // ------------------- Авторизація -------------------
+        try {
+          const releaseFn = functions.httpsCallable("releaseSession");
+          await releaseFn(); // повідомили бекенд що ми звільнили акаунт
+        } catch (e) {
+          // навіть якщо впало - окей, головне зробити signOut нижче
+          console.warn("releaseSession err:", e);
+        }
+
+        stopHeartbeatLoop();
+        await auth.signOut();
+        currentUser = null;
+        forcedLogout = false;
+      }
+
+      // 9. onAuthStateChanged -> показуємо login або app
       auth.onAuthStateChanged((user) => {
+        currentUser = user || null;
+
         if (user) {
+          // залогінений
           elLogin.style.display = "none";
           elApp.style.display = "block";
-          elWho.textContent = user.email;
+          elWho.textContent = user.email || "Користувач";
+
+          // юзер зайшов -> запускаємо UI і heartbeat
           initAppUI();
-          startHeartbeats();
+          startHeartbeatLoop();
         } else {
+          // не залогінений
           elApp.style.display = "none";
           elLogin.style.display = "grid";
           elWho.textContent = "";
-          clearInterval(heartbeatTimer);
+
+          stopHeartbeatLoop();
         }
       });
 
+      // 10. Сабміт форми логіну
       elForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         elMsg.textContent = "";
+
         const email = document.getElementById("email").value.trim();
         const pass = document.getElementById("password").value;
 
         try {
-          await auth.signInWithEmailAndPassword(email, pass);
-          await functions.httpsCallable("forceCleanupIfStale")();
-          const res = await functions.httpsCallable("acquireSessionIfFree")();
-          if (!res.data?.ok) {
+          // крок 1: логін у Firebase Auth
+          const cred = await auth.signInWithEmailAndPassword(email, pass);
+
+          // крок 2: спроба "захопити" сесію
+          const acquire = functions.httpsCallable("acquireSessionIfFree");
+          const { data } = await acquire();
+
+          if (!data || data.ok !== true) {
+            // акаунт вже активний десь
             await auth.signOut();
-            elMsg.textContent = "🔒 Акаунт вже активний на іншому пристрої.";
+            elMsg.textContent =
+              "Цей акаунт уже активний на іншому пристрої. Вийдіть там, щоб зайти тут.";
+            return;
           }
+
+          // якщо тут - значить все добре, session lock за нами
+          // onAuthStateChanged далі покаже app
+          bumpActivity(); // скидаємо таймер бездіяльності
         } catch (err) {
-          elMsg.textContent = "❌ Помилка входу або невірний пароль.";
-          console.warn(err);
+          console.warn("login error:", err);
+          const code = err?.code || "";
+
+          if (code === "auth/invalid-login-credentials") {
+            elMsg.textContent = "Невірний email або пароль.";
+          } else if (code === "auth/too-many-requests") {
+            elMsg.textContent = "Забагато спроб входу. Спробуйте пізніше.";
+          } else {
+            elMsg.textContent = "Помилка входу. Зверніться до адміністратора.";
+          }
         }
       });
 
-      elOut.addEventListener("click", safeLogout);
+      // 11. Кнопка виходу ↩️
+      elOut.addEventListener("click", async () => {
+        forcedLogout = true;
+        await doLogout();
+      });
+
+      // 12. Якщо юзер просто закриває вкладку/вікно:
+      window.addEventListener("beforeunload", async (e) => {
+        if (!currentUser) return;
+        try {
+          const releaseFn = functions.httpsCallable("releaseSession");
+          await releaseFn();
+        } catch (err) {
+          // ок
+        }
+        // ВАЖЛИВО: не await auth.signOut() тут, бо вкладка може не встигнути.
+        // Серверний замок ми вже зняли, цього достатньо.
+      });
     </script>
   </body>
 </html>
