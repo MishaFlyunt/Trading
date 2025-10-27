@@ -537,9 +537,13 @@
         const containers = document.querySelectorAll(".table-content");
         containers.forEach((c) => c.classList.add("updating"));
 
+        // await Promise.all([
+        //   loadTable("buy_data.json", "buy"),
+        //   loadTable("sell_data.json", "sell"),
+        // ]);
         await Promise.all([
-          loadTable("buy_data.json", "buy"),
-          loadTable("sell_data.json", "sell"),
+          loadTable("data_json/buy_data.json", "buy"),
+          loadTable("data_json/sell_data.json", "sell"),
         ]);
 
         setTimeout(() => {
@@ -599,4 +603,3 @@
     </script>
   </body>
 </html>
-
