@@ -1324,13 +1324,23 @@
         measurementId: "G-M5WYYMS3T7",
       };
 
-      // ініт Firebase
       firebase.initializeApp(firebaseConfig);
 
-      // SDK об'єкти
       const auth = firebase.auth();
       const functions = firebase.functions();
-      const db = firebase.firestore(); // лишаємо, може знадобитись потім
+      const db = firebase.firestore();
+
+      // ================== CLIENT ID ==================
+      // стабільний ідентифікатор саме ЦЬОГО браузера
+      function getClientId() {
+        let cid = localStorage.getItem("imbalance_client_id");
+        if (!cid) {
+          cid = "c_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+          localStorage.setItem("imbalance_client_id", cid);
+        }
+        return cid;
+      }
+      const CLIENT_ID = getClientId();
 
       // ================== DOM refs ==================
       const elApp = document.getElementById("app");
@@ -1346,7 +1356,7 @@
       let currentUid = null;
       let lastUserActionTs = Date.now();
 
-      // 2 години на прод, ти тестив на 2 хв → міняй як хочеш
+      // прод = 2 години; можеш зменшити на тест
       const AUTO_LOGOUT_IDLE = 2 * 60 * 60 * 1000;
 
       let heartbeatTimer = null;
@@ -1373,19 +1383,17 @@
       }
 
       // ================== SERVER CALLS ==================
-      async function callAcquireSession(extraPayload = {}) {
-        // acquireSessionIfFree тепер може знати,
-        // це перший логін чи "resume після reload"
+      async function callAcquireSession({ resume }) {
         const fn = functions.httpsCallable("acquireSessionIfFree");
-        const res = await fn(extraPayload);
+        const res = await fn({ clientId: CLIENT_ID, resume: !!resume });
         return res.data;
       }
 
       async function callHeartbeat() {
         const fn = functions.httpsCallable("heartbeat");
-        try {
-          await fn();
-        } catch (_) {}
+        return fn({ clientId: CLIENT_ID })
+          .then(() => {})
+          .catch(() => {});
       }
 
       async function callReleaseSession() {
@@ -1398,7 +1406,7 @@
       function sendBeaconRelease(uid) {
         if (!uid) return;
         try {
-          const blob = new Blob([JSON.stringify({ uid })], {
+          const blob = new Blob([JSON.stringify({ uid, clientId: CLIENT_ID })], {
             type: "application/json",
           });
           navigator.sendBeacon(
@@ -1409,10 +1417,20 @@
       }
 
       // ================== LOGOUT FLOW ==================
+      function cleanupClientTimers() {
+        if (heartbeatTimer) {
+          clearInterval(heartbeatTimer);
+          heartbeatTimer = null;
+        }
+        if (idleTimer) {
+          clearInterval(idleTimer);
+          idleTimer = null;
+        }
+      }
+
       async function logoutAndRelease({ viaBeacon = false } = {}) {
         try {
           if (viaBeacon) {
-            // lightweight версія для закриття вкладки
             sendBeaconRelease(currentUid);
           } else {
             await callReleaseSession();
@@ -1429,27 +1447,16 @@
         showLogin();
       }
 
-      function cleanupClientTimers() {
-        if (heartbeatTimer) {
-          clearInterval(heartbeatTimer);
-          heartbeatTimer = null;
-        }
-        if (idleTimer) {
-          clearInterval(idleTimer);
-          idleTimer = null;
-        }
-      }
-
       // ================== SESSION KEEP-ALIVE ==================
       function startHeartbeatLoop() {
-        // ping кожні 30 сек, щоб сервер знав "я ще живий"
         heartbeatTimer = setInterval(() => {
-          callHeartbeat();
+          callHeartbeat().then((res) => {
+            // опційно можемо перевіряти відповідь і кікати, якщо сервер каже "taken-by-other"
+          });
         }, 30 * 1000);
       }
 
       function startIdleLogoutWatch() {
-        // фіксуємо будь-яку активність
         ["click", "mousemove", "keydown", "touchstart", "scroll"].forEach((ev) => {
           window.addEventListener(ev, () => {
             lastUserActionTs = Date.now();
@@ -1459,100 +1466,81 @@
         idleTimer = setInterval(() => {
           const idleFor = Date.now() - lastUserActionTs;
           if (idleFor > AUTO_LOGOUT_IDLE) {
-            // юзер не рухався довго → логаут
             logoutAndRelease({ viaBeacon: false });
           }
         }, 5000);
       }
 
-      // коли сторінку закривають / перезавантажують → м'який реліз
+      // важливо: на reload Safari теж викликає beforeunload.
+      // Тепер ми НЕ рубаємо active=false, ми лише шлемо beacon з uid+clientId,
+      // backend просто оновить lastSeenAt. Це не знищує сесію.
       window.addEventListener("beforeunload", () => {
-        // важливо: НЕ чекаємо async тут, просто стукнули beacon
         sendBeaconRelease(currentUid);
       });
 
-      // ================== INIT APP UI (ТВОЇ ТАБЛИЦІ) ==================
-      // ми не чіпаємо твій код нижче, просто викликаємо його тут,
-      // коли сесія дозволена:
+      // ================== твій UI для таблиць ==================
       function bootDataUI() {
         if (appReady) {
-          // твоя функція з попереднього скрипта
           initAppUI();
         }
       }
 
-      // ================== AUTH STATE HANDLER ==================
-      // ОТУТ була головна проблема.
-      // Було: одразу showLogin() при reload, і тільки потім логіка.
-      // Стало: спочатку вирішуємо, що робити, і тільки потім показуємо login/app.
-
+      // ================== AUTH LISTENER ==================
       auth.onAuthStateChanged(async (user) => {
-        // зняти всі попередні таймери, щоб не було дублікатів
-        cleanupClientTimers();
+        cleanupClientTimers(); // скидаємо лупи, щоб не було дублів
 
         if (!user) {
-          // немає користувача взагалі -> чистий лог-аутний стан
+          // юзер не залогінений в Firebase
           appReady = false;
           currentUid = null;
           showLogin();
           return;
         }
 
-        // Є юзер у Firebase (тобто браузер має валідну сесію)
-        // Це може бути:
-        //   - перший нормальний логін після форми
-        //   - або просто reload вкладки
-
+        // юзер є локально (або після логіну, або після reload)
         currentUid = user.uid;
         lastUserActionTs = Date.now();
 
-        // показуємо "Завантаження…" поки перевіряємо сесію
-        showLoading();
+        showLoading(); // спочатку лоадер, без миготіння таблиці
 
+        let sessionResp;
         try {
-          // пробуємо взяти / відновити сесію
-          // кажемо серверу, що це може бути resume=true
-          const take = await callAcquireSession({ resume: true });
-
-          if (!take || !take.ok) {
-            // сервер сказав "ні" → значить той самий акаунт уже активний десь ще
-            elMsg.textContent =
-              "Цей акаунт уже активний на іншому пристрої. Спершу вийдіть там.";
-            // форсимо signOut локально
-            await auth.signOut();
-
-            appReady = false;
-            currentUid = null;
-            showLogin();
-            return;
-          }
-
-          // якщо ми тут — сесію дозволено
-          appReady = true;
-
-          // показуємо основний застосунок
-          showApp(user.email);
-
-          // включаємо оновлення таблиць / таймери
-          bootDataUI();
-          startHeartbeatLoop();
-          startIdleLogoutWatch();
+          sessionResp = await callAcquireSession({ resume: true });
         } catch (err) {
-          console.warn("acquireSessionIfFree failed:", err);
-
-          // щось пішло не так (мережа, функції не відповіли і т.д.)
-          // безпечно скидаємось у login
-          elMsg.textContent = "Помилка доступу до сесії. Спробуйте повторно.";
+          console.warn("acquireSessionIfFree error:", err);
+          // мережа/сервер впали → безпечно скинь у login
+          elMsg.textContent = "Помилка доступу до сесії. Спробуйте ще раз.";
           try {
             await auth.signOut();
           } catch (_) {}
           appReady = false;
           currentUid = null;
           showLogin();
+          return;
         }
+
+        if (!sessionResp || !sessionResp.ok) {
+          // сервер каже "ні, сесія вже зайнята іншим clientId"
+          elMsg.textContent =
+            "Цей акаунт уже активний на іншому пристрої. Спершу вийдіть там.";
+          try {
+            await auth.signOut();
+          } catch (_) {}
+          appReady = false;
+          currentUid = null;
+          showLogin();
+          return;
+        }
+
+        // все ок, ця вкладка/девайс має право жити
+        appReady = true;
+        showApp(user.email);
+        bootDataUI();
+        startHeartbeatLoop();
+        startIdleLogoutWatch();
       });
 
-      // ================== LOGIN FORM HANDLER ==================
+      // ================== LOGIN FORM ==================
       elForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         elMsg.textContent = "";
@@ -1560,17 +1548,14 @@
         const email = document.getElementById("email").value.trim();
         const pass = document.getElementById("password").value;
 
-        // коли натиснули логін – одразу показуємо "Завантаження"
-        // (це вирішує твій "на мить бачу таблицю" ефект)
-        showLoading();
+        showLoading(); // одразу показуємо "Завантаження…"
 
         try {
           await auth.signInWithEmailAndPassword(email, pass);
-          // далі onAuthStateChanged зробить всю магію
+          // далі onAuthStateChanged завершить процес
         } catch (err) {
           console.warn("login error:", err);
           const code = err?.code || "";
-
           if (code === "auth/invalid-login-credentials") {
             elMsg.textContent = "Невірний email або пароль.";
           } else if (code === "auth/too-many-requests") {
@@ -1578,9 +1563,7 @@
           } else {
             elMsg.textContent = "Помилка входу. Зверніться до адміністратора.";
           }
-
-          // якщо логін не вдався — поверни форму
-          showLogin();
+          showLogin(); // повертаємось до логіну
         }
       });
 
