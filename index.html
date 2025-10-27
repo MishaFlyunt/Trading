@@ -933,9 +933,18 @@
       </div>
     </section>
 
-    <!-- ======= Твій існуючий JS (без змін у логіці) ======= -->
+    <!-- ======= Firebase (auth) ======= -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script>
+      // ==========================
+      //      UI / TABLE LOGIC
+      // ==========================
+
       let theme = localStorage.getItem("theme") || "light";
+
       function applyTheme() {
         const r = document.documentElement;
         r.setAttribute("data-theme", theme);
@@ -944,49 +953,61 @@
           r.style.setProperty("--text", "#fff");
           r.style.setProperty("--table-bg", "#222");
           r.style.setProperty("--header-bg", "#333");
+          r.style.setProperty("--alert-text", "lightcoral");
         } else {
           r.style.setProperty("--bg", "#f4f4f4");
           r.style.setProperty("--text", "#000");
           r.style.setProperty("--table-bg", "#fff");
           r.style.setProperty("--header-bg", "#ccc");
+          r.style.setProperty("--alert-text", "red");
         }
       }
+
       function toggleTheme() {
         theme = theme === "dark" ? "light" : "dark";
         localStorage.setItem("theme", theme);
         applyTheme();
       }
+
       function saveSortState(id, col, desc) {
         localStorage.setItem(`sort_${id}`, JSON.stringify({ col, desc }));
       }
+
       function getSortState(id) {
         const s = localStorage.getItem(`sort_${id}`);
         return s ? JSON.parse(s) : null;
       }
+
       function sortTable(table, colIndex, forceDesc = null) {
         const tbody = table.querySelector("tbody");
         const rows = Array.from(tbody.querySelectorAll("tr")).filter(
           (r) => !r.classList.contains("archive-row") && !r.closest(".archive-table")
         );
+
         const tableId = table.closest(".table-container")?.id || "default";
         const state = getSortState(tableId);
         let desc =
           forceDesc !== null ? forceDesc : state?.col === colIndex ? !state.desc : true;
+
         rows.sort((a, b) => {
           const aSymbol = a.dataset.symbol || "";
           const bSymbol = b.dataset.symbol || "";
+
           const aPercent =
             parseFloat(a.children[colIndex].innerText.replace(/[^0-9.\-]/g, "")) || 0;
           const bPercent =
             parseFloat(b.children[colIndex].innerText.replace(/[^0-9.\-]/g, "")) || 0;
+
           const aIsDash = aSymbol.includes("-");
           const bIsDash = bSymbol.includes("-");
           const aIsHigh = aPercent >= 95;
           const bIsHigh = bPercent >= 95;
+
           if (aIsHigh !== bIsHigh) return desc ? (bIsHigh ? 1 : -1) : aIsHigh ? 1 : -1;
           if (aIsDash !== bIsDash) return desc ? (bIsDash ? 1 : -1) : aIsDash ? 1 : -1;
           return desc ? bPercent - aPercent : aPercent - bPercent;
         });
+
         rows.forEach((row) => {
           const archiveRow = row.nextElementSibling?.classList.contains("archive-row")
             ? row.nextElementSibling
@@ -994,13 +1015,18 @@
           tbody.appendChild(row);
           if (archiveRow) tbody.appendChild(archiveRow);
         });
+
         saveSortState(tableId, colIndex, desc);
       }
-      let lastSearch = "",
-        expandedSymbols = new Set(),
-        scrollPositions = {};
+
+      let lastSearch = "";
+      let expandedSymbols = new Set();
+      let scrollPositions = {};
+
       function saveUIState() {
-        lastSearch = document.getElementById("search-symbol").value.trim().toUpperCase();
+        const searchEl = document.getElementById("search-symbol");
+        lastSearch = searchEl ? searchEl.value.trim().toUpperCase() : "";
+
         expandedSymbols.clear();
         document.querySelectorAll(".expand-row").forEach((row) => {
           const next = row.nextElementSibling;
@@ -1008,15 +1034,22 @@
             expandedSymbols.add(row.dataset.symbol);
           }
         });
+
         scrollPositions = {};
         document.querySelectorAll(".table-content").forEach((c) => {
           scrollPositions[c.id] = c.scrollTop;
         });
       }
+
       function restoreUIState() {
+        // search text back
         const input = document.getElementById("search-symbol");
-        input.value = lastSearch;
-        input.dispatchEvent(new Event("input"));
+        if (input) {
+          input.value = lastSearch;
+          input.dispatchEvent(new Event("input"));
+        }
+
+        // reopen expanded archives
         document.querySelectorAll(".expand-row").forEach((row) => {
           if (expandedSymbols.has(row.dataset.symbol)) {
             const next = row.nextElementSibling;
@@ -1026,6 +1059,8 @@
             }
           }
         });
+
+        // restore scroll
         for (const [id, top] of Object.entries(scrollPositions)) {
           const c = document.getElementById(id);
           if (c) c.scrollTop = top;
@@ -1033,45 +1068,44 @@
       }
 
       async function loadTable(json, id) {
+        // robust fetch with fallback message instead of throwing
         let data;
         try {
           const res = await fetch(json + "?t=" + new Date().getTime(), {
             cache: "no-store",
           });
+          if (!res.ok) throw new Error("HTTP " + res.status);
 
-          // якщо файл не існує або не 200 -> кинемо самі
-          if (!res.ok) {
-            throw new Error(`HTTP ${res.status} for ${json}`);
-          }
+          const txt = await res.text();
+          if (!txt || !txt.trim().startsWith("{")) throw new Error("empty/bad json");
 
-          // пробуємо парсити
-          data = await res.json();
-
-          // без main? вважаємо, що пусто
-          if (!data || !data.main) {
-            throw new Error(`bad json shape for ${json}`);
-          }
+          data = JSON.parse(txt);
+          if (!data || !data.main) throw new Error("bad shape");
         } catch (err) {
           console.warn("loadTable fail for", json, err);
-
-          // показуємо заглушку замість падіння всього коду
           const container = document.querySelector(`#${id} .table-content`);
-          container.innerText = "📭 Data is currently unavailable";
-          document.getElementById(`${id}-count`).textContent = "0";
-          return; // важливо: просто вийти і не продовжувати
+          if (container) {
+            container.innerText = "📭 Data is currently unavailable";
+          }
+          const countEl = document.getElementById(`${id}-count`);
+          if (countEl) countEl.textContent = "0";
+          return;
         }
 
-        // ---- далі твоя стара логіка рендеру таблиці ----
         const container = document.querySelector(`#${id} .table-content`);
+        if (!container) return;
 
-        document.getElementById(`${id}-count`).textContent =
-          data.main.length > 1 ? data.main.length - 1 : 0;
+        const countEl = document.getElementById(`${id}-count`);
+        if (countEl) {
+          countEl.textContent = data.main.length > 1 ? data.main.length - 1 : 0;
+        }
 
         if (!data.main || data.main.length <= 1) {
           container.innerText = "📭 Data is currently unavailable";
           return;
         }
 
+        // build main table
         let html = "<table><thead><tr>";
         data.main[0].forEach((cell, i) => {
           html += `<th onclick="sortTable(this.closest('table'), ${i})">${cell}</th>`;
@@ -1099,9 +1133,11 @@
 
           html += `<tr class="expand-row" data-symbol="${symbol}" style="${rowStyle}">`;
 
+          // archive lookup key
           const lookupSymbol = cleanSymbol;
-          const archive = data.archive ? data.archive[lookupSymbol] : undefined;
+          const archive = data.archive?.[lookupSymbol];
 
+          // flip marker if both BUY and SELL appeared in history
           let flipMarker = "";
           if (archive) {
             const sides = new Set();
@@ -1116,10 +1152,13 @@
             }
           }
 
-          row.forEach((cell, idx) => {
+          row.forEach((cell, idx2) => {
             let formatted =
-              idx >= 2 && idx <= 4 && !isNaN(cell) ? Number(cell).toLocaleString() : cell;
-            if (idx === 1) {
+              idx2 >= 2 && idx2 <= 4 && !isNaN(cell)
+                ? Number(cell).toLocaleString()
+                : cell;
+
+            if (idx2 === 1) {
               formatted = `${cell}${flipMarker} ${finvizLink}`;
             }
             html += `<td>${formatted}</td>`;
@@ -1128,46 +1167,57 @@
           html += "</tr>";
 
           if (archive) {
-            html += `<tr class="archive-row hidden"><td colspan="${row.length}"><div class="archive-scroll"><table class="archive-table"><thead><tr>`;
+            html += `<tr class="archive-row hidden"><td colspan="${row.length}">
+          <div class="archive-scroll">
+          <table class="archive-table">
+            <thead><tr>`;
 
             archive[0].forEach((c) => {
               html += `<th>${c}</th>`;
             });
 
-            html += "</tr></thead><tbody>";
+            html += `</tr></thead><tbody>`;
 
             const archiveData = archive.slice(1).sort((a, b) => b[0].localeCompare(a[0]));
 
             archiveData.forEach((r) => {
               html += "<tr>";
-              r.forEach((c, idx2) => {
+              r.forEach((c, idx3) => {
                 let formatted = c;
-                if ((idx2 === 2 || idx2 === 3) && !isNaN(c)) {
+
+                if ((idx3 === 2 || idx3 === 3) && !isNaN(c)) {
                   formatted = Number(c).toLocaleString();
                 }
-                if (idx2 === 1 && typeof c === "string") {
+
+                if (idx3 === 1 && typeof c === "string") {
                   const v = c.trim().toUpperCase();
                   if (v === "BUY") formatted = "🟢 Buy";
                   if (v === "SELL") formatted = "🔴 Sell";
                 }
+
                 html += `<td>${formatted}</td>`;
               });
               html += "</tr>";
             });
 
-            html += "</tbody></table></div></td></tr>";
+            html += `</tbody></table></div></td></tr>`;
           }
         }
 
         html += "</tbody></table>";
         container.innerHTML = html;
 
-        // клік по рядку щоб розкрити архів
+        // click row → toggle archive
         document.querySelectorAll(`#${id} .expand-row`).forEach((rowEl) => {
           rowEl.addEventListener("click", (e) => {
-            const idx = Array.from(rowEl.children).indexOf(e.target.closest("td"));
-            const link = e.target.closest("a");
-            if (idx === 1 || link) return;
+            const td = e.target.closest("td");
+            const idxClicked = Array.from(rowEl.children).indexOf(td);
+
+            const clickedLink = e.target.closest("a");
+            if (idxClicked === 1 || clickedLink) {
+              return;
+            }
+
             const next = rowEl.nextElementSibling;
             if (next && next.classList.contains("archive-row")) {
               next.classList.toggle("hidden");
@@ -1176,7 +1226,7 @@
           });
         });
 
-        // відновити сортування
+        // restore sort priority
         const table = container.querySelector("table");
         const saved = getSortState(id);
         if (saved) {
@@ -1186,15 +1236,19 @@
           sortTable(table, lastCol, true);
         }
       }
+
       async function loadAll() {
         saveUIState();
+
         document
           .querySelectorAll(".table-content")
           .forEach((c) => c.classList.add("updating"));
+
         await Promise.all([
           loadTable("buy_data.json", "buy"),
           loadTable("sell_data.json", "sell"),
         ]);
+
         setTimeout(() => {
           document
             .querySelectorAll(".table-content")
@@ -1202,6 +1256,7 @@
           restoreUIState();
         }, 100);
       }
+
       function updateTimestamp() {
         const el = document.getElementById("update-time");
         const now = new Date();
@@ -1210,51 +1265,55 @@
           minute: "2-digit",
           hour12: false,
         });
-        el.textContent = formatted;
+        if (el) el.textContent = formatted;
       }
+
       function initAppUI() {
         applyTheme();
         loadAll();
         updateTimestamp();
+
+        // periodic refresh
         setInterval(() => {
           requestAnimationFrame(() => {
             updateTimestamp();
             loadAll();
           });
         }, 20000);
-        document.getElementById("search-symbol").addEventListener("input", function () {
-          const search = this.value.trim().toUpperCase();
-          document
-            .querySelectorAll(".tables .table-content table tbody tr.expand-row")
-            .forEach((row) => {
-              const cell = row.querySelector("td:nth-child(2)");
-              if (!cell) return;
-              const text = cell.textContent.toUpperCase();
-              const match = text.includes(search);
-              row.style.display = match ? "" : "none";
-              const archive = row.nextElementSibling;
-              if (archive && archive.classList.contains("archive-row")) {
-                archive.style.display = match ? "" : "none";
-              }
-              cell.style.fontWeight = match && search !== "" ? "bold" : "";
-              cell.style.background = match && search !== "" ? "#57abf4" : "";
-            });
-        });
+
+        // live search
+        const searchInput = document.getElementById("search-symbol");
+        if (searchInput) {
+          searchInput.addEventListener("input", function () {
+            const search = this.value.trim().toUpperCase();
+            document
+              .querySelectorAll(".tables .table-content table tbody tr.expand-row")
+              .forEach((row) => {
+                const cell = row.querySelector("td:nth-child(2)");
+                if (!cell) return;
+
+                const text = cell.textContent.toUpperCase();
+                const match = text.includes(search);
+
+                row.style.display = match ? "" : "none";
+
+                const archive = row.nextElementSibling;
+                if (archive && archive.classList.contains("archive-row")) {
+                  archive.style.display = match ? "" : "none";
+                }
+
+                cell.style.fontWeight = match && search !== "" ? "bold" : "";
+                cell.style.background = match && search !== "" ? "#57abf4" : "";
+              });
+          });
+        }
       }
-    </script>
 
-    <!-- ======= Firebase (auth) ======= -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <!-- <script>
-      const functions = firebase.functions();
-      const db = firebase.firestore();
-    </script> -->
-    <script>
-      // ---- AUTH / SESSION MGMT ----
+      // =========================================
+      //    AUTH / SESSION LOCK / AUTO-LOGOUT
+      // =========================================
 
+      // Firebase init
       const firebaseConfig = {
         apiKey: "AIzaSyBIQ06AVmsPc1i1gbq2YlQtVcgvMD9akSA",
         authDomain: "imbalance-monitor.firebaseapp.com",
@@ -1268,57 +1327,61 @@
 
       const auth = firebase.auth();
       const functions = firebase.functions();
-      const db = firebase.firestore();
 
-      const elApp = document.getElementById("app");
+      // elements
       const elLogin = document.getElementById("login");
+      const elLoading = document.getElementById("loading");
+      const elApp = document.getElementById("app");
       const elForm = document.getElementById("loginForm");
       const elMsg = document.getElementById("msg");
       const elWho = document.getElementById("who");
       const elOut = document.getElementById("signout");
 
-      let appReady = false;
+      // session state
       let currentUid = null;
-      let lastUserActionTs = Date.now();
-      const AUTO_LOGOUT_IDLE = 2 * 60 * 1000; // 2 хвилини для тесту
       let heartbeatTimer = null;
       let idleTimer = null;
+      let lastUserActionTs = Date.now();
+      // для продакшена поставиш 2 * 60 * 60 * 1000
+      const AUTO_LOGOUT_IDLE = 2 * 60 * 1000; // зараз 2 хв для тесту
 
-      function showLogin() {
-        elLogin.style.display = "grid";
-        elApp.style.display = "none";
+      // унікальний ID саме цієї вкладки
+      function getTabSessionId() {
+        if (!sessionStorage.getItem("TAB_SESSION_ID")) {
+          const id =
+            "tab_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+          sessionStorage.setItem("TAB_SESSION_ID", id);
+        }
+        return sessionStorage.getItem("TAB_SESSION_ID");
       }
 
-      function showApp(email) {
-        elWho.textContent = email || "User";
-        elLogin.style.display = "none";
-        elApp.style.display = "block";
-      }
-
-      async function callAcquireSession() {
+      // callable helpers
+      async function callAcquireSession(tabSessionId) {
         const fn = functions.httpsCallable("acquireSessionIfFree");
-        const res = await fn();
+        const res = await fn({ tabSessionId });
         return res.data;
       }
 
-      async function callHeartbeat() {
+      async function callHeartbeat(tabSessionId) {
         const fn = functions.httpsCallable("heartbeat");
         try {
-          await fn();
+          await fn({ tabSessionId });
         } catch (_) {}
       }
 
-      async function callReleaseSession() {
+      async function callReleaseSession(tabSessionId) {
         const fn = functions.httpsCallable("releaseSession");
         try {
-          await fn();
+          await fn({ tabSessionId });
         } catch (_) {}
       }
 
-      function sendBeaconRelease(uid) {
-        if (!uid) return;
+      function sendBeaconRelease(uid, tabSessionId) {
+        if (!uid || !tabSessionId) return;
         try {
-          const blob = new Blob([JSON.stringify({ uid })], { type: "application/json" });
+          const blob = new Blob([JSON.stringify({ uid, tabSessionId })], {
+            type: "application/json",
+          });
           navigator.sendBeacon(
             "https://us-central1-imbalance-monitor.cloudfunctions.net/releaseSessionBeacon",
             blob
@@ -1326,12 +1389,76 @@
         } catch (_) {}
       }
 
+      // screen helpers
+      function showLogin() {
+        if (elApp) elApp.style.display = "none";
+        if (elLoading) elLoading.style.display = "none";
+        if (elLogin) elLogin.style.display = "grid";
+        if (elWho) elWho.textContent = "";
+      }
+
+      function showLoading() {
+        if (elApp) elApp.style.display = "none";
+        if (elLogin) elLogin.style.display = "none";
+        if (elLoading) elLoading.style.display = "grid";
+      }
+
+      function showApp(email) {
+        if (elWho) elWho.textContent = email || "Користувач";
+        if (elLogin) elLogin.style.display = "none";
+        if (elLoading) elLoading.style.display = "none";
+        if (elApp) elApp.style.display = "block";
+      }
+
+      // heartbeat loop
+      function startHeartbeatLoop() {
+        stopHeartbeatLoop();
+        heartbeatTimer = setInterval(() => {
+          const tabSessionId = getTabSessionId();
+          callHeartbeat(tabSessionId);
+        }, 30 * 1000);
+      }
+      function stopHeartbeatLoop() {
+        if (heartbeatTimer) clearInterval(heartbeatTimer);
+        heartbeatTimer = null;
+      }
+
+      // idle watcher
+      function startIdleLogoutWatch() {
+        stopIdleLogoutWatch();
+
+        ["click", "mousemove", "keydown", "touchstart", "scroll"].forEach((ev) => {
+          window.addEventListener(
+            ev,
+            () => {
+              lastUserActionTs = Date.now();
+            },
+            { passive: true }
+          );
+        });
+
+        idleTimer = setInterval(() => {
+          const idleFor = Date.now() - lastUserActionTs;
+          if (idleFor > AUTO_LOGOUT_IDLE) {
+            console.log("⏳ Idle too long, auto-logout");
+            logoutAndRelease({ viaBeacon: false });
+          }
+        }, 30 * 1000);
+      }
+      function stopIdleLogoutWatch() {
+        if (idleTimer) clearInterval(idleTimer);
+        idleTimer = null;
+      }
+
+      // logout helper
       async function logoutAndRelease({ viaBeacon = false } = {}) {
+        const tabSessionId = getTabSessionId();
+
         try {
           if (viaBeacon) {
-            sendBeaconRelease(currentUid);
+            sendBeaconRelease(currentUid, tabSessionId);
           } else {
-            await callReleaseSession();
+            await callReleaseSession(tabSessionId);
           }
         } catch (_) {}
 
@@ -1339,95 +1466,108 @@
           await auth.signOut();
         } catch (_) {}
 
-        appReady = false;
         currentUid = null;
-        clearInterval(heartbeatTimer);
-        clearInterval(idleTimer);
+        stopHeartbeatLoop();
+        stopIdleLogoutWatch();
         showLogin();
       }
 
-      function startHeartbeatLoop() {
-        heartbeatTimer = setInterval(() => {
-          callHeartbeat();
-        }, 30 * 1000);
-      }
-
-      function startIdleLogoutWatch() {
-        ["click", "mousemove", "keydown", "touchstart", "scroll"].forEach((ev) => {
-          window.addEventListener(ev, () => (lastUserActionTs = Date.now()));
+      // manual logout button
+      if (elOut) {
+        elOut.addEventListener("click", () => {
+          logoutAndRelease({ viaBeacon: false });
         });
-        idleTimer = setInterval(() => {
-          if (Date.now() - lastUserActionTs > AUTO_LOGOUT_IDLE) {
-            logoutAndRelease({ viaBeacon: false });
-          }
-        }, 5000);
       }
 
-      window.addEventListener("beforeunload", () =>
-        logoutAndRelease({ viaBeacon: true })
-      );
+      // when tab is closing / reload
+      window.addEventListener("beforeunload", () => {
+        logoutAndRelease({ viaBeacon: true });
+      });
 
+      // login form submit
+      if (elForm) {
+        elForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          if (elMsg) elMsg.textContent = "";
+
+          const email = document.getElementById("email").value.trim();
+          const pass = document.getElementById("password").value;
+
+          showLoading(); // показуємо "Завантаження…" замість того щоб миттєво показувати таблиці
+
+          try {
+            await auth.signInWithEmailAndPassword(email, pass);
+            // НЕ показуємо app тут. Чекаємо onAuthStateChanged + acquireSessionIfFree
+          } catch (err) {
+            console.warn("login error:", err);
+            const code = err?.code || "";
+
+            if (code === "auth/invalid-login-credentials") {
+              if (elMsg) elMsg.textContent = "Невірний email або пароль.";
+            } else if (code === "auth/too-many-requests") {
+              if (elMsg) elMsg.textContent = "Забагато спроб входу. Спробуйте пізніше.";
+            } else {
+              if (elMsg)
+                elMsg.textContent = "Помилка входу. Зверніться до адміністратора.";
+            }
+
+            showLogin();
+          }
+        });
+      }
+
+      // main auth listener
       auth.onAuthStateChanged(async (user) => {
         if (!user) {
-          appReady = false;
           currentUid = null;
-          clearInterval(heartbeatTimer);
-          clearInterval(idleTimer);
+          stopHeartbeatLoop();
+          stopIdleLogoutWatch();
           showLogin();
           return;
         }
 
+        // у нас є юзер -> пробуємо зайняти сесію
         currentUid = user.uid;
+        const tabSessionId = getTabSessionId();
+
         try {
-          const take = await callAcquireSession();
+          const take = await callAcquireSession(tabSessionId);
+
           if (!take.ok) {
-            elMsg.textContent = "Цей акаунт уже активний на іншому пристрої.";
+            // хтось уже тримає цей акаунт
+            if (elMsg) {
+              elMsg.textContent =
+                "Цей акаунт уже активний на іншому пристрої. Спершу вийдіть там.";
+            }
+
             await auth.signOut();
-            appReady = false;
             currentUid = null;
+            stopHeartbeatLoop();
+            stopIdleLogoutWatch();
             showLogin();
             return;
           }
+
+          // все норм => показуємо апку, ініціалізуємо таблиці
+          lastUserActionTs = Date.now();
+          showApp(user.email || "Користувач");
+
+          initAppUI();
+          startHeartbeatLoop();
+          startIdleLogoutWatch();
         } catch (err) {
           console.warn("acquireSessionIfFree error:", err);
-          elMsg.textContent = "Помилка сесії. Спробуйте ще раз.";
-          await auth.signOut();
-          appReady = false;
-          currentUid = null;
-          showLogin();
-          return;
-        }
 
-        appReady = true;
-        lastUserActionTs = Date.now();
-        showApp(user.email);
-        initAppUI();
-        startHeartbeatLoop();
-        startIdleLogoutWatch();
-      });
-
-      elForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        elMsg.textContent = "";
-        const email = document.getElementById("email").value.trim();
-        const pass = document.getElementById("password").value;
-        try {
-          await auth.signInWithEmailAndPassword(email, pass);
-        } catch (err) {
-          console.warn("login error:", err);
-          const code = err?.code || "";
-          if (code === "auth/invalid-login-credentials") {
-            elMsg.textContent = "Невірний email або пароль.";
-          } else if (code === "auth/too-many-requests") {
-            elMsg.textContent = "Забагато спроб входу. Спробуйте пізніше.";
-          } else {
-            elMsg.textContent = "Помилка входу. Зверніться до адміністратора.";
+          if (elMsg) {
+            elMsg.textContent = "Помилка сесії. Спробуйте ще раз.";
           }
-        }
-      });
 
-      elOut.addEventListener("click", async () => {
-        await logoutAndRelease({ viaBeacon: false });
+          await auth.signOut();
+          currentUid = null;
+          stopHeartbeatLoop();
+          stopIdleLogoutWatch();
+          showLogin();
+        }
       });
     </script>
   </body>
