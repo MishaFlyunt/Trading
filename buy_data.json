@@ -11,6 +11,7 @@
     [
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       "15:41:30",
       "NEM",
       442000,
@@ -21,6 +22,8 @@
     [
       "15:41:18",
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
       "13:46:13",
@@ -1451,11 +1454,119 @@
   "archive": {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     "NEM": [
 =======
 =======
 >>>>>>> Stashed changes
     "CAT": [
+=======
+    "CAT": [
+      [
+        "Update Time",
+        "Side",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:46:13",
+        "BUY",
+        65000,
+        12000
+      ],
+      [
+        "13:46:13",
+        "BUY",
+        65000,
+        12000
+      ],
+      [
+        "13:28:56",
+        "BUY",
+        60000,
+        10000
+      ]
+    ],
+    "RTX": [
+      [
+        "Update Time",
+        "Side",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:45:56",
+        "BUY",
+        140000,
+        20000
+      ],
+      [
+        "13:45:56",
+        "BUY",
+        140000,
+        20000
+      ],
+      [
+        "13:28:45",
+        "BUY",
+        140000,
+        25000
+      ]
+    ],
+    "MDT": [
+      [
+        "Update Time",
+        "Side",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:45:47",
+        "BUY",
+        80000,
+        80000
+      ],
+      [
+        "13:45:47",
+        "BUY",
+        80000,
+        80000
+      ],
+      [
+        "13:29:17",
+        "BUY",
+        100000,
+        60000
+      ]
+    ],
+    "BMY": [
+      [
+        "Update Time",
+        "Side",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:45:36",
+        "BUY",
+        200000,
+        75000
+      ],
+      [
+        "13:45:36",
+        "BUY",
+        200000,
+        75000
+      ],
+      [
+        "13:29:08",
+        "BUY",
+        200000,
+        75000
+      ]
+    ],
+    "C": [
+>>>>>>> Stashed changes
       [
         "Update Time",
         "Side",
@@ -1742,6 +1853,9 @@
         "BUY",
         50000,
         200000
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
       ]
     ],
