@@ -7,7 +7,30 @@
       "Paired",
       "ADV",
       "% ImbADV"
+    ],
+    [
+      "13:29:45",
+      "COP",
+      150000,
+      5000,
+      "6580000",
+      "3"
     ]
   ],
-  "archive": {}
+  "archive": {
+    "COP": [
+      [
+        "Update Time",
+        "Side",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:29:45",
+        "BUY",
+        150000,
+        5000
+      ]
+    ]
+  }
 }
