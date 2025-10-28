@@ -13,6 +13,7 @@
         --header-bg: #ccc;
         --alert-text: red;
       }
+
       html,
       body {
         height: 100%;
@@ -23,6 +24,8 @@
         color: var(--text);
         transition: background 0.3s, color 0.3s;
       }
+
+      /* Верхній блок */
       .controls {
         display: flex;
         justify-content: space-between;
@@ -30,29 +33,36 @@
         align-items: center;
         padding: 1rem;
       }
+
       h1,
       h2 {
         margin: 0.3rem 0;
       }
+
       button {
         padding: 8px 12px;
         border-radius: 10px;
         font-size: 1rem;
         cursor: pointer;
       }
+
+      /* Контейнер для таблиць */
       .tables {
         display: flex;
         flex-direction: column;
         gap: 1rem;
-        height: calc(100vh - 100px);
+        height: calc(100vh - 100px); /* 100px = висота controls + відступ */
         padding: 0 1rem 1rem 1rem;
         box-sizing: border-box;
       }
+
       @media (min-width: 900px) {
         .tables {
           flex-direction: row;
         }
       }
+
+      /* Блок окремої таблиці */
       .table-container {
         flex: 1;
         background: var(--table-bg);
@@ -65,6 +75,7 @@
         position: relative;
         height: 100%;
       }
+
       .table-container h2 {
         position: sticky;
         top: 0;
@@ -75,37 +86,48 @@
         font-size: 1.2rem;
         color: green;
       }
+
       .table-container#sell h2 {
         color: red;
       }
+
+      /* Прокрутка лише для таблиць */
       .table-content {
         flex-grow: 1;
         overflow-y: auto;
       }
+
+      /* Таблиця */
       table {
         border-collapse: collapse;
         width: 100%;
         min-width: 600px;
+        /* color: #57abf4; */
       }
+
+      /* Стиль тумблера */
       .switch {
         position: relative;
         display: inline-block;
         width: 60px;
         height: 34px;
       }
+
       .switch input {
         opacity: 0;
         width: 0;
         height: 0;
       }
+
       .slider {
         position: absolute;
         cursor: pointer;
         inset: 0;
-        background: #ccc;
+        background-color: #ccc;
         transition: 0.4s;
         border-radius: 34px;
       }
+
       .slider:before {
         position: absolute;
         content: "";
@@ -113,22 +135,26 @@
         width: 26px;
         left: 4px;
         bottom: 4px;
-        background: #fff;
+        background-color: white;
         transition: 0.4s;
         border-radius: 50%;
       }
+
       input:checked + .slider {
-        background: #9bbedb;
+        background-color: #9bbedb;
       }
+
       input:checked + .slider:before {
         transform: translateX(26px);
       }
+
       th,
       td {
         border: 2px solid var(--header-bg);
         padding: 8px;
         text-align: center;
       }
+
       th {
         background: var(--header-bg);
         cursor: pointer;
@@ -136,45 +162,65 @@
         top: 0;
         z-index: 1;
       }
-      tr.high-imbalance td,
+
+      /* Підсвітка умовна */
+      tr.high-imbalance td {
+        color: var(--alert-text);
+        font-weight: bold;
+      }
+
       tr.dashed-symbol td {
         color: var(--alert-text);
         font-weight: bold;
       }
+
       .archive-row.hidden {
         display: none;
       }
+
+      /* Підсвітка лідера Buy */
       tr.buy-leader td {
-        background: #d3f9d8;
+        background-color: #d3f9d8;
       }
+
+      /* Підсвітка лідера Sell */
       tr.sell-leader td {
-        background: #ffd6d6;
+        background-color: #ffd6d6;
       }
+
+      /* Анімація зміни */
       tr.flash-change {
         animation: flash 1s ease-in-out;
       }
+
       @keyframes flash {
         from {
-          background: #ffff99;
+          background-color: #ffff99;
         }
         to {
-          background: transparent;
+          background-color: transparent;
         }
       }
+
       a.finviz-link {
         text-decoration: none;
         color: inherit;
       }
+
       .archive-scroll {
         max-height: 400px;
         overflow-y: auto;
         border: 1px solid #aaa;
         margin-top: 5px;
       }
+
       .table-content.updating {
         opacity: 0.5;
+        /* transition: opacity 1.2s ease-in-out; */
         transition: opacity 2s ease;
       }
+
+      /* Темна тема */
       [data-theme="dark"] {
         --bg: #111;
         --text: #fff;
@@ -182,182 +228,57 @@
         --header-bg: #333;
         --alert-text: lightcoral;
       }
-
-      /* ===== Login card ===== */
-      #login,
-      #app {
-        display: none;
-      }
-      .center {
-        min-height: 100dvh;
-        display: grid;
-        place-items: center;
-      }
-      .card {
-        width: 360px;
-        max-width: 92vw;
-        background: #131b2e;
-        color: #e6e9ef;
-        padding: 24px;
-        border-radius: 16px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-      }
-      .card h1 {
-        margin: 0 0 12px;
-        font-size: 22px;
-      }
-      .card label {
-        display: block;
-        margin: 14px 0 6px;
-        font-size: 13px;
-        color: #b7c0d5;
-      }
-      .card input {
-        width: 92%;
-        padding: 10px 12px;
-        border-radius: 10px;
-        border: 1px solid #2b3550;
-        background: #0e1526;
-        color: #e6e9ef;
-      }
-      .card button {
-        width: 100%;
-        padding: 12px;
-        border: 0;
-        border-radius: 10px;
-        margin-top: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        background: #2f6fed;
-        color: #fff;
-      }
-      .muted {
-        color: #9aabc7;
-        font-size: 12px;
-        margin-top: 10px;
-        text-align: center;
-      }
-      .msg {
-        min-height: 22px;
-        margin-top: 10px;
-        font-size: 13px;
-        color: #ffb4b4;
-      }
-      .topbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 3px 8px;
-        border-bottom: 3px solid #223;
-      }
-      .topbar .right {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-      .pill {
-        padding: 6px 10px;
-        color: rgb(68, 106, 230);
-        border-radius: 999px;
-        border: 2px solid #4d5877;
-      }
     </style>
   </head>
   <body>
-    <!-- LOGIN -->
-    <section id="login" class="center">
-      <div class="card">
-        <h1>Вхід</h1>
-        <form id="loginForm">
-          <label for="email">Email</label>
-          <input id="email" type="email" autocomplete="username" required />
-          <label for="password">Пароль</label>
-          <input id="password" type="password" autocomplete="current-password" required />
-          <button type="submit">Увійти</button>
-          <div id="msg" class="msg"></div>
-          <div class="muted">Доступ видає адміністратор.</div>
-        </form>
+    <div class="controls">
+      <h1>📊 Imbalance Monitor</h1>
+      <input
+        type="text"
+        id="search-symbol"
+        placeholder="🔍 Search..."
+        style="
+          padding: 6px 3px;
+          font-size: 1rem;
+          border-radius: 8px;
+          border: 1px solid #ccc;
+        " />
+      <div id="last-update" style="font-weight: bold">
+        Last update: <span id="update-time">—</span>
       </div>
-    </section>
+      <label class="switch">
+        <input type="checkbox" id="themeToggle" onclick="toggleTheme()" />
+        <span class="slider"></span>
+      </label>
+    </div>
 
-    <!-- Завантаження… -->
-    <section id="loading" class="center" style="display: none">
-      <div class="card">
-        <h1>Завантаження…</h1>
-        <div class="muted">Перевіряємо доступ</div>
+    <div class="tables">
+      <div class="table-container" id="buy">
+        <h2>Buy Imbalance (<span id="buy-count">0</span>)</h2>
+        <div class="table-content">📭 Data is currently unavailable</div>
       </div>
-    </section>
-
-    <!-- APP (твоя сторінка) -->
-    <section id="app">
-      <div class="topbar">
-        <div class="left">🔒 Private Trading Page</div>
-        <div class="right">
-          <span id="who" class="pill"></span>
-          <button id="signout" class="pill">↩️ Log out</button>
-        </div>
+      <div class="table-container" id="sell">
+        <h2>Sell Imbalance (<span id="sell-count">0</span>)</h2>
+        <div class="table-content">📭 Data is currently unavailable</div>
       </div>
+    </div>
 
-      <div class="controls">
-        <h1>📊 Imbalance Monitor</h1>
-        <input
-          type="text"
-          id="search-symbol"
-          placeholder="🔍 Search..."
-          style="
-            padding: 6px 3px;
-            font-size: 1rem;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-          " />
-        <div id="last-update" style="font-weight: bold">
-          Last update: <span id="update-time">—</span>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="themeToggle" onclick="toggleTheme()" />
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <div class="tables">
-        <div class="table-container" id="buy">
-          <h2>Buy Imbalance (<span id="buy-count">0</span>)</h2>
-          <div class="table-content">📭 Data is currently unavailable</div>
-        </div>
-        <div class="table-container" id="sell">
-          <h2>Sell Imbalance (<span id="sell-count">0</span>)</h2>
-          <div class="table-content">📭 Data is currently unavailable</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ======= Firebase (auth) ======= -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script>
-      // ==========================
-      //      UI / TABLE LOGIC
-      // ==========================
-
       let theme = localStorage.getItem("theme") || "light";
 
       function applyTheme() {
-        const r = document.documentElement;
-        r.setAttribute("data-theme", theme);
+        const root = document.documentElement;
+        root.setAttribute("data-theme", theme);
         if (theme === "dark") {
-          r.style.setProperty("--bg", "#111");
-          r.style.setProperty("--text", "#fff");
-          r.style.setProperty("--table-bg", "#222");
-          r.style.setProperty("--header-bg", "#333");
-          r.style.setProperty("--alert-text", "lightcoral");
+          root.style.setProperty("--bg", "#111");
+          root.style.setProperty("--text", "#fff");
+          root.style.setProperty("--table-bg", "#222");
+          root.style.setProperty("--header-bg", "#333");
         } else {
-          r.style.setProperty("--bg", "#f4f4f4");
-          r.style.setProperty("--text", "#000");
-          r.style.setProperty("--table-bg", "#fff");
-          r.style.setProperty("--header-bg", "#ccc");
-          r.style.setProperty("--alert-text", "red");
+          root.style.setProperty("--bg", "#f4f4f4");
+          root.style.setProperty("--text", "#000");
+          root.style.setProperty("--table-bg", "#fff");
+          root.style.setProperty("--header-bg", "#ccc");
         }
       }
 
@@ -367,13 +288,13 @@
         applyTheme();
       }
 
-      function saveSortState(id, col, desc) {
-        localStorage.setItem(`sort_${id}`, JSON.stringify({ col, desc }));
+      function saveSortState(tableId, colIndex, desc) {
+        localStorage.setItem(`sort_${tableId}`, JSON.stringify({ col: colIndex, desc }));
       }
 
-      function getSortState(id) {
-        const s = localStorage.getItem(`sort_${id}`);
-        return s ? JSON.parse(s) : null;
+      function getSortState(tableId) {
+        const state = localStorage.getItem(`sort_${tableId}`);
+        return state ? JSON.parse(state) : null;
       }
 
       function sortTable(table, colIndex, forceDesc = null) {
@@ -401,6 +322,7 @@
           const aIsHigh = aPercent >= 95;
           const bIsHigh = bPercent >= 95;
 
+          // Пріоритет: high % → дефіс → решта
           if (aIsHigh !== bIsHigh) return desc ? (bIsHigh ? 1 : -1) : aIsHigh ? 1 : -1;
           if (aIsDash !== bIsDash) return desc ? (bIsDash ? 1 : -1) : aIsDash ? 1 : -1;
           return desc ? bPercent - aPercent : aPercent - bPercent;
@@ -422,9 +344,7 @@
       let scrollPositions = {};
 
       function saveUIState() {
-        const searchEl = document.getElementById("search-symbol");
-        lastSearch = searchEl ? searchEl.value.trim().toUpperCase() : "";
-
+        lastSearch = document.getElementById("search-symbol").value.trim().toUpperCase();
         expandedSymbols.clear();
         document.querySelectorAll(".expand-row").forEach((row) => {
           const next = row.nextElementSibling;
@@ -434,20 +354,18 @@
         });
 
         scrollPositions = {};
-        document.querySelectorAll(".table-content").forEach((c) => {
-          scrollPositions[c.id] = c.scrollTop;
+        document.querySelectorAll(".table-content").forEach((container) => {
+          scrollPositions[container.id] = container.scrollTop;
         });
       }
 
       function restoreUIState() {
-        // search text back
-        const input = document.getElementById("search-symbol");
-        if (input) {
-          input.value = lastSearch;
-          input.dispatchEvent(new Event("input"));
-        }
+        // Відновлюємо пошук
+        const searchInput = document.getElementById("search-symbol");
+        searchInput.value = lastSearch;
+        searchInput.dispatchEvent(new Event("input"));
 
-        // reopen expanded archives
+        // Відновлюємо розгортання
         document.querySelectorAll(".expand-row").forEach((row) => {
           if (expandedSymbols.has(row.dataset.symbol)) {
             const next = row.nextElementSibling;
@@ -458,52 +376,24 @@
           }
         });
 
-        // restore scroll
+        // Відновлюємо скрол позиції
         for (const [id, top] of Object.entries(scrollPositions)) {
-          const c = document.getElementById(id);
-          if (c) c.scrollTop = top;
+          const container = document.getElementById(id);
+          if (container) container.scrollTop = top;
         }
       }
 
       async function loadTable(json, id) {
-        // robust fetch with fallback message instead of throwing
-        let data;
-        try {
-          const res = await fetch(json + "?t=" + new Date().getTime(), {
-            cache: "no-store",
-          });
-          if (!res.ok) throw new Error("HTTP " + res.status);
-
-          const txt = await res.text();
-          if (!txt || !txt.trim().startsWith("{")) throw new Error("empty/bad json");
-
-          data = JSON.parse(txt);
-          if (!data || !data.main) throw new Error("bad shape");
-        } catch (err) {
-          console.warn("loadTable fail for", json, err);
-          const container = document.querySelector(`#${id} .table-content`);
-          if (container) {
-            container.innerText = "📭 Data is currently unavailable";
-          }
-          const countEl = document.getElementById(`${id}-count`);
-          if (countEl) countEl.textContent = "0";
-          return;
-        }
-
+        const res = await fetch(json + "?t=" + new Date().getTime());
+        const data = await res.json();
         const container = document.querySelector(`#${id} .table-content`);
-        if (!container) return;
-
-        const countEl = document.getElementById(`${id}-count`);
-        if (countEl) {
-          countEl.textContent = data.main.length > 1 ? data.main.length - 1 : 0;
-        }
-
         if (!data.main || data.main.length <= 1) {
           container.innerText = "📭 Data is currently unavailable";
           return;
         }
 
-        // build main table
+        document.getElementById(`${id}-count`).textContent = data.main.length - 1;
+
         let html = "<table><thead><tr>";
         data.main[0].forEach((cell, i) => {
           html += `<th onclick="sortTable(this.closest('table'), ${i})">${cell}</th>`;
@@ -520,29 +410,31 @@
 
           let rowStyle = "";
           if (rowHasDash) {
-            rowStyle = "background-color:#c39005;color:white;";
+            rowStyle = "background-color: #c39005; color: white;";
           } else if (isHighImb) {
-            rowStyle = "background-color:#007366;color:white;";
+            rowStyle = "background-color: #007366; color: white;";
           }
 
           const cleanSymbol = symbol.replace(/\s*\(PR\)\s*$/, "").replace(/-+$/, "");
-
           const finvizLink = `<a class="finviz-link" href="https://finviz.com/quote.ashx?t=${cleanSymbol}&p=d" target="_blank" title="Відкрити на Finviz">🔗</a>`;
 
           html += `<tr class="expand-row" data-symbol="${symbol}" style="${rowStyle}">`;
 
-          // archive lookup key
-          const lookupSymbol = cleanSymbol;
-          const archive = data.archive?.[lookupSymbol];
+          const lookupSymbol = symbol.replace(/\s*\(PR\)\s*$/, "").replace(/-+$/, "");
+          const archive = data.archive[lookupSymbol];
+          let symbolCellStyle = "";
 
-          // flip marker if both BUY and SELL appeared in history
           let flipMarker = "";
           if (archive) {
             const sides = new Set();
             for (const entry of archive.slice(1)) {
-              const sideVal = (entry[1] || "").toUpperCase();
-              if (sideVal === "BUY" || sideVal === "SELL") {
-                sides.add(sideVal);
+              if (
+                entry[1] === "Buy" ||
+                entry[1] === "SELL" ||
+                entry[1] === "BUY" ||
+                entry[1] === "Sell"
+              ) {
+                sides.add(entry[1].toUpperCase());
               }
             }
             if (sides.has("BUY") && sides.has("SELL")) {
@@ -550,97 +442,100 @@
             }
           }
 
-          row.forEach((cell, idx2) => {
+          row.forEach((cell, idx) => {
             let formatted =
-              idx2 >= 2 && idx2 <= 4 && !isNaN(cell)
-                ? Number(cell).toLocaleString()
-                : cell;
+              idx >= 2 && idx <= 4 && !isNaN(cell) ? Number(cell).toLocaleString() : cell;
 
-            if (idx2 === 1) {
+            if (idx === 1) {
               formatted = `${cell}${flipMarker} ${finvizLink}`;
+              html += `<td style="${symbolCellStyle}">${formatted}</td>`;
+            } else {
+              html += `<td>${formatted}</td>`;
             }
-            html += `<td>${formatted}</td>`;
           });
 
           html += "</tr>";
 
-          if (archive) {
-            html += `<tr class="archive-row hidden"><td colspan="${row.length}">
-          <div class="archive-scroll">
-          <table class="archive-table">
-            <thead><tr>`;
-
+          if (data.archive && archive) {
+            html += `<tr class="archive-row hidden"><td colspan="${row.length}"><div class="archive-scroll"><table class="archive-table"><thead><tr>`;
             archive[0].forEach((c) => {
               html += `<th>${c}</th>`;
             });
+            html += "</tr></thead><tbody>";
 
-            html += `</tr></thead><tbody>`;
-
-            const archiveData = archive.slice(1).sort((a, b) => b[0].localeCompare(a[0]));
+            // Сортування архіву за часом від нового до старого
+            const archiveData = archive.slice(1).sort((a, b) => {
+              const timeA = a[0];
+              const timeB = b[0];
+              return timeB.localeCompare(timeA);
+            });
 
             archiveData.forEach((r) => {
               html += "<tr>";
-              r.forEach((c, idx3) => {
-                let formatted = c;
 
-                if ((idx3 === 2 || idx3 === 3) && !isNaN(c)) {
+              r.forEach((c, idx) => {
+                let formatted = c;
+                let style = "";
+
+                // Формат чисел для Imbalance і Paired
+                if ((idx === 2 || idx === 3) && !isNaN(c)) {
                   formatted = Number(c).toLocaleString();
                 }
 
-                if (idx3 === 1 && typeof c === "string") {
-                  const v = c.trim().toUpperCase();
-                  if (v === "BUY") formatted = "🟢 Buy";
-                  if (v === "SELL") formatted = "🔴 Sell";
+                if (idx === 1 && typeof c === "string") {
+                  const val = c.trim().toUpperCase();
+                  if (val === "BUY") {
+                    formatted = "🟢 Buy";
+                  } else if (val === "SELL") {
+                    formatted = "🔴 Sell";
+                  }
                 }
 
-                html += `<td>${formatted}</td>`;
+                html += `<td style="${style}">${formatted}</td>`;
               });
+
               html += "</tr>";
             });
 
-            html += `</tbody></table></div></td></tr>`;
+            html += "</tbody></table></div></td></tr>";
           }
         }
 
         html += "</tbody></table>";
         container.innerHTML = html;
 
-        // click row → toggle archive
-        document.querySelectorAll(`#${id} .expand-row`).forEach((rowEl) => {
-          rowEl.addEventListener("click", (e) => {
-            const td = e.target.closest("td");
-            const idxClicked = Array.from(rowEl.children).indexOf(td);
-
+        // відкривати архів лише якщо клік НЕ по символу (1-а колонка)
+        document.querySelectorAll(`#${id} .expand-row`).forEach((row) => {
+          row.addEventListener("click", (e) => {
+            const clickedCellIndex = Array.from(row.children).indexOf(
+              e.target.closest("td")
+            );
             const clickedLink = e.target.closest("a");
-            if (idxClicked === 1 || clickedLink) {
-              return;
-            }
-
-            const next = rowEl.nextElementSibling;
+            if (clickedCellIndex === 1 || clickedLink) return;
+            const next = row.nextElementSibling;
             if (next && next.classList.contains("archive-row")) {
               next.classList.toggle("hidden");
-              rowEl.classList.toggle("expanded");
+              row.classList.toggle("expanded");
             }
           });
         });
 
-        // restore sort priority
+        // Повертаємо останнє сортування------
         const table = container.querySelector("table");
         const saved = getSortState(id);
         if (saved) {
           sortTable(table, saved.col, saved.desc);
         } else {
-          const lastCol = data.main[0].length - 1;
-          sortTable(table, lastCol, true);
+          const lastColIndex = data.main[0].length - 1;
+          sortTable(table, lastColIndex, true);
         }
       }
 
       async function loadAll() {
         saveUIState();
 
-        document
-          .querySelectorAll(".table-content")
-          .forEach((c) => c.classList.add("updating"));
+        const containers = document.querySelectorAll(".table-content");
+        containers.forEach((c) => c.classList.add("updating"));
 
         await Promise.all([
           loadTable("data_json/buy_data.json", "buy"),
@@ -648,11 +543,9 @@
         ]);
 
         setTimeout(() => {
-          document
-            .querySelectorAll(".table-content")
-            .forEach((c) => c.classList.remove("updating"));
+          containers.forEach((c) => c.classList.remove("updating"));
           restoreUIState();
-        }, 100);
+        }, 100); // даємо DOM оновитися перед відновленням
       }
 
       function updateTimestamp() {
@@ -663,312 +556,45 @@
           minute: "2-digit",
           hour12: false,
         });
-        if (el) el.textContent = formatted;
+        el.textContent = formatted;
       }
 
-      function initAppUI() {
-        applyTheme();
-        loadAll();
-        updateTimestamp();
+      applyTheme();
+      loadAll();
+      updateTimestamp();
 
-        // periodic refresh
-        setInterval(() => {
-          requestAnimationFrame(() => {
-            updateTimestamp();
-            loadAll();
-          });
-        }, 20000);
-
-        // live search
-        const searchInput = document.getElementById("search-symbol");
-        if (searchInput) {
-          searchInput.addEventListener("input", function () {
-            const search = this.value.trim().toUpperCase();
-            document
-              .querySelectorAll(".tables .table-content table tbody tr.expand-row")
-              .forEach((row) => {
-                const cell = row.querySelector("td:nth-child(2)");
-                if (!cell) return;
-
-                const text = cell.textContent.toUpperCase();
-                const match = text.includes(search);
-
-                row.style.display = match ? "" : "none";
-
-                const archive = row.nextElementSibling;
-                if (archive && archive.classList.contains("archive-row")) {
-                  archive.style.display = match ? "" : "none";
-                }
-
-                cell.style.fontWeight = match && search !== "" ? "bold" : "";
-                cell.style.background = match && search !== "" ? "#57abf4" : "";
-              });
-          });
-        }
-      }
-
-      // =========================================
-      //    AUTH / SESSION LOCK / AUTO-LOGOUT
-      // =========================================
-
-      // ================== CONFIG ==================
-      const firebaseConfig = {
-        apiKey: "AIzaSyBIQ06AVmsPc1i1gbq2YlQtVcgvMD9akSA",
-        authDomain: "imbalance-monitor.firebaseapp.com",
-        projectId: "imbalance-monitor",
-        storageBucket: "imbalance-monitor.firebasestorage.app",
-        messagingSenderId: "731994156123",
-        appId: "1:731994156123:web:46f8ff25c8baffe9d2237e",
-        measurementId: "G-M5WYYMS3T7",
-      };
-
-      firebase.initializeApp(firebaseConfig);
-
-      const auth = firebase.auth();
-      const functions = firebase.functions();
-      const db = firebase.firestore();
-
-      // ================== CLIENT ID ==================
-      // стабільний ідентифікатор саме ЦЬОГО браузера
-      function getClientId() {
-        let cid = localStorage.getItem("imbalance_client_id");
-        if (!cid) {
-          cid = "c_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
-          localStorage.setItem("imbalance_client_id", cid);
-        }
-        return cid;
-      }
-      const CLIENT_ID = getClientId();
-
-      // ================== DOM refs ==================
-      const elApp = document.getElementById("app");
-      const elLogin = document.getElementById("login");
-      const elLoading = document.getElementById("loading");
-      const elForm = document.getElementById("loginForm");
-      const elMsg = document.getElementById("msg");
-      const elWho = document.getElementById("who");
-      const elOut = document.getElementById("signout");
-
-      // ================== STATE ==================
-      let appReady = false;
-      let currentUid = null;
-      let lastUserActionTs = Date.now();
-
-      // прод = 2 години; можеш зменшити на тест
-      const AUTO_LOGOUT_IDLE = 2 * 60 * 60 * 1000;
-      // const AUTO_LOGOUT_IDLE = 2 * 60 * 1000;
-
-      let heartbeatTimer = null;
-      let idleTimer = null;
-
-      // ================== SMALL HELPERS (UI) ==================
-      function showLogin() {
-        elLogin.style.display = "grid";
-        elLoading.style.display = "none";
-        elApp.style.display = "none";
-      }
-
-      function showLoading() {
-        elLogin.style.display = "none";
-        elLoading.style.display = "grid";
-        elApp.style.display = "none";
-      }
-
-      function showApp(email) {
-        elWho.textContent = email || "User";
-        elLogin.style.display = "none";
-        elLoading.style.display = "none";
-        elApp.style.display = "block";
-      }
-
-      // ================== SERVER CALLS ==================
-      async function callAcquireSession({ resume }) {
-        const fn = functions.httpsCallable("acquireSessionIfFree");
-        const res = await fn({ clientId: CLIENT_ID, resume: !!resume });
-        return res.data;
-      }
-
-      async function callHeartbeat() {
-        const fn = functions.httpsCallable("heartbeat");
-        return fn({ clientId: CLIENT_ID })
-          .then(() => {})
-          .catch(() => {});
-      }
-
-      async function callReleaseSession() {
-        const fn = functions.httpsCallable("releaseSession");
-        try {
-          await fn();
-        } catch (_) {}
-      }
-
-      function sendBeaconRelease(uid) {
-        if (!uid) return;
-        try {
-          const blob = new Blob([JSON.stringify({ uid, clientId: CLIENT_ID })], {
-            type: "application/json",
-          });
-          navigator.sendBeacon(
-            "https://us-central1-imbalance-monitor.cloudfunctions.net/releaseSessionBeacon",
-            blob
-          );
-        } catch (_) {}
-      }
-
-      // ================== LOGOUT FLOW ==================
-      function cleanupClientTimers() {
-        if (heartbeatTimer) {
-          clearInterval(heartbeatTimer);
-          heartbeatTimer = null;
-        }
-        if (idleTimer) {
-          clearInterval(idleTimer);
-          idleTimer = null;
-        }
-      }
-
-      async function logoutAndRelease({ viaBeacon = false } = {}) {
-        try {
-          if (viaBeacon) {
-            sendBeaconRelease(currentUid);
-          } else {
-            await callReleaseSession();
-          }
-        } catch (_) {}
-
-        try {
-          await auth.signOut();
-        } catch (_) {}
-
-        cleanupClientTimers();
-        appReady = false;
-        currentUid = null;
-        showLogin();
-      }
-
-      // ================== SESSION KEEP-ALIVE ==================
-      function startHeartbeatLoop() {
-        heartbeatTimer = setInterval(() => {
-          callHeartbeat().then((res) => {
-            // опційно можемо перевіряти відповідь і кікати, якщо сервер каже "taken-by-other"
-          });
-        }, 30 * 1000);
-      }
-
-      function startIdleLogoutWatch() {
-        ["click", "mousemove", "keydown", "touchstart", "scroll"].forEach((ev) => {
-          window.addEventListener(ev, () => {
-            lastUserActionTs = Date.now();
-          });
+      setInterval(() => {
+        requestAnimationFrame(() => {
+          updateTimestamp();
+          loadAll(); // loadAll сам викликає restoreUIState всередині
         });
+      }, 20000);
 
-        idleTimer = setInterval(() => {
-          const idleFor = Date.now() - lastUserActionTs;
-          if (idleFor > AUTO_LOGOUT_IDLE) {
-            logoutAndRelease({ viaBeacon: false });
-          }
-        }, 5000);
-      }
+      // ------Пошук-------
+      document.getElementById("search-symbol").addEventListener("input", function () {
+        const search = this.value.trim().toUpperCase();
+        document
+          .querySelectorAll(".tables .table-content table tbody tr.expand-row")
+          .forEach((row) => {
+            const symbolCell = row.querySelector("td:nth-child(2)");
+            if (!symbolCell) return;
 
-      // важливо: на reload Safari теж викликає beforeunload.
-      // Тепер ми НЕ рубаємо active=false, ми лише шлемо beacon з uid+clientId,
-      // backend просто оновить lastSeenAt. Це не знищує сесію.
-      window.addEventListener("beforeunload", () => {
-        sendBeaconRelease(currentUid);
-      });
+            const text = symbolCell.textContent.toUpperCase();
+            const match = text.includes(search);
 
-      // ================== твій UI для таблиць ==================
-      function bootDataUI() {
-        if (appReady) {
-          initAppUI();
-        }
-      }
+            // головний рядок
+            row.style.display = match ? "" : "none";
 
-      // ================== AUTH LISTENER ==================
-      auth.onAuthStateChanged(async (user) => {
-        cleanupClientTimers(); // скидаємо лупи, щоб не було дублів
+            // архівний рядок
+            const archive = row.nextElementSibling;
+            if (archive && archive.classList.contains("archive-row")) {
+              archive.style.display = match ? "" : "none";
+            }
 
-        if (!user) {
-          // юзер не залогінений в Firebase
-          appReady = false;
-          currentUid = null;
-          showLogin();
-          return;
-        }
-
-        // юзер є локально (або після логіну, або після reload)
-        currentUid = user.uid;
-        lastUserActionTs = Date.now();
-
-        showLoading(); // спочатку лоадер, без миготіння таблиці
-
-        let sessionResp;
-        try {
-          sessionResp = await callAcquireSession({ resume: true });
-        } catch (err) {
-          console.warn("acquireSessionIfFree error:", err);
-          // мережа/сервер впали → безпечно скинь у login
-          elMsg.textContent = "Помилка доступу до сесії. Спробуйте ще раз.";
-          try {
-            await auth.signOut();
-          } catch (_) {}
-          appReady = false;
-          currentUid = null;
-          showLogin();
-          return;
-        }
-
-        if (!sessionResp || !sessionResp.ok) {
-          // сервер каже "ні, сесія вже зайнята іншим clientId"
-          elMsg.textContent =
-            "Цей акаунт уже активний на іншому пристрої. Спершу вийдіть там.";
-          try {
-            await auth.signOut();
-          } catch (_) {}
-          appReady = false;
-          currentUid = null;
-          showLogin();
-          return;
-        }
-
-        // все ок, ця вкладка/девайс має право жити
-        appReady = true;
-        showApp(user.email);
-        bootDataUI();
-        startHeartbeatLoop();
-        startIdleLogoutWatch();
-      });
-
-      // ================== LOGIN FORM ==================
-      elForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        elMsg.textContent = "";
-
-        const email = document.getElementById("email").value.trim();
-        const pass = document.getElementById("password").value;
-
-        showLoading(); // одразу показуємо "Завантаження…"
-
-        try {
-          await auth.signInWithEmailAndPassword(email, pass);
-          // далі onAuthStateChanged завершить процес
-        } catch (err) {
-          console.warn("login error:", err);
-          const code = err?.code || "";
-          if (code === "auth/invalid-login-credentials") {
-            elMsg.textContent = "Невірний email або пароль.";
-          } else if (code === "auth/too-many-requests") {
-            elMsg.textContent = "Забагато спроб входу. Спробуйте пізніше.";
-          } else {
-            elMsg.textContent = "Помилка входу. Зверніться до адміністратора.";
-          }
-          showLogin(); // повертаємось до логіну
-        }
-      });
-
-      // ================== MANUAL LOG OUT BUTTON ==================
-      elOut.addEventListener("click", async () => {
-        await logoutAndRelease({ viaBeacon: false });
+            // Підсвітка символу
+            symbolCell.style.fontWeight = match && search !== "" ? "bold" : "";
+            symbolCell.style.background = match && search !== "" ? "#57abf4" : "";
+          });
       });
     </script>
   </body>
