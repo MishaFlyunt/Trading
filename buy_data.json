@@ -10,6 +10,7 @@
     ],
     [
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       "15:41:30",
       "NEM",
       442000,
@@ -20,6 +21,8 @@
     [
       "15:41:18",
 =======
+=======
+>>>>>>> Stashed changes
       "13:46:13",
       "CAT",
       65000,
@@ -1447,8 +1450,11 @@
   ],
   "archive": {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     "NEM": [
 =======
+=======
+>>>>>>> Stashed changes
     "CAT": [
       [
         "Update Time",
@@ -1554,6 +1560,9 @@
       ]
     ],
     "C": [
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
       [
         "Update Time",
@@ -1562,6 +1571,7 @@
         "Paired"
       ],
       [
+<<<<<<< Updated upstream
         "15:41:30",
         "BUY",
         442000,
@@ -1700,6 +1710,38 @@
         339665,
         96439
 =======
+>>>>>>> Stashed changes
+=======
+        "13:30:20",
+        "BUY",
+        350000,
+        500000
+      ],
+      [
+        "13:30:20",
+        "BUY",
+        350000,
+        500000
+      ]
+    ],
+    "MRK": [
+      [
+        "Update Time",
+        "Side",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:29:37",
+        "BUY",
+        50000,
+        200000
+      ],
+      [
+        "13:29:37",
+        "BUY",
+        50000,
+        200000
 >>>>>>> Stashed changes
       ]
     ],
