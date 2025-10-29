@@ -14,8 +14,6 @@ smart_login_and_fetch.py
 imb90_analysis.json
 notified_streaks.json
 last_push_time.txt
-smart_test.py
-smart_login_old.py
 pr_stoks.json
 .venv
 geckodriver.tar.gz
