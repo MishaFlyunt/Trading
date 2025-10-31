@@ -7,7 +7,30 @@
       "Paired",
       "ADV",
       "% ImbADV"
+    ],
+    [
+      "13:33:46",
+      "TIME:13:33:46  SELL:55,000  PO:50,000  VAL:$13,688,675ACN",
+      55000,
+      50000,
+      "0",
+      "0"
     ]
   ],
-  "archive": {}
+  "archive": {
+    "Time:13:33:46  Sell:55,000  PO:50,000  Val:$13,688,675ACN": [
+      [
+        "Update Time",
+        "Side",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:33:46",
+        "SELL",
+        55000,
+        50000
+      ]
+    ]
+  }
 }
