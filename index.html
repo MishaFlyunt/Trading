@@ -324,17 +324,20 @@
       /* мобільна адаптація */
       @media (max-width: 600px) {
         body {
-          font-size: 13px;
+          font-size: 12px;
         }
+
         .table-container {
-          padding: 0.4rem;
+          padding: 0.3rem;
         }
+
         .controls h1 {
-          font-size: 16px;
+          font-size: 15px;
         }
+
         .controls input#search-symbol {
-          font-size: 13px;
-          width: 120px;
+          font-size: 12px;
+          width: 100px;
         }
 
         .table-content {
@@ -342,22 +345,21 @@
         }
 
         table {
-          min-width: 0; /* прибираємо жорсткий мінімум */
-          width: 100%; /* тягнемося по ширині екрану */
-          table-layout: fixed; /* рівномірний розподіл колонок */
-          font-size: 12px;
+          min-width: 0;
+          width: 100%;
+          table-layout: fixed;
+          font-size: 11px;
         }
 
         th,
         td {
-          padding: 4px 3px;
-          white-space: nowrap; /* ellipsis залишаємо лише для важливих */
+          padding: 3px 2px;
+          white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         }
 
-        /* Ховаємо найменш критичні колонки на вузьких екранах:
-     4: Paired, 5: ADV */
+        /* Ховаємо менш важливі колонки (Paired, ADV) */
         th:nth-child(4),
         td:nth-child(4),
         th:nth-child(5),
@@ -365,25 +367,31 @@
           display: none;
         }
 
-        /* Компактні ширини ключових колонок */
+        /* Дуже компактні ключові колонки */
         th:nth-child(1),
         td:nth-child(1) {
-          max-width: 45px;
+          max-width: 38px;
+          font-size: 10px;
+          white-space: normal; /* дозволяє перенос часу */
+          line-height: 1.1;
         } /* Update Time */
+
         th:nth-child(2),
         td:nth-child(2) {
-          max-width: 90px;
+          max-width: 70px;
         } /* Symbol */
+
         th:nth-child(3),
         td:nth-child(3) {
-          max-width: 90px;
+          max-width: 70px;
         } /* Imbalance */
+
         th:nth-child(6),
         td:nth-child(6) {
-          max-width: 50px;
-        } /* % ImbADV */
+          max-width: 45px;
+        } /* %ImbADV */
 
-        /* Приберемо зайве в комірці Symbol (посилання-іконка) */
+        /* Прибираємо зайві іконки у Symbol */
         a.finviz-link {
           display: none;
         }
