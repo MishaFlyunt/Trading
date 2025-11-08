@@ -316,54 +316,42 @@
       }
 
       /* Дуже вузькі екрани (iPhone SE / старі андроїди) */
+      /* 🔹 Адаптивне стиснення таблиці для мобільних */
       @media (max-width: 600px) {
-        .controls {
-          flex-direction: column;
-          align-items: stretch;
-          gap: 0.5rem;
+        body {
+          font-size: 13px;
         }
-
-        #search-symbol {
-          width: 100% !important;
-          font-size: 0.85rem;
-          padding: 5px 6px;
-        }
-
-        .pill,
-        .controls button {
-          font-size: 0.8rem;
-          padding: 5px 8px;
-        }
-
-        table {
-          font-size: 0.8rem;
-          min-width: 440px; /* ще компактніше */
-        }
-
         th,
         td {
           padding: 4px 3px;
+          font-size: 12px;
+        }
+        table {
+          min-width: 440px;
+        }
+        td,
+        th {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         }
-
         td:nth-child(2),
         th:nth-child(2) {
-          max-width: 90px; /* Symbol */
+          max-width: 100px; /* Symbol */
         }
-
         td:nth-child(6),
         th:nth-child(6) {
           max-width: 60px; /* %ImbADV */
         }
-
         .table-container {
           padding: 0.4rem;
         }
-
         .controls h1 {
-          font-size: 1rem;
+          font-size: 16px;
+        }
+        .controls input#search-symbol {
+          font-size: 13px;
+          width: 120px;
         }
       }
 
