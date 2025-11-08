@@ -12,6 +12,19 @@
         --table-bg: #fff;
         --header-bg: #ccc;
         --alert-text: red;
+
+        --fs-base: clamp(12px, 1.6vw + 8px, 16px);
+        --fs-h1: clamp(18px, 2vw + 14px, 26px);
+        --fs-h2: clamp(16px, 1.6vw + 12px, 20px);
+      }
+      body {
+        font-size: var(--fs-base);
+      }
+      h1 {
+        font-size: var(--fs-h1);
+      }
+      h2 {
+        font-size: var(--fs-h2);
       }
       html,
       body {
@@ -324,6 +337,12 @@
         th,
         td {
           padding: 6px 4px;
+        }
+        .table-container {
+          padding: 0.6rem;
+        }
+        .controls {
+          gap: 0.5rem;
         }
       }
 
@@ -800,9 +819,6 @@
 
                 cell.style.fontWeight = match && search !== "" ? "bold" : "";
                 cell.style.background = match && search !== "" ? "#57abf4" : "";
-                // cell.style.background = "";
-                // cell.style.outline = match && search !== "" ? "2px solid #57abf4" : "";
-                // cell.style.outlineOffset = match && search !== "" ? "2px" : "";
               });
           });
         }
