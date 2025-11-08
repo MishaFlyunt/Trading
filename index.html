@@ -264,6 +264,101 @@
         border-radius: 999px;
         border: 2px solid #4d5877;
       }
+
+      /* ===== Mobile responsiveness improvements ===== */
+
+      /* Базові розміри шрифтів через clamp */
+      html,
+      body {
+        font-size: clamp(12px, 1.4vw + 0.3rem, 16px);
+      }
+      h1 {
+        font-size: clamp(18px, 2.2vw + 0.8rem, 26px);
+      }
+      h2 {
+        font-size: clamp(14px, 1.8vw + 0.5rem, 20px);
+      }
+
+      /* Робимо контент таблиць ще й горизонтально скрольним */
+      .table-content {
+        overflow-y: auto;
+        overflow-x: auto; /* + */
+      }
+
+      /* Трохи компактніше на телефонах */
+      @media (max-width: 900px) {
+        .controls {
+          gap: 0.6rem;
+        }
+        .controls h1 {
+          margin-bottom: 0.2rem;
+        }
+        .table-container {
+          padding: 0.75rem;
+        }
+        th,
+        td {
+          padding: 6px;
+        }
+      }
+
+      /* Дуже вузькі екрани (iPhone SE / старі андроїди) */
+      @media (max-width: 600px) {
+        .controls {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        #search-symbol {
+          width: 100% !important;
+          font-size: 0.95rem;
+        }
+        .pill,
+        .controls button {
+          font-size: 0.9rem;
+          padding: 6px 10px;
+        }
+        table {
+          font-size: 0.9rem;
+          min-width: 520px; /* дозволяє горизонтальний скрол, щоб не ламало верстку */
+        }
+        th,
+        td {
+          padding: 6px 4px;
+        }
+      }
+
+      /* Екстремально вузько — ховаємо другорядні колонки, лишаємо головне
+   Порядок колонок у тебе: 
+   1) Update Time  2) Symbol  3) Imbalance  4) Paired  5) ADV  6) % ImbADV
+*/
+      @media (max-width: 480px) {
+        /* сховати Paired і ADV */
+        table th:nth-child(4),
+        table td:nth-child(4),
+        table th:nth-child(5),
+        table td:nth-child(5) {
+          display: none;
+        }
+        table {
+          min-width: 420px;
+        }
+      }
+
+      /* Ще вужче — якщо дуже треба, можна сховати Update Time */
+      @media (max-width: 360px) {
+        table th:nth-child(1),
+        table td:nth-child(1) {
+          display: none;
+        }
+        table {
+          min-width: 360px;
+        }
+      }
+
+      /* Підкреслення підсвіченого пошуком рядка, але без “яскравої заливки” */
+      .tables .table-content table tbody tr.expand-row td:nth-child(2) {
+        transition: background-color 0.2s, outline-color 0.2s;
+      }
     </style>
   </head>
   <body>
@@ -704,7 +799,10 @@
                 }
 
                 cell.style.fontWeight = match && search !== "" ? "bold" : "";
-                cell.style.background = match && search !== "" ? "#57abf4" : "";
+                // cell.style.background = match && search !== "" ? "#57abf4" : "";
+                cell.style.background = "";
+                cell.style.outline = match && search !== "" ? "2px solid #57abf4" : "";
+                cell.style.outlineOffset = match && search !== "" ? "2px" : "";
               });
           });
         }

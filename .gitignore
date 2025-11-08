@@ -27,8 +27,6 @@ firebase.json
 firestore.rules
 functions
 firebase-debug.log
-test2.js
-index3.html
 .prev_close_done.txt
 firestore
 index-1.html
@@ -39,8 +37,6 @@ package-lock.json
 package.json
 note.txt
 /last_push_time.txt
-smart_login_and_fetch-2.py
-smart_login_and_fetch-1.py
 pr_symbols_today.json
 test.json
-fill_prev_close.py
+fill_prev_close_test.py
