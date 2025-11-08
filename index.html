@@ -320,29 +320,50 @@
         .controls {
           flex-direction: column;
           align-items: stretch;
+          gap: 0.5rem;
         }
+
         #search-symbol {
           width: 100% !important;
-          font-size: 0.95rem;
+          font-size: 0.85rem;
+          padding: 5px 6px;
         }
+
         .pill,
         .controls button {
-          font-size: 0.9rem;
-          padding: 6px 10px;
+          font-size: 0.8rem;
+          padding: 5px 8px;
         }
+
         table {
-          font-size: 0.9rem;
-          min-width: 520px; /* дозволяє горизонтальний скрол, щоб не ламало верстку */
+          font-size: 0.8rem;
+          min-width: 440px; /* ще компактніше */
         }
+
         th,
         td {
-          padding: 6px 4px;
+          padding: 4px 3px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
+
+        td:nth-child(2),
+        th:nth-child(2) {
+          max-width: 90px; /* Symbol */
+        }
+
+        td:nth-child(6),
+        th:nth-child(6) {
+          max-width: 60px; /* %ImbADV */
+        }
+
         .table-container {
-          padding: 0.6rem;
+          padding: 0.4rem;
         }
-        .controls {
-          gap: 0.5rem;
+
+        .controls h1 {
+          font-size: 1rem;
         }
       }
 
