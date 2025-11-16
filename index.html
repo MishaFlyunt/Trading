@@ -95,11 +95,38 @@
         flex-grow: 1;
         overflow-y: auto;
       }
-      table {
+      .main-table {
         border-collapse: collapse;
         width: 100%;
         table-layout: fixed; /* щоб колонки реально стискались */
       }
+      /* Архівна таблиця — своя,
+      компактна,
+      не ламає макет */ 
+      .archive-table {
+        border-collapse: collapse;
+        width: 100%;
+        table-layout: fixed;
+        font-size: 0.9em;
+      }
+
+      .archive-table th,
+      .archive-table td {
+        padding: 3px 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* Контейнер архіву може скролитись окремо і вертикально, і горизонтально */
+      .archive-scroll {
+        max-height: 260px;
+        overflow-y: auto;
+        overflow-x: auto;
+        border: 1px solid #aaa;
+        margin-top: 5px;
+      }
+      
       .switch {
         position: relative;
         display: inline-block;
@@ -315,21 +342,15 @@
         }
       }
 
-      /* базово краще додати один раз (поза media): */
-      table {
-        table-layout: fixed;
-        width: 100%;
-      }
-
       /* мобільна адаптація */
       @media (max-width: 600px) {
-        table {
+        .main-table {
           width: 100%;
           table-layout: fixed;
           font-size: 12px;
         }
-        th,
-        td {
+        .main-table th,
+        .main-table td {
           padding: 3px 2px;
           white-space: nowrap;
           overflow: hidden;
@@ -337,38 +358,38 @@
         }
 
         /* Update Time */
-        th:nth-child(1),
-        td:nth-child(1) {
+        .main-table th:nth-child(1),
+        .main-table td:nth-child(1) {
           max-width: 55px;
         }
 
         /* Symbol */
-        th:nth-child(2),
-        td:nth-child(2) {
+        .main-table th:nth-child(2),
+        .main-table td:nth-child(2) {
           max-width: 95px;
         }
 
         /* Imbalance */
-        th:nth-child(3),
-        td:nth-child(3) {
+        .main-table th:nth-child(3),
+        .main-table td:nth-child(3) {
           max-width: 85px;
         }
 
         /* Paired — ховаємо */
-        th:nth-child(4),
-        td:nth-child(4) {
+        .main-table th:nth-child(4),
+        .main-table td:nth-child(4) {
           display: none;
         }
 
         /* ADV — ховаємо */
-        th:nth-child(5),
-        td:nth-child(5) {
+        .main-table th:nth-child(5),
+        .main-table td:nth-child(5) {
           display: none;
         }
 
         /* %ImbADV */
-        th:nth-child(6),
-        td:nth-child(6) {
+        .main-table th:nth-child(6),
+        .main-table td:nth-child(6) {
           max-width: 55px;
         }
 
@@ -384,18 +405,18 @@
 */
       @media (max-width: 480px) {
         /* сховати Paired і ADV */
-        table th:nth-child(4),
-        table td:nth-child(4),
-        table th:nth-child(5),
-        table td:nth-child(5) {
+        .main-table th:nth-child(4),
+        .main-table td:nth-child(4),
+        .main-table th:nth-child(5),
+        .main-table td:nth-child(5) {
           display: none;
         }
       }
 
       /* Ще вужче — якщо дуже треба, можна сховати Update Time */
       @media (max-width: 360px) {
-        table th:nth-child(1),
-        table td:nth-child(1) {
+        .main-table th:nth-child(1),
+        .main-table td:nth-child(1) {
           display: none;
         }
       }
@@ -647,7 +668,8 @@
         }
 
         // build main table
-        let html = "<table><thead><tr>";
+        // let html = "<table><thead><tr>";
+        let html = '<table class="main-table"><thead><tr>';
         data.main[0].forEach((cell, i) => {
           html += `<th onclick="sortTable(this.closest('table'), ${i})">${cell}</th>`;
         });
