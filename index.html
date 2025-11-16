@@ -102,8 +102,7 @@
       .main-table {
         border-collapse: collapse;
         width: 100%;
-        min-width: 420px; /* 👈 таблиця не стає вже за 420px */
-        table-layout: fixed;
+        table-layout: fixed; /* щоб колонки реально стискались */
       }
       /* Архівна таблиця — своя,
       компактна,
@@ -351,7 +350,6 @@
       @media (max-width: 600px) {
         .main-table {
           width: 100%;
-          min-width: 420px;
           table-layout: fixed;
           font-size: 12px;
         }
