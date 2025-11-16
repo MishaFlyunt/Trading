@@ -98,10 +98,12 @@
         /* щоб при появі/зникненні скролу ширина не стрибала */
         scrollbar-gutter: stable both-edges;
       }
+
       .main-table {
         border-collapse: collapse;
         width: 100%;
-        table-layout: fixed; /* щоб колонки реально стискались */
+        min-width: 420px; /* 👈 таблиця не стає вже за 420px */
+        table-layout: fixed;
       }
       /* Архівна таблиця — своя,
       компактна,
@@ -349,6 +351,7 @@
       @media (max-width: 600px) {
         .main-table {
           width: 100%;
+          min-width: 420px;
           table-layout: fixed;
           font-size: 12px;
         }
@@ -671,7 +674,6 @@
         }
 
         // build main table
-        // let html = "<table><thead><tr>";
         let html = '<table class="main-table"><thead><tr>';
         data.main[0].forEach((cell, i) => {
           html += `<th onclick="sortTable(this.closest('table'), ${i})">${cell}</th>`;
