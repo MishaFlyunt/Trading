@@ -98,7 +98,7 @@
       table {
         border-collapse: collapse;
         width: 100%;
-        min-width: 600px;
+        table-layout: fixed; /* щоб колонки реально стискались */
       }
       .switch {
         position: relative;
@@ -325,10 +325,9 @@
       @media (max-width: 600px) {
         table {
           width: 100%;
-          table-layout: fixed; /* дуже важливо */
+          table-layout: fixed;
           font-size: 12px;
         }
-
         th,
         td {
           padding: 3px 2px;
@@ -391,9 +390,6 @@
         table td:nth-child(5) {
           display: none;
         }
-        table {
-          min-width: 420px;
-        }
       }
 
       /* Ще вужче — якщо дуже треба, можна сховати Update Time */
@@ -401,9 +397,6 @@
         table th:nth-child(1),
         table td:nth-child(1) {
           display: none;
-        }
-        table {
-          min-width: 360px;
         }
       }
 
