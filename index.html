@@ -94,6 +94,9 @@
       .table-content {
         flex-grow: 1;
         overflow-y: auto;
+        overflow-x: auto;
+        /* щоб при появі/зникненні скролу ширина не стрибала */
+        scrollbar-gutter: stable both-edges;
       }
       .main-table {
         border-collapse: collapse;
@@ -102,7 +105,7 @@
       }
       /* Архівна таблиця — своя,
       компактна,
-      не ламає макет */ 
+      не ламає макет */
       .archive-table {
         border-collapse: collapse;
         width: 100%;
@@ -126,7 +129,7 @@
         border: 1px solid #aaa;
         margin-top: 5px;
       }
-      
+
       .switch {
         position: relative;
         display: inline-block;
