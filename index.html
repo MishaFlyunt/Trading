@@ -323,32 +323,10 @@
 
       /* мобільна адаптація */
       @media (max-width: 600px) {
-        body {
-          font-size: 12px;
-        }
-
-        .table-container {
-          padding: 0.3rem;
-        }
-
-        .controls h1 {
-          font-size: 15px;
-        }
-
-        .controls input#search-symbol {
-          font-size: 12px;
-          width: 100px;
-        }
-
-        .table-content {
-          overflow-x: hidden;
-        }
-
         table {
-          min-width: 0;
           width: 100%;
-          table-layout: fixed;
-          font-size: 11px;
+          table-layout: fixed; /* дуже важливо */
+          font-size: 12px;
         }
 
         th,
@@ -359,39 +337,43 @@
           text-overflow: ellipsis;
         }
 
-        /* Ховаємо менш важливі колонки (Paired, ADV) */
+        /* Update Time */
+        th:nth-child(1),
+        td:nth-child(1) {
+          max-width: 55px;
+        }
+
+        /* Symbol */
+        th:nth-child(2),
+        td:nth-child(2) {
+          max-width: 95px;
+        }
+
+        /* Imbalance */
+        th:nth-child(3),
+        td:nth-child(3) {
+          max-width: 85px;
+        }
+
+        /* Paired — ховаємо */
         th:nth-child(4),
-        td:nth-child(4),
+        td:nth-child(4) {
+          display: none;
+        }
+
+        /* ADV — ховаємо */
         th:nth-child(5),
         td:nth-child(5) {
           display: none;
         }
 
-        /* Дуже компактні ключові колонки */
-        th:nth-child(1),
-        td:nth-child(1) {
-          max-width: 30px;
-          font-size: 10px;
-          white-space: normal; /* дозволяє перенос часу */
-          line-height: 1.1;
-        } /* Update Time */
-
-        th:nth-child(2),
-        td:nth-child(2) {
-          max-width: 70px;
-        } /* Symbol */
-
-        th:nth-child(3),
-        td:nth-child(3) {
-          max-width: 60px;
-        } /* Imbalance */
-
+        /* %ImbADV */
         th:nth-child(6),
         td:nth-child(6) {
-          max-width: 45px;
-        } /* %ImbADV */
+          max-width: 55px;
+        }
 
-        /* Прибираємо зайві іконки у Symbol */
+        /* Finviz link — ховаємо */
         a.finviz-link {
           display: none;
         }
