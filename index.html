@@ -350,10 +350,12 @@
       /* мобільна адаптація */
       @media (max-width: 600px) {
         .main-table {
-          width: 100%;
           table-layout: fixed;
           font-size: 12px;
+          min-width: 420px; /* 👈 тримаємо ширину */
+          width: auto; /* 👈 не стискаємо під 425px */
         }
+
         .main-table th,
         .main-table td {
           padding: 3px 2px;
@@ -398,7 +400,6 @@
           max-width: 55px;
         }
 
-        /* Finviz link — ховаємо */
         a.finviz-link {
           display: none;
         }
