@@ -7,7 +7,30 @@
       "Paired",
       "ADV",
       "% ImbADV"
+    ],
+    [
+      "13:30:06",
+      "BSX",
+      70000,
+      120000,
+      "8750000",
+      "1"
     ]
   ],
-  "archive": {}
+  "archive": {
+    "BSX": [
+      [
+        "Update Time",
+        "Side",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:30:06",
+        "SELL",
+        70000,
+        120000
+      ]
+    ]
+  }
 }
