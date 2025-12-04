@@ -7,7 +7,30 @@
       "Paired",
       "ADV",
       "% ImbADV"
+    ],
+    [
+      "13:28:49",
+      "MRK",
+      170000,
+      80000,
+      "13170000",
+      "2"
     ]
   ],
-  "archive": {}
+  "archive": {
+    "MRK": [
+      [
+        "Update Time",
+        "Side",
+        "Imbalance",
+        "Paired"
+      ],
+      [
+        "13:28:49",
+        "BUY",
+        170000,
+        80000
+      ]
+    ]
+  }
 }
